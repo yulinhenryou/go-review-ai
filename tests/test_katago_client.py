@@ -8,7 +8,7 @@ def test_mock_client_returns_structured_analysis() -> None:
         board_size=19,
         komi=6.5,
         to_play="B",
-        moves=[("B", "pd"), ("W", "dd"), ("B", "qp")],
+        moves=(("B", "pd"), ("W", "dd"), ("B", "qp")),
         played_move="dc",
     )
 
@@ -29,7 +29,7 @@ def test_mock_client_accepts_best_move_as_zero_loss() -> None:
         board_size=19,
         komi=6.5,
         to_play="W",
-        moves=[("B", "pd")],
+        moves=(("B", "pd"),),
         played_move="dq",
     )
 
@@ -45,8 +45,8 @@ def test_mock_client_rejects_invalid_to_play() -> None:
     position = PositionInput(
         board_size=19,
         komi=6.5,
-        to_play="X",
-        moves=[],
+        to_play="X",  # type: ignore[arg-type]
+        moves=(),
         played_move=None,
     )
 
@@ -58,7 +58,7 @@ def test_mock_client_rejects_invalid_to_play() -> None:
         raise AssertionError("Expected ValueError for invalid to_play")
 
 
-def test_validation_position_like_input_produces_output() -> None:
+def test_mock_client_analyzes_position_like_input() -> None:
     client = MockEngineClient()
 
     analysis = client.analyze_position(
@@ -66,17 +66,12 @@ def test_validation_position_like_input_produces_output() -> None:
             board_size=13,
             komi=0.5,
             to_play="B",
-            moves=[("B", "dd"), ("W", "jj")],
+            moves=(("B", "dd"), ("W", "jj")),
             played_move="kk",
         )
     )
 
-    print("Best move:", analysis.best_move)
-    print("Played move:", analysis.played_move)
-    print("Estimated loss:", analysis.estimated_loss)
-    print("Top candidates:", [c.move for c in analysis.top_candidates])
-    print("PV:", analysis.pv_summary)
-
     assert isinstance(analysis.best_move, str)
     assert len(analysis.top_candidates) == 3
     assert analysis.pv_summary
+    assert analysis.estimated_loss > 0.0
