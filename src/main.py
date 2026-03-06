@@ -1,13 +1,36 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from src.analyzer import analyze_sgf_file
 from src.classifier import classify_selected_mistakes
-from src.katago_client import EngineClient, MockEngineClient
+from src.katago_client import (
+    EngineClient,
+    KataGoClient,
+    KataGoUnavailableError,
+    MockEngineClient,
+)
 from src.mistake_selector import select_top_mistakes
 from src.report_writer import generate_review_report
+from src.review_result import ReviewResult, build_review_result
 from src.sgf_parser import parse_sgf_file
+
+
+def build_review_outputs_for_sgf(
+    sgf_path: str | Path,
+    engine: EngineClient,
+    loss_threshold: float = 1.0,
+    limit: int = 3,
+) -> tuple[str, ReviewResult]:
+    game = parse_sgf_file(sgf_path)
+    results = analyze_sgf_file(sgf_path, engine)
+    selected = select_top_mistakes(results, loss_threshold=loss_threshold, limit=limit)
+    classified = classify_selected_mistakes(selected, results)
+    return (
+        generate_review_report(game, classified),
+        build_review_result(game, classified, results),
+    )
 
 
 def build_review_report_for_sgf(
@@ -16,17 +39,52 @@ def build_review_report_for_sgf(
     loss_threshold: float = 1.0,
     limit: int = 3,
 ) -> str:
-    game = parse_sgf_file(sgf_path)
-    results = analyze_sgf_file(sgf_path, engine)
-    selected = select_top_mistakes(results, loss_threshold=loss_threshold, limit=limit)
-    classified = classify_selected_mistakes(selected, results)
-    return generate_review_report(game, classified)
+    report, _review_result = build_review_outputs_for_sgf(
+        sgf_path=sgf_path,
+        engine=engine,
+        loss_threshold=loss_threshold,
+        limit=limit,
+    )
+    return report
 
 
-def print_sample_report(sgf_path: str | Path = "samples/sample_game.sgf") -> None:
+def build_structured_review_for_sgf(
+    sgf_path: str | Path,
+    engine: EngineClient,
+    loss_threshold: float = 1.0,
+    limit: int = 3,
+) -> ReviewResult:
+    _report, review_result = build_review_outputs_for_sgf(
+        sgf_path=sgf_path,
+        engine=engine,
+        loss_threshold=loss_threshold,
+        limit=limit,
+    )
+    return review_result
+
+
+def build_default_engine() -> EngineClient:
+    katago_path = os.environ.get("KATAGO_PATH", "katago")
+    try:
+        return KataGoClient.from_environment(
+            katago_path=katago_path,
+            candidate_count=3,
+            max_visits=200,
+            timeout_seconds=20.0,
+        )
+    except KataGoUnavailableError as exc:
+        print(f"KataGo unavailable ({exc}); falling back to MockEngineClient.")
+        return MockEngineClient(candidate_count=3)
+
+
+def print_sample_report(
+    sgf_path: str | Path = "samples/sample_game.sgf",
+    engine: EngineClient | None = None,
+) -> None:
+    selected_engine = engine if engine is not None else build_default_engine()
     report = build_review_report_for_sgf(
         sgf_path=sgf_path,
-        engine=MockEngineClient(candidate_count=3),
+        engine=selected_engine,
         loss_threshold=1.0,
         limit=3,
     )
