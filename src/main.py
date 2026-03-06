@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from src.analyzer import analyze_sgf_file
+from src.analyzer import analyze_game
 from src.classifier import classify_selected_mistakes
 from src.katago_client import (
     EngineClient,
@@ -14,7 +14,7 @@ from src.katago_client import (
 from src.mistake_selector import select_top_mistakes
 from src.report_writer import generate_review_report
 from src.review_result import ReviewResult, build_review_result
-from src.sgf_parser import parse_sgf_file
+from src.sgf_parser import ParsedGame, parse_sgf, parse_sgf_file
 
 
 def build_review_outputs_for_sgf(
@@ -24,7 +24,21 @@ def build_review_outputs_for_sgf(
     limit: int = 3,
 ) -> tuple[str, ReviewResult]:
     game = parse_sgf_file(sgf_path)
-    results = analyze_sgf_file(sgf_path, engine)
+    return build_review_outputs_for_game(
+        game=game,
+        engine=engine,
+        loss_threshold=loss_threshold,
+        limit=limit,
+    )
+
+
+def build_review_outputs_for_game(
+    game: ParsedGame,
+    engine: EngineClient,
+    loss_threshold: float = 1.0,
+    limit: int = 3,
+) -> tuple[str, ReviewResult]:
+    results = analyze_game(game, engine)
     selected = select_top_mistakes(results, loss_threshold=loss_threshold, limit=limit)
     classified = classify_selected_mistakes(selected, results)
     return (
@@ -56,6 +70,22 @@ def build_structured_review_for_sgf(
 ) -> ReviewResult:
     _report, review_result = build_review_outputs_for_sgf(
         sgf_path=sgf_path,
+        engine=engine,
+        loss_threshold=loss_threshold,
+        limit=limit,
+    )
+    return review_result
+
+
+def build_structured_review_for_sgf_text(
+    sgf_text: str,
+    engine: EngineClient,
+    loss_threshold: float = 1.0,
+    limit: int = 3,
+) -> ReviewResult:
+    game = parse_sgf(sgf_text)
+    _report, review_result = build_review_outputs_for_game(
+        game=game,
         engine=engine,
         loss_threshold=loss_threshold,
         limit=limit,
