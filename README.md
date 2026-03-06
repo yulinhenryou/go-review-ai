@@ -82,6 +82,29 @@ curl -X POST "http://127.0.0.1:8000/api/v1/analyze-sgf" \
   -F "limit=3"
 ```
 
+Analyze a position/game state from JSON moves:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/analyze-moves" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "board_size": 19,
+    "komi": 6.5,
+    "players": {
+      "black": "Lee Sedol",
+      "white": "AlphaGo"
+    },
+    "moves": [
+      {"color": "B", "sgf": "pd"},
+      {"color": "W", "sgf": "dd"},
+      {"color": "B", "sgf": "qp"},
+      {"color": "W", "sgf": "dc"}
+    ],
+    "loss_threshold": 1.0,
+    "limit": 3
+  }'
+```
+
 Health check:
 
 ```bash

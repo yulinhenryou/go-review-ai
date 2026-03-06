@@ -77,13 +77,12 @@ def build_structured_review_for_sgf(
     return review_result
 
 
-def build_structured_review_for_sgf_text(
-    sgf_text: str,
+def build_structured_review_for_game(
+    game: ParsedGame,
     engine: EngineClient,
     loss_threshold: float = 1.0,
     limit: int = 3,
 ) -> ReviewResult:
-    game = parse_sgf(sgf_text)
     _report, review_result = build_review_outputs_for_game(
         game=game,
         engine=engine,
@@ -91,6 +90,21 @@ def build_structured_review_for_sgf_text(
         limit=limit,
     )
     return review_result
+
+
+def build_structured_review_for_sgf_text(
+    sgf_text: str,
+    engine: EngineClient,
+    loss_threshold: float = 1.0,
+    limit: int = 3,
+) -> ReviewResult:
+    game = parse_sgf(sgf_text)
+    return build_structured_review_for_game(
+        game=game,
+        engine=engine,
+        loss_threshold=loss_threshold,
+        limit=limit,
+    )
 
 
 def build_default_engine() -> EngineClient:

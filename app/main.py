@@ -4,8 +4,13 @@ from typing import Callable
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
+from app.models import AnalyzeMovesPayload
 from src.katago_client import EngineClient
-from src.main import build_default_engine, build_structured_review_for_sgf_text
+from src.main import (
+    build_default_engine,
+    build_structured_review_for_game,
+    build_structured_review_for_sgf_text,
+)
 
 
 EngineFactory = Callable[[], EngineClient]
@@ -43,6 +48,23 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
                 engine=selected_engine_factory(),
                 loss_threshold=loss_threshold,
                 limit=limit,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+        return review.to_dict()
+
+    @app.post("/api/v1/analyze-moves")
+    def analyze_moves(payload: AnalyzeMovesPayload) -> dict[str, object]:
+        try:
+            game = payload.to_parsed_game()
+            review = build_structured_review_for_game(
+                game=game,
+                engine=selected_engine_factory(),
+                loss_threshold=payload.loss_threshold,
+                limit=payload.limit,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
