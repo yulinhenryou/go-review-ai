@@ -45,7 +45,51 @@
     ],
     "pv_summary": "B jj -> W kj -> B jk",
     "score_estimate": 0.9,
-    "winrate": 0.53
+    "winrate": 0.53,
+    "short_explanation": "Black to play. KataGo recommends K10, with score estimate 0.9 and winrate 53%."
+  },
+  "key_points": {
+    "turning_points": [
+      {
+        "move_number": 3,
+        "color": "B",
+        "score_loss": 1.8,
+        "winrate_delta": -0.08,
+        "severity": "mistake",
+        "severity_label": "问题手",
+        "phase": "middle game",
+        "summary": "Move 3 created a major swing in the middle game with loss 1.80 and winrate change -8%."
+      },
+      {
+        "move_number": 1,
+        "color": "B",
+        "score_loss": 1.4,
+        "winrate_delta": -0.06,
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
+        "phase": "opening",
+        "summary": "Move 1 created a major swing in the opening with loss 1.40 and winrate change -6%."
+      },
+      {
+        "move_number": 2,
+        "color": "W",
+        "score_loss": 1.2,
+        "winrate_delta": -0.05,
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
+        "phase": "middle game",
+        "summary": "Move 2 created a major swing in the middle game with loss 1.20 and winrate change -5%."
+      }
+    ],
+    "plan_breaks": [],
+    "phase_summary": {
+      "opening_loss": 1.4,
+      "middle_game_loss": 3.0,
+      "endgame_loss": 1.2,
+      "biggest_problem_phase": "middle game",
+      "main_issue": "fighting",
+      "summary": "The biggest problems came in the middle game, with the main issue being fighting."
+    }
   },
   "timeline": [
     {

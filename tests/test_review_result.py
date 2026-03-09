@@ -28,6 +28,56 @@ def test_build_review_result_from_pipeline_data() -> None:
     assert payload["current_position"]["short_explanation"] == (
         "Black to play. KataGo recommends K10, with score estimate 0.9 and winrate 53%."
     )
+    assert payload["key_points"]["turning_points"] == [
+        {
+            "move_number": 3,
+            "color": "B",
+            "score_loss": 1.8,
+            "winrate_delta": -0.08,
+            "severity": "mistake",
+            "severity_label": "问题手",
+            "phase": "middle game",
+            "summary": (
+                "Move 3 created a major swing in the middle game with loss 1.80 "
+                "and winrate change -8%."
+            ),
+        },
+        {
+            "move_number": 1,
+            "color": "B",
+            "score_loss": 1.4,
+            "winrate_delta": -0.06,
+            "severity": "inaccuracy",
+            "severity_label": "可商榷",
+            "phase": "opening",
+            "summary": (
+                "Move 1 created a major swing in the opening with loss 1.40 "
+                "and winrate change -6%."
+            ),
+        },
+        {
+            "move_number": 2,
+            "color": "W",
+            "score_loss": 1.2,
+            "winrate_delta": -0.05,
+            "severity": "inaccuracy",
+            "severity_label": "可商榷",
+            "phase": "middle game",
+            "summary": (
+                "Move 2 created a major swing in the middle game with loss 1.20 "
+                "and winrate change -5%."
+            ),
+        },
+    ]
+    assert payload["key_points"]["plan_breaks"] == []
+    assert payload["key_points"]["phase_summary"] == {
+        "opening_loss": 1.4,
+        "middle_game_loss": 3.0,
+        "endgame_loss": 1.2,
+        "biggest_problem_phase": "middle game",
+        "main_issue": "fighting",
+        "summary": "The biggest problems came in the middle game, with the main issue being fighting.",
+    }
 
     assert len(payload["timeline"]) == 4
     assert payload["timeline"][0] == {
@@ -96,6 +146,7 @@ def test_structured_review_builder_in_main_and_text_report_still_works() -> None
 
     assert review.game_summary.moves_analyzed == 4
     assert len(review.selected_mistakes) == 3
+    assert len(review.key_points.turning_points) == 3
     assert len(review.timeline) == 4
     assert "Top Mistakes" in report
     assert "Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in report
@@ -115,6 +166,7 @@ def test_build_review_result_formats_pass_coordinate() -> None:
     assert payload["timeline"][0]["played_move"] == {"sgf": None, "display": "pass"}
     assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
+    assert payload["key_points"]["turning_points"][0]["move_number"] == 1
     assert payload["current_position"]["short_explanation"] == (
         "White to play. KataGo recommends R16, with score estimate 1.6 and winrate 54%."
     )
@@ -133,6 +185,7 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
 
     assert payload["selected_mistakes"] == []
     assert payload["game_summary"]["mistakes_reviewed"] == 0
+    assert payload["key_points"]["plan_breaks"] == []
     assert payload["current_position"] == {
         "next_player": "B",
         "best_move": {"sgf": "pq", "display": "Q3"},

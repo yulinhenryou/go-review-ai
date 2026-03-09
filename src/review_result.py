@@ -6,6 +6,14 @@ from typing import Any
 
 from src.analyzer import MoveAnalysisResult
 from src.classifier import ClassifiedMistake, MistakeCategory
+from src.key_points import (
+    KeyPointAnalysis,
+    MainIssue,
+    PlanBreak,
+    TurningPoint,
+    build_key_point_analysis,
+    phase_label,
+)
 from src.katago_client import CandidateMove, PositionAnalysis
 from src.mistake_severity import MistakeSeverity
 from src.sgf_parser import ParsedGame
@@ -131,10 +139,51 @@ class ReviewSectionResult:
 
 
 @dataclass(frozen=True)
+class TurningPointResult:
+    move_number: int
+    color: str
+    score_loss: float
+    winrate_delta: float
+    severity: MistakeSeverity
+    severity_label: str
+    phase: str
+    summary: str
+
+
+@dataclass(frozen=True)
+class PlanBreakResult:
+    anchor_move_number: int
+    break_move_number: int
+    color: str
+    expected_follow_up: CoordinateView
+    played_move: CoordinateView
+    score_loss: float
+    summary: str
+
+
+@dataclass(frozen=True)
+class PhaseSummaryResult:
+    opening_loss: float
+    middle_game_loss: float
+    endgame_loss: float
+    biggest_problem_phase: str
+    main_issue: MainIssue
+    summary: str
+
+
+@dataclass(frozen=True)
+class KeyPointsResult:
+    turning_points: list[TurningPointResult]
+    plan_breaks: list[PlanBreakResult]
+    phase_summary: PhaseSummaryResult
+
+
+@dataclass(frozen=True)
 class ReviewResult:
     schema_version: str
     game_summary: GameSummaryResult
     current_position: CurrentPositionResult
+    key_points: KeyPointsResult
     timeline: list[TimelineItemResult]
     review: ReviewSectionResult
     selected_mistakes: list[SelectedMistakeResult]
@@ -157,6 +206,7 @@ def build_review_result(
     loss_threshold: float,
 ) -> ReviewResult:
     by_move = {result.move_number: result for result in results}
+    key_point_analysis = build_key_point_analysis(results, all_classified)
 
     selected_views = [
         _selected_mistake_view(game.board_size, mistake, by_move[mistake.move_number])
@@ -189,6 +239,7 @@ def build_review_result(
             next_player=next_player,
             analysis=current_position_analysis,
         ),
+        key_points=_key_points_view(game.board_size, key_point_analysis),
         timeline=[
             _timeline_item(
                 board_size=game.board_size,
@@ -314,6 +365,57 @@ def _timeline_item(
         severity=classified.severity,
         severity_label=severity_label(classified.severity),
         is_mistake=result.estimated_loss >= loss_threshold,
+    )
+
+
+def _key_points_view(board_size: int, analysis: KeyPointAnalysis) -> KeyPointsResult:
+    return KeyPointsResult(
+        turning_points=[
+            _turning_point_result(item)
+            for item in analysis.turning_points
+        ],
+        plan_breaks=[
+            _plan_break_result(board_size, item)
+            for item in analysis.plan_breaks
+        ],
+        phase_summary=_phase_summary_result(analysis),
+    )
+
+
+def _turning_point_result(item: TurningPoint) -> TurningPointResult:
+    return TurningPointResult(
+        move_number=item.move_number,
+        color=item.color,
+        score_loss=item.score_loss,
+        winrate_delta=item.winrate_delta,
+        severity=item.severity,
+        severity_label=severity_label(item.severity),
+        phase=phase_label(item.phase),
+        summary=item.summary,
+    )
+
+
+def _plan_break_result(board_size: int, item: PlanBreak) -> PlanBreakResult:
+    return PlanBreakResult(
+        anchor_move_number=item.anchor_move_number,
+        break_move_number=item.break_move_number,
+        color=item.color,
+        expected_follow_up=_coord_view(item.expected_follow_up, board_size),
+        played_move=_coord_view(item.played_move, board_size),
+        score_loss=item.score_loss,
+        summary=item.summary,
+    )
+
+
+def _phase_summary_result(analysis: KeyPointAnalysis) -> PhaseSummaryResult:
+    phase_summary = analysis.phase_summary
+    return PhaseSummaryResult(
+        opening_loss=phase_summary.opening_loss,
+        middle_game_loss=phase_summary.middle_game_loss,
+        endgame_loss=phase_summary.endgame_loss,
+        biggest_problem_phase=phase_label(phase_summary.biggest_problem_phase),
+        main_issue=phase_summary.main_issue,
+        summary=phase_summary.summary,
     )
 
 
