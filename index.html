@@ -780,7 +780,7 @@
           targets.push(buildReviewTarget(data, {
             id: "plan-break-" + planBreaks[i].break_move_number,
             kind: "plan_break",
-            title: "计划断点",
+            title: "脱离主战场",
             summary: planBreaks[i].summary || "暂无说明",
             moveNumber: planBreaks[i].break_move_number,
             label: "原计划 " + formatCoord(planBreaks[i].expected_follow_up),
@@ -1073,7 +1073,7 @@
         var trendContext = buildTrendContext(timeline);
         var reviewOverview = [
           "转折点 " + reviewTargetsByKind.turning.length + " 个",
-          "计划断点 " + reviewTargetsByKind.planBreak.length + " 个",
+          "脱离主战场 " + reviewTargetsByKind.planBreak.length + " 个",
           "大问题手 " + reviewTargetsByKind.major.length + " 个"
         ].join("，");
         var currentSections = [
@@ -1138,8 +1138,8 @@
           renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>3. 计划断点</strong>",
-          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无计划断点。"),
+          "<strong>3. 脱离主战场</strong>",
+          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无脱离主战场的着手。"),
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>4. 大问题手</strong>",
