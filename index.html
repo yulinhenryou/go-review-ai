@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Go Review MVP Demo</title>
+  <title>围棋复盘 MVP 演示</title>
   <style>
     body {
       font-family: sans-serif;
@@ -121,29 +121,29 @@
        then open http://localhost:8080
   -->
 
-  <h1>Go Review MVP - Board Demo</h1>
+  <h1>围棋复盘 MVP - 棋盘演示</h1>
 
   <div class="layout">
     <div>
       <div id="board">
-        <canvas id="boardCanvas" aria-label="Go board"></canvas>
+        <canvas id="boardCanvas" aria-label="围棋棋盘"></canvas>
       </div>
 
       <div class="controls">
-        <button id="undoBtn" type="button">Undo Last Move</button>
-        <button id="clearBtn" type="button">Clear Board</button>
-        <button id="analyzeBtn" type="button">Analyze</button>
+        <button id="undoBtn" type="button">悔棋</button>
+        <button id="clearBtn" type="button">清空棋盘</button>
+        <button id="analyzeBtn" type="button">开始分析</button>
       </div>
 
-      <div class="meta" id="status">Next: Black | Moves: 0</div>
+      <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
     </div>
 
     <div class="panel">
       <strong>分析结果</strong>
       <div id="analysisSummary">暂无分析结果。</div>
       <details>
-        <summary>5. 原始数据</summary>
-        <pre id="analysisOutput">No analysis yet.</pre>
+        <summary>5. 原始分析数据</summary>
+        <pre id="analysisOutput">暂无分析数据。</pre>
       </details>
     </div>
   </div>
@@ -163,12 +163,13 @@
       var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
       var STAR_POINTS = [3, 9, 15];
       var moves = [];
+      var stonesByPoint = {};
       var currentColor = "B";
       var boardMetrics = null;
       var recommendedMove = null;
 
       function colorName(color) {
-        return color === "B" ? "Black" : "White";
+        return color === "B" ? "黑棋" : "白棋";
       }
 
       function toSgf(x, y) {
@@ -187,14 +188,163 @@
       }
 
       function stoneAt(x, y) {
-        for (var i = 0; i < moves.length; i++) {
-          if (moves[i].x === x && moves[i].y === y) return moves[i];
+        return stonesByPoint[pointKey(x, y)] || null;
+      }
+
+      function pointKey(x, y) {
+        return x + "," + y;
+      }
+
+      function oppositeColor(color) {
+        return color === "B" ? "W" : "B";
+      }
+
+      function neighborsOf(x, y) {
+        var neighbors = [];
+
+        if (x > 0) neighbors.push({ x: x - 1, y: y });
+        if (x < BOARD_SIZE - 1) neighbors.push({ x: x + 1, y: y });
+        if (y > 0) neighbors.push({ x: x, y: y - 1 });
+        if (y < BOARD_SIZE - 1) neighbors.push({ x: x, y: y + 1 });
+
+        return neighbors;
+      }
+
+      function collectGroup(startX, startY) {
+        var startStone = stoneAt(startX, startY);
+        var stack;
+        var seen;
+        var group;
+        var liberties;
+
+        if (!startStone) return null;
+
+        stack = [{ x: startX, y: startY }];
+        seen = {};
+        group = [];
+        liberties = {};
+
+        while (stack.length) {
+          var point = stack.pop();
+          var key = pointKey(point.x, point.y);
+
+          if (seen[key]) continue;
+          seen[key] = true;
+
+          var stone = stoneAt(point.x, point.y);
+          if (!stone || stone.color !== startStone.color) continue;
+
+          group.push(stone);
+
+          var neighbors = neighborsOf(point.x, point.y);
+          for (var i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+            var neighborStone = stoneAt(neighbor.x, neighbor.y);
+
+            if (!neighborStone) {
+              liberties[pointKey(neighbor.x, neighbor.y)] = true;
+              continue;
+            }
+
+            if (neighborStone.color === startStone.color && !seen[pointKey(neighbor.x, neighbor.y)]) {
+              stack.push(neighbor);
+            }
+          }
         }
-        return null;
+
+        return {
+          stones: group,
+          libertyCount: Object.keys(liberties).length
+        };
+      }
+
+      function removeStone(stone) {
+        delete stonesByPoint[pointKey(stone.x, stone.y)];
+        stone.isCaptured = true;
+      }
+
+      function restoreStone(stone) {
+        stonesByPoint[pointKey(stone.x, stone.y)] = stone;
+        stone.isCaptured = false;
+      }
+
+      function tryPlaceMove(point, color) {
+        var move;
+        var neighbors;
+        var capturedStones;
+        var seenGroups;
+
+        if (stoneAt(point.x, point.y)) return false;
+
+        move = {
+          x: point.x,
+          y: point.y,
+          color: color,
+          sgf: toSgf(point.x, point.y),
+          captures: [],
+          isCaptured: false
+        };
+        stonesByPoint[pointKey(point.x, point.y)] = move;
+
+        neighbors = neighborsOf(point.x, point.y);
+        capturedStones = [];
+        seenGroups = {};
+
+        for (var i = 0; i < neighbors.length; i++) {
+          var neighbor = neighbors[i];
+          var neighborStone = stoneAt(neighbor.x, neighbor.y);
+          var groupInfo;
+          var groupKey;
+          var j;
+
+          if (!neighborStone || neighborStone.color !== oppositeColor(color)) continue;
+
+          groupKey = pointKey(neighbor.x, neighbor.y);
+          if (seenGroups[groupKey]) continue;
+
+          groupInfo = collectGroup(neighbor.x, neighbor.y);
+          if (!groupInfo) continue;
+
+          for (j = 0; j < groupInfo.stones.length; j++) {
+            seenGroups[pointKey(groupInfo.stones[j].x, groupInfo.stones[j].y)] = true;
+          }
+
+          if (groupInfo.libertyCount === 0) {
+            for (j = 0; j < groupInfo.stones.length; j++) {
+              capturedStones.push(groupInfo.stones[j]);
+            }
+          }
+        }
+
+        for (var k = 0; k < capturedStones.length; k++) {
+          removeStone(capturedStones[k]);
+        }
+
+        move.captures = capturedStones;
+
+        if (collectGroup(point.x, point.y).libertyCount === 0) {
+          delete stonesByPoint[pointKey(point.x, point.y)];
+          return false;
+        }
+
+        moves.push(move);
+        return true;
+      }
+
+      function undoLastMove() {
+        var move = moves.pop();
+
+        if (!move) return;
+
+        delete stonesByPoint[pointKey(move.x, move.y)];
+
+        for (var i = 0; i < move.captures.length; i++) {
+          restoreStone(move.captures[i]);
+        }
       }
 
       function updateStatus() {
-        status.textContent = "Next: " + colorName(currentColor) + " | Moves: " + moves.length;
+        status.textContent = "下一手：" + colorName(currentColor) + " | 手数：" + moves.length;
       }
 
       function escapeHtml(value) {
@@ -453,6 +603,9 @@
       }
 
       function drawBoard() {
+        var activeMoves = [];
+        var i;
+
         if (!boardMetrics) return;
 
         context.clearRect(0, 0, boardMetrics.size, boardMetrics.size);
@@ -461,8 +614,17 @@
         drawGrid();
         drawStarPoints();
 
-        for (var i = 0; i < moves.length; i++) {
-          drawStone(moves[i], i + 1, i === moves.length - 1);
+        for (i = 0; i < moves.length; i++) {
+          if (!moves[i].isCaptured) {
+            activeMoves.push({
+              move: moves[i],
+              moveNumber: i + 1
+            });
+          }
+        }
+
+        for (i = 0; i < activeMoves.length; i++) {
+          drawStone(activeMoves[i].move, activeMoves[i].moveNumber, i === activeMoves.length - 1);
         }
 
         if (recommendedMove) {
@@ -490,23 +652,18 @@
 
       canvas.addEventListener("click", function (event) {
         var point = clickToPoint(event);
-        if (!point || stoneAt(point.x, point.y)) return;
+        if (!point) return;
+        if (!tryPlaceMove(point, currentColor)) return;
 
-        moves.push({
-          x: point.x,
-          y: point.y,
-          color: currentColor,
-          sgf: toSgf(point.x, point.y)
-        });
         recommendedMove = null;
-        currentColor = currentColor === "B" ? "W" : "B";
+        currentColor = oppositeColor(currentColor);
         drawBoard();
         updateStatus();
       });
 
       undoBtn.addEventListener("click", function () {
         if (!moves.length) return;
-        moves.pop();
+        undoLastMove();
         recommendedMove = null;
         currentColor = moves.length % 2 === 0 ? "B" : "W";
         drawBoard();
@@ -515,11 +672,12 @@
 
       clearBtn.addEventListener("click", function () {
         moves = [];
+        stonesByPoint = {};
         currentColor = "B";
         recommendedMove = null;
         drawBoard();
         summary.textContent = "暂无分析结果。";
-        output.textContent = "No analysis yet.";
+        output.textContent = "暂无分析数据。";
         updateStatus();
       });
 
@@ -528,7 +686,7 @@
           recommendedMove = null;
           drawBoard();
           summary.textContent = "分析中...";
-          output.textContent = "Analyzing...";
+          output.textContent = "分析中...";
 
           var payload = {
             board_size: BOARD_SIZE,
