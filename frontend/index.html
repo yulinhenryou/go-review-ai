@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Go Review MVP Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      line-height: 1.4;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    #board {
+      width: min(100%, 640px);
+      aspect-ratio: 1 / 1;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #e7c98b, #d7ad63);
+      position: relative;
+    }
+
+    #board canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 6px 10px;
+      border: 1px solid #999;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ececec;
+    }
+
+    .panel {
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 200px;
+      background: #fafafa;
+    }
+
+    .meta {
+      margin: 8px 0;
+      font-size: 13px;
+      color: #333;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!--
+    How to run:
+    1) Start your FastAPI backend so /api/v1/analyze-moves is available.
+       Example (from backend project root): uvicorn app.main:app --reload
+    2) Open this file in a browser.
+       If direct file:// requests are blocked by your browser for API calls,
+       serve this folder with a tiny static server instead, e.g.:
+       python3 -m http.server 8080
+       then open http://localhost:8080
+  -->
+
+  <h1>Go Review MVP - Board Demo</h1>
+
+  <div class="layout">
+    <div>
+      <div id="board">
+        <canvas id="boardCanvas" aria-label="Go board"></canvas>
+      </div>
+
+      <div class="controls">
+        <button id="undoBtn" type="button">Undo Last Move</button>
+        <button id="clearBtn" type="button">Clear Board</button>
+        <button id="analyzeBtn" type="button">Analyze</button>
+      </div>
+
+      <div class="meta" id="status">Next: Black | Moves: 0</div>
+    </div>
+
+    <div class="panel">
+      <strong>Analysis Response</strong>
+      <pre id="analysisOutput">No analysis yet.</pre>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var boardElement = document.getElementById("board");
+      var canvas = document.getElementById("boardCanvas");
+      var context = canvas.getContext("2d");
+      var output = document.getElementById("analysisOutput");
+      var status = document.getElementById("status");
+      var undoBtn = document.getElementById("undoBtn");
+      var clearBtn = document.getElementById("clearBtn");
+      var analyzeBtn = document.getElementById("analyzeBtn");
+      var BOARD_SIZE = 19;
+      var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+      var STAR_POINTS = [3, 9, 15];
+      var moves = [];
+      var currentColor = "B";
+      var boardMetrics = null;
+
+      function colorName(color) {
+        return color === "B" ? "Black" : "White";
+      }
+
+      function toSgf(x, y) {
+        return SGF_LETTERS.charAt(x) + SGF_LETTERS.charAt(y);
+      }
+
+      function stoneAt(x, y) {
+        for (var i = 0; i < moves.length; i++) {
+          if (moves[i].x === x && moves[i].y === y) return moves[i];
+        }
+        return null;
+      }
+
+      function updateStatus() {
+        status.textContent = "Next: " + colorName(currentColor) + " | Moves: " + moves.length;
+      }
+
+      function syncCanvasSize() {
+        var rect = boardElement.getBoundingClientRect();
+        var size = Math.min(640, Math.floor(rect.width || boardElement.clientWidth || 640));
+        var ratio = window.devicePixelRatio || 1;
+        canvas.width = size * ratio;
+        canvas.height = size * ratio;
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        boardMetrics = {
+          size: size,
+          padding: size * 0.075,
+          cell: (size - size * 0.15) / (BOARD_SIZE - 1)
+        };
+        drawBoard();
+      }
+
+      function boardPoint(index) {
+        return boardMetrics.padding + index * boardMetrics.cell;
+      }
+
+      function drawGrid() {
+        context.strokeStyle = "#5d3c1a";
+        context.lineWidth = 1;
+
+        for (var i = 0; i < BOARD_SIZE; i++) {
+          var pos = boardPoint(i);
+          var start = boardPoint(0);
+          var end = boardPoint(BOARD_SIZE - 1);
+
+          context.beginPath();
+          context.moveTo(start, pos);
+          context.lineTo(end, pos);
+          context.stroke();
+
+          context.beginPath();
+          context.moveTo(pos, start);
+          context.lineTo(pos, end);
+          context.stroke();
+        }
+      }
+
+      function drawStarPoints() {
+        context.fillStyle = "#5d3c1a";
+
+        for (var y = 0; y < STAR_POINTS.length; y++) {
+          for (var x = 0; x < STAR_POINTS.length; x++) {
+            context.beginPath();
+            context.arc(boardPoint(STAR_POINTS[x]), boardPoint(STAR_POINTS[y]), Math.max(3, boardMetrics.cell * 0.1), 0, Math.PI * 2);
+            context.fill();
+          }
+        }
+      }
+
+      function drawStone(move) {
+        var x = boardPoint(move.x);
+        var y = boardPoint(move.y);
+        var radius = boardMetrics.cell * 0.45;
+        var gradient = context.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
+
+        if (move.color === "B") {
+          gradient.addColorStop(0, "#666");
+          gradient.addColorStop(1, "#111");
+        } else {
+          gradient.addColorStop(0, "#fff");
+          gradient.addColorStop(1, "#d8d8d8");
+        }
+
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+        context.strokeStyle = move.color === "B" ? "#000" : "#999";
+        context.stroke();
+      }
+
+      function drawBoard() {
+        if (!boardMetrics) return;
+
+        context.clearRect(0, 0, boardMetrics.size, boardMetrics.size);
+        context.fillStyle = "#ddb56d";
+        context.fillRect(0, 0, boardMetrics.size, boardMetrics.size);
+        drawGrid();
+        drawStarPoints();
+
+        for (var i = 0; i < moves.length; i++) {
+          drawStone(moves[i]);
+        }
+      }
+
+      function clickToPoint(event) {
+        var rect = canvas.getBoundingClientRect();
+        var x = event.clientX - rect.left;
+        var y = event.clientY - rect.top;
+        var gridX = Math.round((x - boardMetrics.padding) / boardMetrics.cell);
+        var gridY = Math.round((y - boardMetrics.padding) / boardMetrics.cell);
+
+        if (gridX < 0 || gridY < 0 || gridX >= BOARD_SIZE || gridY >= BOARD_SIZE) return null;
+
+        var snappedX = boardPoint(gridX);
+        var snappedY = boardPoint(gridY);
+        var tolerance = boardMetrics.cell * 0.45;
+
+        if (Math.abs(x - snappedX) > tolerance || Math.abs(y - snappedY) > tolerance) return null;
+
+        return { x: gridX, y: gridY };
+      }
+
+      canvas.addEventListener("click", function (event) {
+        var point = clickToPoint(event);
+        if (!point || stoneAt(point.x, point.y)) return;
+
+        moves.push({
+          x: point.x,
+          y: point.y,
+          color: currentColor,
+          sgf: toSgf(point.x, point.y)
+        });
+        currentColor = currentColor === "B" ? "W" : "B";
+        drawBoard();
+        updateStatus();
+      });
+
+      undoBtn.addEventListener("click", function () {
+        if (!moves.length) return;
+        moves.pop();
+        currentColor = moves.length % 2 === 0 ? "B" : "W";
+        drawBoard();
+        updateStatus();
+      });
+
+      clearBtn.addEventListener("click", function () {
+        moves = [];
+        currentColor = "B";
+        drawBoard();
+        output.textContent = "No analysis yet.";
+        updateStatus();
+      });
+
+      analyzeBtn.addEventListener("click", async function () {
+        try {
+          output.textContent = "Analyzing...";
+
+          var payload = {
+            board_size: BOARD_SIZE,
+            komi: 6.5,
+            moves: moves.map(function (m) {
+              return {
+                color: m.color,
+                sgf: m.sgf
+              };
+            })
+          };
+
+          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-moves", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          var data;
+          try {
+            data = await response.json();
+          } catch (parseErr) {
+            data = { error: "Non-JSON response", status: response.status };
+          }
+
+          if (!response.ok) {
+            output.textContent = JSON.stringify({
+              request: payload,
+              error: data,
+              status: response.status
+            }, null, 2);
+            return;
+          }
+
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          output.textContent = JSON.stringify({ error: String(err) }, null, 2);
+        }
+      });
+
+      window.addEventListener("resize", syncCanvasSize);
+
+      syncCanvasSize();
+      updateStatus();
+    })();
+  </script>
+</body>
+</html>
