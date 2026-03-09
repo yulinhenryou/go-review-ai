@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.models import AnalyzeMovesPayload
 from src.katago_client import EngineClient
@@ -19,6 +20,12 @@ EngineFactory = Callable[[], EngineClient]
 def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
     selected_engine_factory = engine_factory or build_default_engine
     app = FastAPI(title="go-review-ai API", version="0.1.0")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.get("/health")
     def health() -> dict[str, str]:
