@@ -76,6 +76,32 @@
       font-size: 12px;
     }
 
+    .analysis-section {
+      margin-top: 12px;
+    }
+
+    .analysis-section strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .analysis-section ul {
+      margin: 4px 0 0 18px;
+      padding: 0;
+    }
+
+    .analysis-section li {
+      margin: 2px 0;
+    }
+
+    details {
+      margin-top: 12px;
+    }
+
+    summary {
+      cursor: pointer;
+    }
+
     @media (max-width: 900px) {
       .layout {
         grid-template-columns: 1fr;
@@ -113,8 +139,12 @@
     </div>
 
     <div class="panel">
-      <strong>Analysis Response</strong>
-      <pre id="analysisOutput">No analysis yet.</pre>
+      <strong>分析结果</strong>
+      <div id="analysisSummary">暂无分析结果。</div>
+      <details>
+        <summary>5. 原始数据</summary>
+        <pre id="analysisOutput">No analysis yet.</pre>
+      </details>
     </div>
   </div>
 
@@ -123,6 +153,7 @@
       var boardElement = document.getElementById("board");
       var canvas = document.getElementById("boardCanvas");
       var context = canvas.getContext("2d");
+      var summary = document.getElementById("analysisSummary");
       var output = document.getElementById("analysisOutput");
       var status = document.getElementById("status");
       var undoBtn = document.getElementById("undoBtn");
@@ -164,6 +195,144 @@
 
       function updateStatus() {
         status.textContent = "Next: " + colorName(currentColor) + " | Moves: " + moves.length;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function formatCoord(coord) {
+        if (!coord) return "暂无";
+        if (typeof coord === "string") return coord;
+        if (coord.display) return coord.display;
+        if (coord.sgf) return coord.sgf;
+        return "暂无";
+      }
+
+      function playerLabel(color) {
+        if (color === "B") return "黑棋";
+        if (color === "W") return "白棋";
+        return color || "未知";
+      }
+
+      function inferPhase(gameSummary) {
+        var moveCount = gameSummary && gameSummary.moves_analyzed;
+
+        if (typeof moveCount !== "number") {
+          return {
+            label: "暂无判断",
+            note: "缺少手数信息，暂时无法判断当前阶段。"
+          };
+        }
+
+        if (moveCount < 40) {
+          return {
+            label: "布局",
+            note: "按当前手数粗略看，仍在布局阶段，重点通常是角边拆挂与全局方向。"
+          };
+        }
+
+        if (moveCount < 180) {
+          return {
+            label: "中盘",
+            note: "按当前手数粗略看，已进入中盘阶段，重点通常是攻防转换与厚薄处理。"
+          };
+        }
+
+        return {
+          label: "官子",
+          note: "按当前手数粗略看，已进入官子阶段，重点通常是收束效率与目数判断。"
+        };
+      }
+
+      function renderList(items, emptyText, formatter) {
+        if (!items || !items.length) {
+          return "<div>" + escapeHtml(emptyText) + "</div>";
+        }
+
+        return "<ul>" + items.map(function (item, index) {
+          return "<li>" + formatter(item, index) + "</li>";
+        }).join("") + "</ul>";
+      }
+
+      function renderRawJson(data) {
+        output.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      }
+
+      function renderAnalysisSummary(data) {
+        if (!data || typeof data !== "object") {
+          summary.textContent = "暂无分析结果。";
+          return;
+        }
+
+        var current = data.current_position || {};
+        var gameSummary = data.game_summary || {};
+        var keyPoints = data.key_points || {};
+        var turningPoints = keyPoints.turning_points || [];
+        var planBreaks = keyPoints.plan_breaks || [];
+        var reviewSummary = keyPoints.review_summary || {};
+        var candidates = (current.top_candidates || []).slice(0, 3);
+        var currentPhase = inferPhase(gameSummary);
+        var keyPointItems = [];
+
+        if (turningPoints.length) {
+          keyPointItems = keyPointItems.concat(turningPoints.slice(0, 2).map(function (item) {
+            return "转折点，第" + item.move_number + "手：" + (item.summary || "暂无说明");
+          }));
+        }
+
+        if (planBreaks.length) {
+          keyPointItems = keyPointItems.concat(planBreaks.slice(0, 2).map(function (item) {
+            return "计划断点，第" + item.break_move_number + "手：" + (item.summary || "暂无说明");
+          }));
+        }
+
+        if (reviewSummary.summary) {
+          keyPointItems.push("阶段总结：" + reviewSummary.summary);
+        }
+
+        summary.innerHTML = [
+          "<div class=\"analysis-section\">",
+          "<strong>1. 当前局面</strong>",
+          "<ul>",
+          "<li>轮到谁下：" + escapeHtml(playerLabel(current.next_player)) + "</li>",
+          "<li>当前推荐点：" + escapeHtml(formatCoord(current.best_move)) + "</li>",
+          "<li>当前一句话说明：" + escapeHtml(current.short_explanation || "暂无说明") + "</li>",
+          "</ul>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>2. 候选点</strong>",
+          renderList(candidates, "暂无候选点。", function (candidate, index) {
+            return (
+              (index + 1) +
+              ". " +
+              escapeHtml(formatCoord(candidate.move)) +
+              "，胜率约" +
+              escapeHtml(String(Math.round((candidate.winrate || 0) * 100))) +
+              "%，目差预计为" +
+              escapeHtml(String(candidate.score_estimate))
+            );
+          }),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>3. 阶段判断</strong>",
+          "<ul>",
+          "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
+          "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
+          "</ul>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>4. 关键点</strong>",
+          renderList(keyPointItems, "暂无明显转折点或计划断点。", function (item) {
+            return escapeHtml(item);
+          }),
+          "</div>"
+        ].join("");
       }
 
       function syncCanvasSize() {
@@ -349,6 +518,7 @@
         currentColor = "B";
         recommendedMove = null;
         drawBoard();
+        summary.textContent = "暂无分析结果。";
         output.textContent = "No analysis yet.";
         updateStatus();
       });
@@ -357,6 +527,7 @@
         try {
           recommendedMove = null;
           drawBoard();
+          summary.textContent = "分析中...";
           output.textContent = "Analyzing...";
 
           var payload = {
@@ -384,11 +555,13 @@
           }
 
           if (!response.ok) {
-            output.textContent = JSON.stringify({
+            data = {
               request: payload,
               error: data,
               status: response.status
-            }, null, 2);
+            };
+            summary.textContent = "分析失败，请展开原始数据查看详情。";
+            renderRawJson(data);
             return;
           }
 
@@ -400,11 +573,13 @@
             data.selected_mistakes[0].recommended_move.sgf
           );
           drawBoard();
-          output.textContent = JSON.stringify(data, null, 2);
+          renderAnalysisSummary(data);
+          renderRawJson(data);
         } catch (err) {
           recommendedMove = null;
           drawBoard();
-          output.textContent = JSON.stringify({ error: String(err) }, null, 2);
+          summary.textContent = "分析失败，请展开原始数据查看详情。";
+          renderRawJson({ error: String(err) });
         }
       });
 
