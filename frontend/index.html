@@ -68,6 +68,18 @@
       background: #fafafa;
     }
 
+    .upload-controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .upload-controls input[type="file"] {
+      max-width: 100%;
+    }
+
     .meta {
       margin: 8px 0;
       font-size: 13px;
@@ -366,6 +378,12 @@
         <button id="latestBtn" type="button" disabled>回到最新局面</button>
       </div>
 
+      <div class="upload-controls">
+        <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
+        <button id="uploadAnalyzeBtn" type="button">上传并分析</button>
+      </div>
+      <div class="meta" id="uploadStatus">也可以直接上传 SGF 文件进行分析。</div>
+
       <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
       <div class="meta review-meta" id="reviewStatus">
         <span class="review-badge">最新局面</span>
@@ -400,6 +418,9 @@
       var clearBtn = document.getElementById("clearBtn");
       var analyzeBtn = document.getElementById("analyzeBtn");
       var latestBtn = document.getElementById("latestBtn");
+      var sgfFileInput = document.getElementById("sgfFileInput");
+      var uploadAnalyzeBtn = document.getElementById("uploadAnalyzeBtn");
+      var uploadStatus = document.getElementById("uploadStatus");
       var analysisViewSwitch = document.getElementById("analysisViewSwitch");
       var BOARD_SIZE = 19;
       var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
@@ -417,6 +438,11 @@
       var reviewTargets = [];
       var analysisView = "current";
       var selectedCandidateRank = 1;
+
+      function setUploadStatus(message, isError) {
+        uploadStatus.textContent = message;
+        uploadStatus.classList.toggle("error-message", Boolean(isError));
+      }
 
       function colorName(color) {
         return color === "B" ? "黑棋" : "白棋";
@@ -815,6 +841,11 @@
         analyzeBtn.textContent = isLoading ? "分析中…" : defaultAnalyzeButtonText;
       }
 
+      function setUploadLoadingState(isLoading) {
+        uploadAnalyzeBtn.disabled = isLoading;
+        uploadAnalyzeBtn.textContent = isLoading ? "上传分析中…" : "上传并分析";
+      }
+
       function renderLoadingState() {
         summary.innerHTML = [
           "<div class=\"loading-state\">",
@@ -837,7 +868,64 @@
         chartMetric = "winrate";
         summary.textContent = "暂无分析结果。";
         output.textContent = "暂无分析数据。";
+        setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
         updateReviewStatus();
+      }
+
+      function resetBoardState() {
+        moves = [];
+        stonesByPoint = {};
+        currentColor = "B";
+      }
+
+      function appendPassMove(color) {
+        moves.push({
+          color: color,
+          sgf: null,
+          captures: [],
+          isCaptured: false,
+          isPass: true
+        });
+        currentColor = oppositeColor(color);
+      }
+
+      function rebuildBoardFromTimeline(timeline) {
+        resetBoardState();
+
+        if (!Array.isArray(timeline)) {
+          return;
+        }
+
+        for (var i = 0; i < timeline.length; i++) {
+          var item = timeline[i];
+          var point = extractCoordPoint(item && item.played_move);
+          var color = item && item.color ? item.color : currentColor;
+
+          if (!point) {
+            appendPassMove(color);
+            continue;
+          }
+
+          if (!tryPlaceMove(point, color)) {
+            throw new Error("无法根据返回的 SGF 分析结果重建第" + String(i + 1) + "手棋盘。");
+          }
+
+          currentColor = oppositeColor(color);
+        }
+      }
+
+      function applyAnalysisResult(data) {
+        analysisData = data;
+        reviewTargets = buildReviewTargets(data);
+        reviewFocus = null;
+        resetSelectedCandidate(data);
+        candidateMarkers = getCurrentCandidateMarkers(data);
+        chartMetric = "winrate";
+        drawBoard();
+        updateStatus();
+        updateReviewStatus();
+        renderAnalysisSummary(data);
+        renderRawJson(data);
       }
 
       function syncAnalysisViewButtons() {
@@ -1961,9 +2049,7 @@
       });
 
       clearBtn.addEventListener("click", function () {
-        moves = [];
-        stonesByPoint = {};
-        currentColor = "B";
+        resetBoardState();
         clearAnalysisState();
         drawBoard();
         updateStatus();
@@ -2025,15 +2111,7 @@
             return;
           }
 
-          analysisData = data;
-          reviewTargets = buildReviewTargets(data);
-          reviewFocus = null;
-          resetSelectedCandidate(data);
-          candidateMarkers = getCurrentCandidateMarkers(data);
-          drawBoard();
-          updateReviewStatus();
-          renderAnalysisSummary(data);
-          renderRawJson(data);
+          applyAnalysisResult(data);
         } catch (err) {
           clearAnalysisState();
           drawBoard();
@@ -2044,12 +2122,75 @@
         }
       });
 
+      uploadAnalyzeBtn.addEventListener("click", async function () {
+        var file = sgfFileInput.files && sgfFileInput.files[0];
+
+        if (!file) {
+          setUploadStatus("请选择一个 SGF 文件后再上传。", true);
+          return;
+        }
+
+        setUploadLoadingState(true);
+
+        try {
+          candidateMarkers = [];
+          drawBoard();
+          renderLoadingState();
+          output.textContent = "分析中...";
+          setUploadStatus("正在上传并分析 SGF 文件，请稍候。", false);
+
+          var formData = new FormData();
+          formData.append("file", file);
+
+          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-sgf", {
+            method: "POST",
+            body: formData
+          });
+
+          var data;
+          try {
+            data = await response.json();
+          } catch (parseErr) {
+            data = { error: "Non-JSON response", status: response.status };
+          }
+
+          if (!response.ok) {
+            renderErrorState("上传分析失败，请检查 SGF 文件格式或后端服务。");
+            renderRawJson({
+              file_name: file.name,
+              error: data,
+              status: response.status
+            });
+            setUploadStatus(
+              "上传分析失败：" + (data && data.detail ? String(data.detail) : "请检查 SGF 文件格式或后端服务。"),
+              true
+            );
+            return;
+          }
+
+          rebuildBoardFromTimeline(data.timeline);
+          applyAnalysisResult(data);
+          setUploadStatus("已完成 SGF 分析，并载入终局棋盘。", false);
+        } catch (err) {
+          clearAnalysisState();
+          resetBoardState();
+          drawBoard();
+          updateStatus();
+          renderErrorState("上传分析失败，请检查后端服务是否启动，并展开原始数据查看详情。");
+          renderRawJson({ error: String(err) });
+          setUploadStatus("上传分析失败：" + String(err), true);
+        } finally {
+          setUploadLoadingState(false);
+        }
+      });
+
       window.addEventListener("resize", syncCanvasSize);
 
       syncCanvasSize();
       updateStatus();
       updateReviewStatus();
       syncAnalysisViewButtons();
+      setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
     })();
   </script>
 </body>
