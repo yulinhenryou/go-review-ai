@@ -48,18 +48,19 @@ def build_review_outputs_for_game(
     classified = classify_selected_mistakes(selected, results)
     classified_threshold = classify_selected_mistakes(threshold_mistakes, results)
     all_classified = classify_all_results(results)
+    review_result = build_review_result(
+        game=game,
+        selected_mistakes=classified,
+        threshold_mistakes=classified_threshold,
+        all_classified=all_classified,
+        results=results,
+        current_position_analysis=analysis.current_position,
+        next_player=analysis.current_position_input.to_play,
+        loss_threshold=loss_threshold,
+    )
     return (
-        generate_review_report(game, classified),
-        build_review_result(
-            game=game,
-            selected_mistakes=classified,
-            threshold_mistakes=classified_threshold,
-            all_classified=all_classified,
-            results=results,
-            current_position_analysis=analysis.current_position,
-            next_player=analysis.current_position_input.to_play,
-            loss_threshold=loss_threshold,
-        ),
+        generate_review_report(game, classified, review=review_result),
+        review_result,
     )
 
 

@@ -26,7 +26,7 @@ def test_build_review_result_from_pipeline_data() -> None:
     assert payload["current_position"]["score_estimate"] == 0.9
     assert payload["current_position"]["winrate"] == 0.53
     assert payload["current_position"]["short_explanation"] == (
-        "Black to play. KataGo recommends K10, with score estimate 0.9 and winrate 53%."
+        "现在轮到黑棋。KataGo建议走K10，目差预计为0.9，胜率约53%。"
     )
     assert payload["key_points"]["turning_points"] == [
         {
@@ -36,11 +36,8 @@ def test_build_review_result_from_pipeline_data() -> None:
             "winrate_delta": -0.08,
             "severity": "mistake",
             "severity_label": "问题手",
-            "phase": "middle game",
-            "summary": (
-                "Move 3 created a major swing in the middle game with loss 1.80 "
-                "and winrate change -8%."
-            ),
+            "phase": "中盘",
+            "summary": "第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。",
         },
         {
             "move_number": 1,
@@ -49,11 +46,8 @@ def test_build_review_result_from_pipeline_data() -> None:
             "winrate_delta": -0.06,
             "severity": "inaccuracy",
             "severity_label": "可商榷",
-            "phase": "opening",
-            "summary": (
-                "Move 1 created a major swing in the opening with loss 1.40 "
-                "and winrate change -6%."
-            ),
+            "phase": "布局",
+            "summary": "第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。",
         },
         {
             "move_number": 2,
@@ -62,11 +56,8 @@ def test_build_review_result_from_pipeline_data() -> None:
             "winrate_delta": -0.05,
             "severity": "inaccuracy",
             "severity_label": "可商榷",
-            "phase": "middle game",
-            "summary": (
-                "Move 2 created a major swing in the middle game with loss 1.20 "
-                "and winrate change -5%."
-            ),
+            "phase": "中盘",
+            "summary": "第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。",
         },
     ]
     assert payload["key_points"]["plan_breaks"] == []
@@ -74,9 +65,21 @@ def test_build_review_result_from_pipeline_data() -> None:
         "opening_loss": 1.4,
         "middle_game_loss": 3.0,
         "endgame_loss": 1.2,
-        "biggest_problem_phase": "middle game",
+        "biggest_problem_phase": "中盘",
         "main_issue": "fighting",
-        "summary": "The biggest problems came in the middle game, with the main issue being fighting.",
+        "summary": "全局看，损失主要集中在中盘，主因是接触战。",
+    }
+    assert payload["key_points"]["review_summary"] == {
+        "opening": "布局阶段大体平稳，但有零星可惜之处，累计损失约1.40目。",
+        "middle_game": "中盘阶段问题比较集中，累计损失约3.00目。",
+        "endgame": "官子阶段大体平稳，但有零星可惜之处，累计损失约1.20目。",
+        "main_turning_points": [
+            "第3手：第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。",
+            "第1手：第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。",
+            "第2手：第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。",
+        ],
+        "loss_cause": "fighting",
+        "summary": "这盘棋的胜负手主要出现在中盘，核心问题是接触战。全局最值得回看的关键点共有3处。",
     }
 
     assert len(payload["timeline"]) == 4
@@ -121,10 +124,10 @@ def test_build_review_result_from_pipeline_data() -> None:
     ]
     assert payload["review"]["training_suggestions"][0]["category"] == "unclear"
 
-    assert payload["explanations"][0]["title"] == "Move 3 (暂难归类)"
-    assert "KataGo prefers C6" in payload["explanations"][0]["summary"]
+    assert payload["explanations"][0]["title"] == "第3手（暂难归类）"
+    assert "这是本局关键处之一。中盘第3手" in payload["explanations"][0]["summary"]
     assert payload["training_suggestions"][0]["suggestion"] == (
-        "Recheck this position manually because the pattern is not conclusive."
+        "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
     )
 
     json.dumps(payload)
@@ -148,8 +151,8 @@ def test_structured_review_builder_in_main_and_text_report_still_works() -> None
     assert len(review.selected_mistakes) == 3
     assert len(review.key_points.turning_points) == 3
     assert len(review.timeline) == 4
-    assert "Top Mistakes" in report
-    assert "Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in report
+    assert "整局总结" in report
+    assert "第3手：实战qp（R4），推荐cn（C6），损失1.80目，暂难归类" in report
 
 
 def test_build_review_result_formats_pass_coordinate() -> None:
@@ -168,7 +171,7 @@ def test_build_review_result_formats_pass_coordinate() -> None:
     assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["key_points"]["turning_points"][0]["move_number"] == 1
     assert payload["current_position"]["short_explanation"] == (
-        "White to play. KataGo recommends R16, with score estimate 1.6 and winrate 54%."
+        "现在轮到白棋。KataGo建议走R16，目差预计为1.6，胜率约54%。"
     )
 
 
@@ -210,7 +213,7 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
         "score_estimate": 0.4,
         "winrate": 0.51,
         "short_explanation": (
-            "Black to play. KataGo recommends Q3, with score estimate 0.4 and winrate 51%."
+            "现在轮到黑棋。KataGo建议走Q3，目差预计为0.4，胜率约51%。"
         ),
     }
 

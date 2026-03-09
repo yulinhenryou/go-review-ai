@@ -46,7 +46,7 @@
     "pv_summary": "B jj -> W kj -> B jk",
     "score_estimate": 0.9,
     "winrate": 0.53,
-    "short_explanation": "Black to play. KataGo recommends K10, with score estimate 0.9 and winrate 53%."
+    "short_explanation": "现在轮到黑棋。KataGo建议走K10，目差预计为0.9，胜率约53%。"
   },
   "key_points": {
     "turning_points": [
@@ -57,8 +57,8 @@
         "winrate_delta": -0.08,
         "severity": "mistake",
         "severity_label": "问题手",
-        "phase": "middle game",
-        "summary": "Move 3 created a major swing in the middle game with loss 1.80 and winrate change -8%."
+        "phase": "中盘",
+        "summary": "第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。"
       },
       {
         "move_number": 1,
@@ -67,8 +67,8 @@
         "winrate_delta": -0.06,
         "severity": "inaccuracy",
         "severity_label": "可商榷",
-        "phase": "opening",
-        "summary": "Move 1 created a major swing in the opening with loss 1.40 and winrate change -6%."
+        "phase": "布局",
+        "summary": "第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。"
       },
       {
         "move_number": 2,
@@ -77,8 +77,8 @@
         "winrate_delta": -0.05,
         "severity": "inaccuracy",
         "severity_label": "可商榷",
-        "phase": "middle game",
-        "summary": "Move 2 created a major swing in the middle game with loss 1.20 and winrate change -5%."
+        "phase": "中盘",
+        "summary": "第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。"
       }
     ],
     "plan_breaks": [],
@@ -86,9 +86,21 @@
       "opening_loss": 1.4,
       "middle_game_loss": 3.0,
       "endgame_loss": 1.2,
-      "biggest_problem_phase": "middle game",
+      "biggest_problem_phase": "中盘",
       "main_issue": "fighting",
-      "summary": "The biggest problems came in the middle game, with the main issue being fighting."
+      "summary": "全局看，损失主要集中在中盘，主因是接触战。"
+    },
+    "review_summary": {
+      "opening": "布局阶段大体平稳，但有零星可惜之处，累计损失约1.40目。",
+      "middle_game": "中盘阶段问题比较集中，累计损失约3.00目。",
+      "endgame": "官子阶段大体平稳，但有零星可惜之处，累计损失约1.20目。",
+      "main_turning_points": [
+        "第3手：第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。",
+        "第1手：第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。",
+        "第2手：第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。"
+      ],
+      "loss_cause": "fighting",
+      "summary": "这盘棋的胜负手主要出现在中盘，核心问题是接触战。全局最值得回看的关键点共有3处。"
     }
   },
   "timeline": [
@@ -387,11 +399,11 @@
     "training_suggestions": [
       {
         "category": "unclear",
-        "suggestion": "Recheck this position manually because the pattern is not conclusive."
+        "suggestion": "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
       },
       {
         "category": "local_overplay",
-        "suggestion": "Practice choosing calmer local continuations in fighting positions."
+        "suggestion": "多练习接触战里“见好就收”的选择，别每一手都想着继续压。"
       },
       {
         "category": null,
@@ -574,33 +586,33 @@
     {
       "move_number": 3,
       "category": "unclear",
-      "title": "Move 3 (暂难归类)",
-      "summary": "You played R4; KataGo prefers C6 (loss 1.80).",
-      "why_this_matters": "Engine signals are mixed, so this pattern is not yet clear."
+      "title": "第3手（暂难归类）",
+      "summary": "这是本局关键处之一。中盘第3手，实战下了R4，更稳妥的下法是C6。这一手属于问题手，损失1.80目，胜率变化-8%。",
+      "why_this_matters": "这手的信号不算单一，但从结果看还是明显亏了。 问题主要发生在中盘。"
     },
     {
       "move_number": 1,
       "category": "local_overplay",
-      "title": "Move 1 (局部用力过猛)",
-      "summary": "You played Q16; KataGo prefers R16 (loss 1.40).",
-      "why_this_matters": "This likely pushed too hard in a local fight."
+      "title": "第1手（局部用力过猛）",
+      "summary": "这是本局关键处之一。布局第1手，实战下了Q16，更稳妥的下法是R16。这一手属于可商榷，损失1.40目，胜率变化-6%。",
+      "why_this_matters": "这手在局部有点发力过猛，效率不够高。 问题主要发生在布局。"
     },
     {
       "move_number": 2,
       "category": "unclear",
-      "title": "Move 2 (暂难归类)",
-      "summary": "You played D16; KataGo prefers D3 (loss 1.20).",
-      "why_this_matters": "Engine signals are mixed, so this pattern is not yet clear."
+      "title": "第2手（暂难归类）",
+      "summary": "这是本局关键处之一。中盘第2手，实战下了D16，更稳妥的下法是D3。这一手属于可商榷，损失1.20目，胜率变化-5%。",
+      "why_this_matters": "这手的信号不算单一，但从结果看还是明显亏了。 问题主要发生在中盘。"
     }
   ],
   "training_suggestions": [
     {
       "category": "unclear",
-      "suggestion": "Recheck this position manually because the pattern is not conclusive."
+      "suggestion": "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
     },
     {
       "category": "local_overplay",
-      "suggestion": "Practice choosing calmer local continuations in fighting positions."
+      "suggestion": "多练习接触战里“见好就收”的选择，别每一手都想着继续压。"
     },
     {
       "category": null,

@@ -4,6 +4,14 @@ from dataclasses import dataclass
 from typing import Literal
 
 from src.analyzer import MoveAnalysisResult
+from src.chinese_explanations import (
+    phase_label_cn,
+    phase_overview_text,
+    phase_summary_cn,
+    plan_break_summary_cn,
+    review_summary_total_cn,
+    turning_point_summary_cn,
+)
 from src.classifier import ClassifiedMistake, MistakeCategory
 from src.mistake_severity import MistakeSeverity
 
@@ -44,10 +52,21 @@ class PhaseSummary:
 
 
 @dataclass(frozen=True)
+class ReviewSummary:
+    opening: str
+    middle_game: str
+    endgame: str
+    main_turning_points: list[str]
+    loss_cause: MainIssue
+    summary: str
+
+
+@dataclass(frozen=True)
 class KeyPointAnalysis:
     turning_points: list[TurningPoint]
     plan_breaks: list[PlanBreak]
     phase_summary: PhaseSummary
+    review_summary: ReviewSummary
 
 
 def build_key_point_analysis(
@@ -60,10 +79,12 @@ def build_key_point_analysis(
     turning_points = _turning_points(results, classified_results)
     plan_breaks = _plan_breaks(results)
     phase_summary = _phase_summary(results, classified_results)
+    review_summary = _review_summary(turning_points, phase_summary)
     return KeyPointAnalysis(
         turning_points=turning_points,
         plan_breaks=plan_breaks,
         phase_summary=phase_summary,
+        review_summary=review_summary,
     )
 
 
@@ -133,9 +154,11 @@ def _turning_point_view(
         winrate_delta=classified.winrate_delta,
         severity=classified.severity,
         phase=phase,
-        summary=(
-            f"Move {result.move_number} created a major swing in the {phase_label(phase)} "
-            f"with loss {result.estimated_loss:.2f} and winrate change {classified.winrate_delta:.0%}."
+        summary=turning_point_summary_cn(
+            move_number=result.move_number,
+            phase=phase,
+            score_loss=result.estimated_loss,
+            winrate_delta=classified.winrate_delta,
         ),
     )
 
@@ -177,10 +200,12 @@ def _plan_breaks(results: list[MoveAnalysisResult]) -> list[PlanBreak]:
                 expected_follow_up=_normalize_move(pv_steps[2][1]),
                 played_move=follow_up.played_move,
                 score_loss=follow_up.estimated_loss,
-                summary=(
-                    f"After move {anchor.move_number}, the expected follow-up was "
-                    f"{_display_move(pv_steps[2][1])}, but move {follow_up.move_number} "
-                    f"played {_display_move(follow_up.played_move)} and lost {follow_up.estimated_loss:.2f}."
+                summary=plan_break_summary_cn(
+                    anchor_move_number=anchor.move_number,
+                    break_move_number=follow_up.move_number,
+                    expected_follow_up=_display_move(pv_steps[2][1]),
+                    played_move=_display_move(follow_up.played_move),
+                    score_loss=follow_up.estimated_loss,
                 ),
             )
         )
@@ -223,9 +248,30 @@ def _phase_summary(
         endgame_loss=round(losses["endgame"], 2),
         biggest_problem_phase=biggest_problem_phase,
         main_issue=main_issue,
-        summary=(
-            f"The biggest problems came in the {phase_label(biggest_problem_phase)}, "
-            f"with the main issue being {issue_label(main_issue)}."
+        summary=phase_summary_cn(
+            biggest_problem_phase=biggest_problem_phase,
+            main_issue=main_issue,
+        ),
+    )
+
+
+def _review_summary(
+    turning_points: list[TurningPoint],
+    phase_summary: PhaseSummary,
+) -> ReviewSummary:
+    return ReviewSummary(
+        opening=phase_overview_text("opening", phase_summary.opening_loss),
+        middle_game=phase_overview_text("middle_game", phase_summary.middle_game_loss),
+        endgame=phase_overview_text("endgame", phase_summary.endgame_loss),
+        main_turning_points=[
+            f"第{item.move_number}手：{item.summary}"
+            for item in turning_points
+        ],
+        loss_cause=phase_summary.main_issue,
+        summary=review_summary_total_cn(
+            main_issue=phase_summary.main_issue,
+            biggest_problem_phase=phase_summary.biggest_problem_phase,
+            turning_point_count=len(turning_points),
         ),
     )
 
@@ -247,12 +293,7 @@ def phase_for_move(move_number: int, total_moves: int) -> GamePhase:
 
 
 def phase_label(phase: GamePhase) -> str:
-    labels: dict[GamePhase, str] = {
-        "opening": "opening",
-        "middle_game": "middle game",
-        "endgame": "endgame",
-    }
-    return labels[phase]
+    return phase_label_cn(phase)
 
 
 def parse_pv_summary(pv_summary: str) -> list[tuple[str, str | None]]:
@@ -282,9 +323,9 @@ def _issue_for_result(phase: GamePhase, category: MistakeCategory) -> MainIssue:
 
 def issue_label(issue: MainIssue) -> str:
     labels: dict[MainIssue, str] = {
-        "balance": "balance",
-        "fighting": "fighting",
-        "endgame_loss": "endgame loss",
+        "balance": "形势判断",
+        "fighting": "接触战",
+        "endgame_loss": "官子",
     }
     return labels[issue]
 

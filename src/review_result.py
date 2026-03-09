@@ -5,20 +5,27 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from src.analyzer import MoveAnalysisResult
+from src.chinese_explanations import (
+    current_position_explanation_cn,
+    explanation_summary_cn,
+    explanation_title_cn,
+    explanation_why_cn,
+)
 from src.classifier import ClassifiedMistake, MistakeCategory
 from src.key_points import (
     KeyPointAnalysis,
     MainIssue,
     PlanBreak,
+    ReviewSummary,
     TurningPoint,
     build_key_point_analysis,
     phase_label,
+    phase_for_move,
 )
 from src.katago_client import CandidateMove, PositionAnalysis
 from src.mistake_severity import MistakeSeverity
 from src.sgf_parser import ParsedGame
 from src.user_facing_labels import (
-    category_interpretation,
     category_label,
     category_training_suggestion,
     ordered_categories,
@@ -176,6 +183,17 @@ class KeyPointsResult:
     turning_points: list[TurningPointResult]
     plan_breaks: list[PlanBreakResult]
     phase_summary: PhaseSummaryResult
+    review_summary: "ReviewSummaryResult"
+
+
+@dataclass(frozen=True)
+class ReviewSummaryResult:
+    opening: str
+    middle_game: str
+    endgame: str
+    main_turning_points: list[str]
+    loss_cause: MainIssue
+    summary: str
 
 
 @dataclass(frozen=True)
@@ -220,6 +238,8 @@ def build_review_result(
     threshold_totals = _classification_totals(threshold_mistakes)
     selected_training = _training_suggestions(selected_mistakes)
     threshold_training = _training_suggestions(threshold_mistakes)
+    turning_point_moves = {item.move_number for item in key_point_analysis.turning_points}
+    plan_break_moves = {item.break_move_number for item in key_point_analysis.plan_breaks}
 
     return ReviewResult(
         schema_version="2.0",
@@ -257,7 +277,13 @@ def build_review_result(
         selected_mistakes=selected_views,
         classifications=selected_classifications,
         explanations=[
-            _explanation(game.board_size, item)
+            _explanation(
+                game.board_size,
+                item,
+                total_moves=len(results),
+                turning_point_moves=turning_point_moves,
+                plan_break_moves=plan_break_moves,
+            )
             for item in selected_views
         ],
         training_suggestions=selected_training,
@@ -300,10 +326,11 @@ def _current_position_explanation(
     score_estimate: float,
     winrate: float,
 ) -> str:
-    color = "Black" if next_player == "B" else "White"
-    return (
-        f"{color} to play. KataGo recommends {best_move}, "
-        f"with score estimate {score_estimate:.1f} and winrate {winrate:.0%}."
+    return current_position_explanation_cn(
+        next_player=next_player,
+        best_move=best_move,
+        score_estimate=score_estimate,
+        winrate=winrate,
     )
 
 
@@ -370,15 +397,10 @@ def _timeline_item(
 
 def _key_points_view(board_size: int, analysis: KeyPointAnalysis) -> KeyPointsResult:
     return KeyPointsResult(
-        turning_points=[
-            _turning_point_result(item)
-            for item in analysis.turning_points
-        ],
-        plan_breaks=[
-            _plan_break_result(board_size, item)
-            for item in analysis.plan_breaks
-        ],
+        turning_points=[_turning_point_result(item) for item in analysis.turning_points],
+        plan_breaks=[_plan_break_result(board_size, item) for item in analysis.plan_breaks],
         phase_summary=_phase_summary_result(analysis),
+        review_summary=_review_summary_result(analysis.review_summary),
     )
 
 
@@ -446,19 +468,49 @@ def _classification_totals(mistakes: list[ClassifiedMistake]) -> list[Classifica
     ]
 
 
-def _explanation(board_size: int, mistake: SelectedMistakeResult) -> ExplanationResult:
+def _review_summary_result(summary: ReviewSummary) -> ReviewSummaryResult:
+    return ReviewSummaryResult(
+        opening=summary.opening,
+        middle_game=summary.middle_game,
+        endgame=summary.endgame,
+        main_turning_points=summary.main_turning_points,
+        loss_cause=summary.loss_cause,
+        summary=summary.summary,
+    )
+
+
+def _explanation(
+    board_size: int,
+    mistake: SelectedMistakeResult,
+    total_moves: int | None = None,
+    turning_point_moves: set[int] | None = None,
+    plan_break_moves: set[int] | None = None,
+) -> ExplanationResult:
     played = mistake.played_move.display
     recommended = mistake.recommended_move.display
     label = category_label(mistake.category)
+    phase = phase_for_move(mistake.move_number, total_moves or mistake.move_number)
+    is_turning_point = mistake.move_number in (turning_point_moves or set())
+    is_plan_break = mistake.move_number in (plan_break_moves or set())
     return ExplanationResult(
         move_number=mistake.move_number,
         category=mistake.category,
-        title=f"Move {mistake.move_number} ({label})",
-        summary=(
-            f"You played {played}; KataGo prefers {recommended} "
-            f"(loss {mistake.estimated_loss:.2f})."
+        title=explanation_title_cn(mistake.move_number, label),
+        summary=explanation_summary_cn(
+            move_number=mistake.move_number,
+            phase=phase,
+            played_move=played,
+            recommended_move=recommended,
+            score_loss=mistake.estimated_loss,
+            winrate_delta=mistake.winrate_delta,
+            severity_label=mistake.severity_label,
+            is_turning_point=is_turning_point,
         ),
-        why_this_matters=category_interpretation(mistake.category),
+        why_this_matters=explanation_why_cn(
+            category=mistake.category,
+            phase=phase,
+            plan_break_note=is_plan_break,
+        ),
     )
 
 

@@ -89,6 +89,11 @@ def test_build_key_point_analysis_detects_turning_points_and_phase_summary() -> 
     assert analysis.phase_summary.biggest_problem_phase == "endgame"
     assert analysis.phase_summary.main_issue == "endgame_loss"
     assert analysis.phase_summary.endgame_loss == 4.5
+    assert analysis.phase_summary.summary == "全局看，损失主要集中在官子，主因是官子。"
+    assert analysis.review_summary.loss_cause == "endgame_loss"
+    assert analysis.review_summary.summary == (
+        "这盘棋的胜负手主要出现在官子，核心问题是官子。全局最值得回看的关键点共有3处。"
+    )
 
 
 def test_build_key_point_analysis_detects_plan_break() -> None:
@@ -143,6 +148,7 @@ def test_build_key_point_analysis_detects_plan_break() -> None:
     assert analysis.plan_breaks[0].break_move_number == 3
     assert analysis.plan_breaks[0].expected_follow_up == "pq"
     assert analysis.plan_breaks[0].played_move == "cc"
+    assert "原本应顺着走pq，实战却下成cc" in analysis.plan_breaks[0].summary
 
 
 def test_parse_pv_summary_and_phase_for_move_are_deterministic() -> None:

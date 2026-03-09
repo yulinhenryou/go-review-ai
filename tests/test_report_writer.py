@@ -15,18 +15,18 @@ def test_generate_review_report_from_pipeline_data() -> None:
 
     report = generate_review_report(game, classified)
 
-    assert "Game Summary" in report
-    assert "- Board: 19x19" in report
-    assert "- Players: Black Player (B) vs White Player (W)" in report
-    assert "- Moves analyzed: 4" in report
-    assert "Top Mistakes" in report
-    assert "1. Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in report
-    assert "2. Move 1: played pd (Q16), best qd (R16), loss 1.40, 局部用力过猛" in report
-    assert "3. Move 2: played dd (D16), best dq (D3), loss 1.20, 暂难归类" in report
-    assert "Mistake Explanations" in report
-    assert "KataGo prefers" in report
-    assert "Why this matters:" in report
-    assert "Final Training Suggestions" in report
+    assert "对局概况" in report
+    assert "- 棋盘：19x19" in report
+    assert "- 对局者：Black Player（黑） vs White Player（白）" in report
+    assert "- 分析手数：4" in report
+    assert "重点手" in report
+    assert "1. 第3手：实战qp（R4），推荐cn（C6），损失1.80目，暂难归类" in report
+    assert "2. 第1手：实战pd（Q16），推荐qd（R16），损失1.40目，局部用力过猛" in report
+    assert "3. 第2手：实战dd（D16），推荐dq（D3），损失1.20目，暂难归类" in report
+    assert "逐手说明" in report
+    assert "更好的选择是cn（C6）" in report
+    assert "这手的问题：" in report
+    assert "训练建议" in report
 
 
 def test_generate_review_report_unclear_classification_is_explicit() -> None:
@@ -43,19 +43,19 @@ def test_generate_review_report_unclear_classification_is_explicit() -> None:
 
     report = generate_review_report(game, mistakes)
 
-    assert "Move 1 (暂难归类)" in report
-    assert "Engine signals are mixed, so this pattern is not yet clear." in report
+    assert "第1手（暂难归类）" in report
+    assert "这手的信号不算单一，但从结果看还是明显亏了。" in report
 
 
 def test_print_sample_report_for_sample_pipeline(capsys) -> None:
     print_sample_report("samples/sample_game.sgf", engine=MockEngineClient(candidate_count=3))
     out = capsys.readouterr().out
 
-    assert "Game Summary" in out
-    assert "Top Mistakes" in out
-    assert "Mistake Explanations" in out
-    assert "Final Training Suggestions" in out
-    assert "Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in out
+    assert "对局概况" in out
+    assert "整局总结" in out
+    assert "逐手说明" in out
+    assert "训练建议" in out
+    assert "第3手：实战qp（R4），推荐cn（C6），损失1.80目，暂难归类" in out
 
 
 def test_generate_review_report_formats_pass_move() -> None:
@@ -72,5 +72,5 @@ def test_generate_review_report_formats_pass_move() -> None:
 
     report = generate_review_report(game, mistakes)
 
-    assert "played pass" in report
-    assert "best qd (R16)" in report
+    assert "实战停一手" in report
+    assert "推荐qd（R16）" in report
