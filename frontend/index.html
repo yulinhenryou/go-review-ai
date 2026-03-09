@@ -282,6 +282,12 @@
       color: #555;
     }
 
+    .chart-note {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #666;
+    }
+
     .loading-state {
       display: flex;
       align-items: center;
@@ -895,6 +901,57 @@
         };
       }
 
+      function buildTimelineReviewSummary(detail) {
+        var parts = [];
+
+        if (!detail || typeof detail.move_number !== "number") {
+          return "暂无该手说明。";
+        }
+
+        parts.push(playerLabel(detail.color) + "第" + detail.move_number + "手下在" + formatCoord(detail.played_move) + "。");
+
+        if (detail.best_move) {
+          parts.push("引擎更推荐" + formatCoord(detail.best_move) + "。");
+        }
+
+        if (detail.severity_label) {
+          parts.push("这一手评级为" + detail.severity_label + "。");
+        } else if (detail.category_label) {
+          parts.push("这一手属于" + detail.category_label + "。");
+        }
+
+        if (typeof detail.score_loss === "number") {
+          parts.push("估计损失约" + String(Math.round(detail.score_loss * 10) / 10) + "目。");
+        }
+
+        if (typeof detail.winrate_delta === "number") {
+          parts.push("胜率波动约" + String(Math.round(detail.winrate_delta * 100)) + "%。");
+        }
+
+        return parts.join("");
+      }
+
+      function buildTimelineReviewTarget(data, moveNumber) {
+        var detail = findTimelineItem(data, moveNumber);
+
+        if (!detail || typeof detail.move_number !== "number") {
+          return null;
+        }
+
+        return {
+          id: "timeline-" + detail.move_number,
+          kind: "timeline_point",
+          title: "走势定位",
+          summary: buildTimelineReviewSummary(detail),
+          moveNumber: detail.move_number,
+          label: detail.severity_label || detail.category_label || "走势定位",
+          playedMove: detail.played_move || null,
+          recommendedMove: detail.best_move || null,
+          topCandidates: Array.isArray(detail.top_candidates) ? detail.top_candidates : [],
+          pvSummary: detail.pv_summary || ""
+        };
+      }
+
       function buildReviewTargets(data) {
         var keyPoints = data && data.key_points ? data.key_points : {};
         var turningPoints = Array.isArray(keyPoints.turning_points) ? keyPoints.turning_points : [];
@@ -983,6 +1040,22 @@
           }
         }
 
+        if (!target) return;
+
+        reviewFocus = target;
+        resetSelectedCandidate(analysisData);
+        candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
+        drawBoard();
+        updateReviewStatus();
+        renderAnalysisSummary(analysisData);
+      }
+
+      function activateTimelineMove(moveNumber) {
+        var target;
+
+        if (!analysisData) return;
+
+        target = buildTimelineReviewTarget(analysisData, moveNumber);
         if (!target) return;
 
         reviewFocus = target;
@@ -1188,6 +1261,7 @@
         var axisLabels;
         var firstPoint;
         var lastPoint;
+        var selectedMoveNumber = reviewFocus ? reviewFocus.moveNumber : (timeline.length ? timeline[timeline.length - 1].move_number : null);
 
         if (!hasWinrate && !hasScore) {
           container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
@@ -1232,7 +1306,8 @@
             x: Math.round(x * 10) / 10,
             y: Math.round(y * 10) / 10,
             moveNumber: item.moveNumber,
-            value: item.value
+            value: item.value,
+            isSelected: item.moveNumber === selectedMoveNumber
           };
         });
         path = linePath(points);
@@ -1256,7 +1331,21 @@
           "<line x1=\"" + padding.left + "\" y1=\"" + (padding.top + (height - padding.top - padding.bottom) / 2) + "\" x2=\"" + (width - padding.right) + "\" y2=\"" + (padding.top + (height - padding.top - padding.bottom) / 2) + "\" stroke=\"#ddd\" stroke-width=\"1\" />",
           "<path d=\"" + path + "\" fill=\"none\" stroke=\"#2f6db3\" stroke-width=\"2\" />",
           points.map(function (point) {
-            return "<circle cx=\"" + point.x + "\" cy=\"" + point.y + "\" r=\"3\" fill=\"#2f6db3\"><title>第" + point.moveNumber + "手: " + formatTrendValue(activeMetric, point.value) + "</title></circle>";
+            return [
+              "<circle",
+              " cx=\"" + point.x + "\"",
+              " cy=\"" + point.y + "\"",
+              " r=\"" + (point.isSelected ? "7" : "5") + "\"",
+              " fill=\"" + (point.isSelected ? "#c74b16" : "#ffffff") + "\"",
+              " stroke=\"" + (point.isSelected ? "#c74b16" : "#2f6db3") + "\"",
+              " stroke-width=\"" + (point.isSelected ? "3" : "2") + "\"",
+              " data-chart-move=\"" + point.moveNumber + "\"",
+              " tabindex=\"0\"",
+              " role=\"button\"",
+              " aria-label=\"跳转到第" + point.moveNumber + "手\"",
+              " style=\"cursor:pointer\"",
+              "><title>第" + point.moveNumber + "手: " + formatTrendValue(activeMetric, point.value) + (point.isSelected ? "（当前选中）" : "") + "</title></circle>"
+            ].join("");
           }).join(""),
           "<text x=\"6\" y=\"" + (padding.top + 4) + "\" font-size=\"10\" fill=\"#555\">" + escapeHtml(axisLabels[0]) + "</text>",
           "<text x=\"6\" y=\"" + (padding.top + (height - padding.top - padding.bottom) / 2 + 4) + "\" font-size=\"10\" fill=\"#555\">" + escapeHtml(axisLabels[1]) + "</text>",
@@ -1270,13 +1359,29 @@
           "<div class=\"chart-meta\">",
           escapeHtml(activeMetric === "winrate" ? "显示每手实战后胜率走势。" : "显示每手实战后目差走势。"),
           " 共 " + escapeHtml(String(series.length)) + " 个点。",
-          "</div>"
+          reviewFocus ? " 当前选中第" + escapeHtml(String(reviewFocus.moveNumber)) + "手。" : " 当前显示最新局面。",
+          "</div>",
+          "<div class=\"chart-note\">点击图上的点，可直接跳到对应手数；点“回到最新局面”可返回当前终局位置。</div>"
         ].join("");
 
         Array.prototype.forEach.call(container.querySelectorAll("[data-chart-metric]"), function (button) {
           button.addEventListener("click", function () {
             chartMetric = this.getAttribute("data-chart-metric");
             renderTrendChart(timeline);
+          });
+        });
+
+        Array.prototype.forEach.call(container.querySelectorAll("[data-chart-move]"), function (pointButton) {
+          function activatePoint() {
+            activateTimelineMove(Number(pointButton.getAttribute("data-chart-move")));
+          }
+
+          pointButton.addEventListener("click", activatePoint);
+          pointButton.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              activatePoint();
+            }
           });
         });
       }
@@ -1642,11 +1747,19 @@
 
         if (isLatestMove) {
           context.save();
-          context.strokeStyle = move.color === "B" ? "#f5d36b" : "#b85c00";
-          context.lineWidth = Math.max(2, boardMetrics.cell * 0.08);
+          context.strokeStyle = reviewFocus && moveNumber === reviewFocus.moveNumber ? "#c74b16" : (move.color === "B" ? "#f5d36b" : "#b85c00");
+          context.lineWidth = Math.max(2, boardMetrics.cell * (reviewFocus && moveNumber === reviewFocus.moveNumber ? 0.11 : 0.08));
           context.beginPath();
           context.arc(x, y, radius * 0.78, 0, Math.PI * 2);
           context.stroke();
+
+          if (reviewFocus && moveNumber === reviewFocus.moveNumber) {
+            context.strokeStyle = "rgba(199, 75, 22, 0.28)";
+            context.lineWidth = Math.max(4, boardMetrics.cell * 0.14);
+            context.beginPath();
+            context.arc(x, y, radius * 1.05, 0, Math.PI * 2);
+            context.stroke();
+          }
           context.restore();
         }
 
