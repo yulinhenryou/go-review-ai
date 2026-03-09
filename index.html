@@ -719,7 +719,7 @@
         }
 
         reviewStatus.innerHTML = [
-          "<span class=\"review-badge\">复盘第" + escapeHtml(String(reviewFocus.moveNumber)) + "手</span>",
+          "<span class=\"review-badge\">复盘" + escapeHtml(moveRefLabel(reviewFocus.color, reviewFocus.moveNumber)) + "</span>",
           "<span>",
           "实战：" + escapeHtml(formatCoord(reviewFocus.playedMove)) +
           " | 推荐：" + escapeHtml(formatCoord(reviewFocus.recommendedMove)) +
@@ -855,6 +855,12 @@
         if (color === "B") return "黑棋";
         if (color === "W") return "白棋";
         return color || "未知";
+      }
+
+      function moveRefLabel(color, moveNumber) {
+        var shortColor = color === "B" ? "黑" : (color === "W" ? "白" : "");
+        if (!shortColor) return "第" + String(moveNumber) + "手";
+        return shortColor + "第" + String(moveNumber) + "手";
       }
 
       function inferPhase(gameSummary) {
@@ -1046,6 +1052,7 @@
           title: config.title,
           summary: config.summary,
           moveNumber: config.moveNumber,
+          color: config.color || detail.color || null,
           label: config.label,
           playedMove: detail.played_move || config.playedMove || null,
           recommendedMove: detail.recommended_move || detail.best_move || config.recommendedMove || null,
@@ -1056,29 +1063,47 @@
 
       function buildTimelineReviewSummary(detail) {
         var parts = [];
+        var scoreDelta;
+        var winrateDelta;
 
         if (!detail || typeof detail.move_number !== "number") {
           return "暂无该手说明。";
         }
 
-        parts.push(playerLabel(detail.color) + "第" + detail.move_number + "手下在" + formatCoord(detail.played_move) + "。");
+        parts.push(moveRefLabel(detail.color, detail.move_number) + "下在" + formatCoord(detail.played_move) + "。");
 
         if (detail.best_move) {
           parts.push("引擎更推荐" + formatCoord(detail.best_move) + "。");
         }
 
-        if (detail.severity_label) {
+        if (detail.teaching_label) {
+          parts.push("这一手可算" + detail.teaching_label + "。");
+        } else if (detail.severity_label) {
           parts.push("这一手评级为" + detail.severity_label + "。");
         } else if (detail.category_label) {
           parts.push("这一手属于" + detail.category_label + "。");
         }
 
-        if (typeof detail.score_loss === "number") {
-          parts.push("估计损失约" + String(Math.round(detail.score_loss * 10) / 10) + "目。");
+        if (typeof detail.score_before === "number" && typeof detail.score_after === "number") {
+          scoreDelta = Math.round((detail.score_after - detail.score_before) * 10) / 10;
+          if (scoreDelta >= 0.1) {
+            parts.push("局势比推荐下法更好，目数上收益约" + String(scoreDelta) + "目。");
+          } else if (scoreDelta <= -0.1) {
+            parts.push("目数上亏损约" + String(Math.abs(scoreDelta)) + "目。");
+          } else {
+            parts.push("目数变化不大。");
+          }
         }
 
-        if (typeof detail.winrate_delta === "number") {
-          parts.push("胜率波动约" + String(Math.round(detail.winrate_delta * 100)) + "%。");
+        if (typeof detail.winrate_before === "number" && typeof detail.winrate_after === "number") {
+          winrateDelta = Math.round((detail.winrate_after - detail.winrate_before) * 100);
+          if (winrateDelta >= 1) {
+            parts.push("胜率提升约" + String(winrateDelta) + "%。");
+          } else if (winrateDelta <= -1) {
+            parts.push("胜率下滑约" + String(Math.abs(winrateDelta)) + "%。");
+          } else {
+            parts.push("胜率变化不大。");
+          }
         }
 
         return parts.join("");
@@ -1097,7 +1122,8 @@
           title: "走势定位",
           summary: buildTimelineReviewSummary(detail),
           moveNumber: detail.move_number,
-          label: detail.severity_label || detail.category_label || "走势定位",
+          color: detail.color || null,
+          label: detail.teaching_label || detail.severity_label || detail.category_label || "走势定位",
           playedMove: detail.played_move || null,
           recommendedMove: detail.best_move || null,
           topCandidates: Array.isArray(detail.top_candidates) ? detail.top_candidates : [],
@@ -1105,14 +1131,55 @@
         };
       }
 
+      function buildPositiveReviewTargets(data) {
+        var timeline = data && Array.isArray(data.timeline) ? data.timeline : [];
+        var priority = { "胜负手": 3, "关键好手": 2, "好手": 1 };
+
+        return timeline
+          .filter(function (item) {
+            return item && priority[item.teaching_label];
+          })
+          .sort(function (left, right) {
+            var leftPriority = priority[left.teaching_label] || 0;
+            var rightPriority = priority[right.teaching_label] || 0;
+            var leftScore = (typeof left.score_after === "number" && typeof left.score_before === "number")
+              ? (left.score_after - left.score_before)
+              : 0;
+            var rightScore = (typeof right.score_after === "number" && typeof right.score_before === "number")
+              ? (right.score_after - right.score_before)
+              : 0;
+
+            if (leftPriority !== rightPriority) return rightPriority - leftPriority;
+            if (leftScore !== rightScore) return rightScore - leftScore;
+            return left.move_number - right.move_number;
+          })
+          .slice(0, 3)
+          .map(function (item) {
+            return buildReviewTarget(data, {
+              id: "highlight-" + item.move_number,
+              kind: "highlight_move",
+              title: item.teaching_label,
+              summary: buildTimelineReviewSummary(item),
+              moveNumber: item.move_number,
+              color: item.color,
+              label: item.teaching_label,
+              playedMove: item.played_move,
+              recommendedMove: item.best_move
+            });
+          });
+      }
+
       function buildReviewTargets(data) {
         var keyPoints = data && data.key_points ? data.key_points : {};
         var turningPoints = Array.isArray(keyPoints.turning_points) ? keyPoints.turning_points : [];
         var planBreaks = Array.isArray(keyPoints.plan_breaks) ? keyPoints.plan_breaks : [];
+        var leaveMainBattlefields = Array.isArray(keyPoints.leave_main_battlefields)
+          ? keyPoints.leave_main_battlefields
+          : [];
         var thresholdMistakes = data && data.review && Array.isArray(data.review.mistakes_above_threshold)
           ? data.review.mistakes_above_threshold
           : [];
-        var targets = [];
+        var targets = buildPositiveReviewTargets(data);
         var i;
 
         for (i = 0; i < turningPoints.length; i++) {
@@ -1122,6 +1189,7 @@
             title: "转折点",
             summary: turningPoints[i].summary || "暂无说明",
             moveNumber: turningPoints[i].move_number,
+            color: turningPoints[i].color,
             label: turningPoints[i].severity_label || "关键点"
           }));
         }
@@ -1130,12 +1198,27 @@
           targets.push(buildReviewTarget(data, {
             id: "plan-break-" + planBreaks[i].break_move_number,
             kind: "plan_break",
-            title: "脱离主战场",
+            title: "没有接上前面的思路",
             summary: planBreaks[i].summary || "暂无说明",
             moveNumber: planBreaks[i].break_move_number,
+            color: planBreaks[i].color,
             label: "原计划 " + formatCoord(planBreaks[i].expected_follow_up),
             playedMove: planBreaks[i].played_move,
             recommendedMove: planBreaks[i].expected_follow_up
+          }));
+        }
+
+        for (i = 0; i < leaveMainBattlefields.length; i++) {
+          targets.push(buildReviewTarget(data, {
+            id: "leave-main-battlefield-" + leaveMainBattlefields[i].break_move_number,
+            kind: "leave_main_battlefield",
+            title: "脱离主战场",
+            summary: leaveMainBattlefields[i].summary || "暂无说明",
+            moveNumber: leaveMainBattlefields[i].break_move_number,
+            color: leaveMainBattlefields[i].color,
+            label: "主战场应对 " + formatCoord(leaveMainBattlefields[i].expected_follow_up),
+            playedMove: leaveMainBattlefields[i].played_move,
+            recommendedMove: leaveMainBattlefields[i].expected_follow_up
           }));
         }
 
@@ -1148,10 +1231,11 @@
             id: "major-" + thresholdMistakes[i].move_number,
             kind: "major_mistake",
             title: thresholdMistakes[i].severity === "blunder" ? "大恶手" : "大问题手",
-            summary: "第" + thresholdMistakes[i].move_number + "手，" +
+            summary: moveRefLabel(thresholdMistakes[i].color, thresholdMistakes[i].move_number) + "，" +
               (thresholdMistakes[i].category_label || "关键问题") +
               "，损失约" + String(thresholdMistakes[i].score_loss) + "目。",
             moveNumber: thresholdMistakes[i].move_number,
+            color: thresholdMistakes[i].color,
             label: thresholdMistakes[i].severity_label || "重点复盘"
           }));
         }
@@ -1170,7 +1254,7 @@
           return [
             "<li>",
             "<button type=\"button\" class=\"review-item-button" + (isActive ? " active" : "") + "\" data-review-id=\"" + escapeHtml(item.id) + "\">",
-            "<strong>" + escapeHtml(item.title) + " · 第" + escapeHtml(String(item.moveNumber)) + "手</strong>",
+            "<strong>" + escapeHtml(item.title) + " · " + escapeHtml(moveRefLabel(item.color, item.moveNumber)) + "</strong>",
             "<span>" + escapeHtml(item.summary) + "</span>",
             "<span class=\"review-item-meta\">",
             "实战 " + escapeHtml(formatCoord(item.playedMove)) +
@@ -1559,20 +1643,24 @@
         var hasBestMove = activeBestMoveLabel !== "暂无";
         var timeline = Array.isArray(data.timeline) ? data.timeline : [];
         var reviewTitle = reviewFocus
-          ? "当前查看：第" + reviewFocus.moveNumber + "手"
+          ? "当前查看：" + moveRefLabel(reviewFocus.color, reviewFocus.moveNumber)
           : "当前查看：最新局面";
         var activeExplanation = reviewFocus
           ? reviewFocus.summary
           : (current.short_explanation || "暂无说明");
         var reviewTargetsByKind = {
+          highlight: reviewTargets.filter(function (item) { return item.kind === "highlight_move"; }),
           turning: reviewTargets.filter(function (item) { return item.kind === "turning_point"; }),
           planBreak: reviewTargets.filter(function (item) { return item.kind === "plan_break"; }),
+          leaveMainBattlefield: reviewTargets.filter(function (item) { return item.kind === "leave_main_battlefield"; }),
           major: reviewTargets.filter(function (item) { return item.kind === "major_mistake"; })
         };
         var trendContext = buildTrendContext(timeline);
         var reviewOverview = [
+          "亮点手 " + reviewTargetsByKind.highlight.length + " 个",
           "转折点 " + reviewTargetsByKind.turning.length + " 个",
-          "脱离主战场 " + reviewTargetsByKind.planBreak.length + " 个",
+          "没有接上前面的思路 " + reviewTargetsByKind.planBreak.length + " 个",
+          "脱离主战场 " + reviewTargetsByKind.leaveMainBattlefield.length + " 个",
           "大问题手 " + reviewTargetsByKind.major.length + " 个"
         ].join("，");
 
@@ -1627,24 +1715,32 @@
           "<div class=\"section-note\">点击下面条目后，棋盘会跳转到对应手数并显示该处推荐点。</div>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>2. 转折点</strong>",
+          "<strong>2. 亮点手</strong>",
+          renderReviewTargetList(reviewTargetsByKind.highlight, "暂无明显亮点手。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>3. 转折点</strong>",
           renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>3. 脱离主战场</strong>",
-          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无脱离主战场的着手。"),
+          "<strong>4. 没有接上前面的思路</strong>",
+          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无没有接上前面的思路的着手。"),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>4. 大问题手</strong>",
+          "<strong>5. 大问题手</strong>",
           renderReviewTargetList(reviewTargetsByKind.major, "当前没有达到“大问题手 / 大恶手”级别的条目。"),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>5. 当前趋势参考</strong>",
+          "<strong>6. 脱离主战场</strong>",
+          renderReviewTargetList(reviewTargetsByKind.leaveMainBattlefield, "暂无脱离主战场的着手。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>7. 当前趋势参考</strong>",
           "<div>" + escapeHtml(trendContext) + "</div>",
           "<div id=\"trendChartSection\">暂无走势数据。</div>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>6. 当前局面参考</strong>",
+          "<strong>8. 当前局面参考</strong>",
           "<ul>",
           "<li>" + escapeHtml(reviewTitle) + "</li>",
           "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
@@ -1653,13 +1749,13 @@
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>7. 当前候选点</strong>",
+          "<strong>9. 当前候选点</strong>",
           "<div class=\"section-note\">点击棋盘候选标记可查看该点的短变化说明。</div>",
           renderCandidateChoiceList(activeCandidates),
           buildCandidateExplanation(data),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>8. 阶段判断</strong>",
+          "<strong>10. 阶段判断</strong>",
           "<ul>",
           "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
           "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
