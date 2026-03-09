@@ -28,58 +28,23 @@ def test_build_review_result_from_pipeline_data() -> None:
     assert payload["current_position"]["short_explanation"] == (
         "现在轮到黑棋。KataGo建议走K10，目差预计为0.9，胜率约53%。"
     )
-    assert payload["key_points"]["turning_points"] == [
-        {
-            "move_number": 3,
-            "color": "B",
-            "score_loss": 1.8,
-            "winrate_delta": -0.08,
-            "severity": "mistake",
-            "severity_label": "问题手",
-            "phase": "中盘",
-            "summary": "第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。",
-        },
-        {
-            "move_number": 1,
-            "color": "B",
-            "score_loss": 1.4,
-            "winrate_delta": -0.06,
-            "severity": "inaccuracy",
-            "severity_label": "可商榷",
-            "phase": "布局",
-            "summary": "第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。",
-        },
-        {
-            "move_number": 2,
-            "color": "W",
-            "score_loss": 1.2,
-            "winrate_delta": -0.05,
-            "severity": "inaccuracy",
-            "severity_label": "可商榷",
-            "phase": "中盘",
-            "summary": "第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。",
-        },
-    ]
+    assert payload["key_points"]["turning_points"] == []
     assert payload["key_points"]["plan_breaks"] == []
     assert payload["key_points"]["phase_summary"] == {
-        "opening_loss": 1.4,
-        "middle_game_loss": 3.0,
-        "endgame_loss": 1.2,
-        "biggest_problem_phase": "中盘",
-        "main_issue": "fighting",
-        "summary": "全局看，损失主要集中在中盘，主因是接触战。",
+        "opening_loss": 5.6,
+        "middle_game_loss": 0.0,
+        "endgame_loss": 0.0,
+        "biggest_problem_phase": "布局",
+        "main_issue": "balance",
+        "summary": "全局看，损失主要集中在布局，主因是形势判断。",
     }
     assert payload["key_points"]["review_summary"] == {
-        "opening": "布局阶段大体平稳，但有零星可惜之处，累计损失约1.40目。",
-        "middle_game": "中盘阶段问题比较集中，累计损失约3.00目。",
-        "endgame": "官子阶段大体平稳，但有零星可惜之处，累计损失约1.20目。",
-        "main_turning_points": [
-            "第3手：第3手是中盘阶段的重要转折点，这一手让局面损失1.80目，胜率波动-8%。",
-            "第1手：第1手是布局阶段的重要转折点，这一手让局面损失1.40目，胜率波动-6%。",
-            "第2手：第2手是中盘阶段的重要转折点，这一手让局面损失1.20目，胜率波动-5%。",
-        ],
-        "loss_cause": "fighting",
-        "summary": "这盘棋的胜负手主要出现在中盘，核心问题是接触战。全局最值得回看的关键点共有3处。",
+        "opening": "布局阶段问题比较集中，累计损失约5.60目。",
+        "middle_game": "中盘阶段整体平稳，基本没有明显损失。",
+        "endgame": "官子阶段整体平稳，基本没有明显损失。",
+        "main_turning_points": [],
+        "loss_cause": "balance",
+        "summary": "这盘棋的胜负手主要出现在布局，核心问题是形势判断。全局最值得回看的关键点共有0处。",
     }
 
     assert len(payload["timeline"]) == 4
@@ -125,7 +90,7 @@ def test_build_review_result_from_pipeline_data() -> None:
     assert payload["review"]["training_suggestions"][0]["category"] == "unclear"
 
     assert payload["explanations"][0]["title"] == "第3手（暂难归类）"
-    assert "这是本局关键处之一。中盘第3手" in payload["explanations"][0]["summary"]
+    assert "这一手值得重点复盘。布局第3手" in payload["explanations"][0]["summary"]
     assert payload["training_suggestions"][0]["suggestion"] == (
         "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
     )
@@ -149,7 +114,7 @@ def test_structured_review_builder_in_main_and_text_report_still_works() -> None
 
     assert review.game_summary.moves_analyzed == 4
     assert len(review.selected_mistakes) == 3
-    assert len(review.key_points.turning_points) == 3
+    assert len(review.key_points.turning_points) == 0
     assert len(review.timeline) == 4
     assert "整局总结" in report
     assert "第3手：实战qp（R4），推荐cn（C6），损失1.80目，暂难归类" in report
@@ -169,7 +134,7 @@ def test_build_review_result_formats_pass_coordinate() -> None:
     assert payload["timeline"][0]["played_move"] == {"sgf": None, "display": "pass"}
     assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
-    assert payload["key_points"]["turning_points"][0]["move_number"] == 1
+    assert payload["key_points"]["turning_points"] == []
     assert payload["current_position"]["short_explanation"] == (
         "现在轮到白棋。KataGo建议走R16，目差预计为1.6，胜率约54%。"
     )

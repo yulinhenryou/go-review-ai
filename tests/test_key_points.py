@@ -84,15 +84,14 @@ def test_build_key_point_analysis_detects_turning_points_and_phase_summary() -> 
 
     analysis = build_key_point_analysis(results, classified)
 
-    assert [item.move_number for item in analysis.turning_points] == [5, 3, 6]
-    assert analysis.turning_points[0].phase == "endgame"
-    assert analysis.phase_summary.biggest_problem_phase == "endgame"
-    assert analysis.phase_summary.main_issue == "endgame_loss"
-    assert analysis.phase_summary.endgame_loss == 4.5
-    assert analysis.phase_summary.summary == "全局看，损失主要集中在官子，主因是官子。"
-    assert analysis.review_summary.loss_cause == "endgame_loss"
+    assert analysis.turning_points == []
+    assert analysis.phase_summary.biggest_problem_phase == "opening"
+    assert analysis.phase_summary.main_issue == "balance"
+    assert analysis.phase_summary.endgame_loss == 0.0
+    assert analysis.phase_summary.summary == "全局看，损失主要集中在布局，主因是形势判断。"
+    assert analysis.review_summary.loss_cause == "balance"
     assert analysis.review_summary.summary == (
-        "这盘棋的胜负手主要出现在官子，核心问题是官子。全局最值得回看的关键点共有3处。"
+        "这盘棋的胜负手主要出现在布局，核心问题是形势判断。全局最值得回看的关键点共有0处。"
     )
 
 
@@ -158,8 +157,71 @@ def test_parse_pv_summary_and_phase_for_move_are_deterministic() -> None:
         ("B", "pq"),
     ]
     assert phase_for_move(1, 4) == "opening"
-    assert phase_for_move(2, 4) == "middle_game"
-    assert phase_for_move(4, 4) == "endgame"
+    assert phase_for_move(2, 4) == "opening"
+    assert phase_for_move(4, 4) == "opening"
+
+
+def test_short_game_never_labels_endgame_or_multiple_turning_points() -> None:
+    results = [
+        _make_result(
+            move_number=1,
+            played_move="pd",
+            best_move="qd",
+            estimated_loss=1.4,
+            top_candidates=(
+                CandidateMove("qd", score_estimate=1.8, winrate=0.54),
+                CandidateMove("dp", score_estimate=1.4, winrate=0.52),
+                CandidateMove("pq", score_estimate=1.0, winrate=0.5),
+            ),
+        ),
+        _make_result(
+            move_number=2,
+            played_move="dd",
+            best_move="dq",
+            estimated_loss=1.2,
+            top_candidates=(
+                CandidateMove("dq", score_estimate=1.6, winrate=0.53),
+                CandidateMove("cp", score_estimate=1.3, winrate=0.51),
+                CandidateMove("qq", score_estimate=1.0, winrate=0.5),
+            ),
+        ),
+        _make_result(
+            move_number=3,
+            played_move="qp",
+            best_move="cn",
+            estimated_loss=1.8,
+            top_candidates=(
+                CandidateMove("cn", score_estimate=2.0, winrate=0.56),
+                CandidateMove("co", score_estimate=1.6, winrate=0.53),
+                CandidateMove("bn", score_estimate=1.2, winrate=0.5),
+            ),
+        ),
+        _make_result(
+            move_number=4,
+            played_move="dc",
+            best_move="dq",
+            estimated_loss=1.1,
+            top_candidates=(
+                CandidateMove("dq", score_estimate=1.4, winrate=0.52),
+                CandidateMove("cp", score_estimate=1.0, winrate=0.5),
+                CandidateMove("qq", score_estimate=0.8, winrate=0.49),
+            ),
+        ),
+    ]
+    classified = [
+        ClassifiedMistake(1, "pd", "qd", 1.4, "local_overplay", -0.06, "inaccuracy"),
+        ClassifiedMistake(2, "dd", "dq", 1.2, "unclear", -0.05, "inaccuracy"),
+        ClassifiedMistake(3, "qp", "cn", 1.8, "unclear", -0.08, "mistake"),
+        ClassifiedMistake(4, "dc", "dq", 1.1, "unclear", -0.04, "inaccuracy"),
+    ]
+
+    analysis = build_key_point_analysis(results, classified)
+
+    assert analysis.turning_points == []
+    assert {
+        phase_for_move(result.move_number, len(results), result)
+        for result in results
+    } == {"opening"}
 
 
 def _make_result(

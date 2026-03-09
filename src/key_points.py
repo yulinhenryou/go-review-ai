@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Literal
 
@@ -95,27 +96,29 @@ def _turning_points(
     if not results:
         return []
 
-    target_count = min(len(results), 3 + int(len(results) >= 90) + int(len(results) >= 180))
+    target_count = _turning_point_limit(len(results))
+    if target_count == 0:
+        return []
+
     ranked_indexes = sorted(
         range(len(results)),
         key=lambda index: _turning_point_rank(results[index], classified_results[index]),
         reverse=True,
     )
 
-    shortlisted = [
-        index
-        for index in ranked_indexes
-        if _is_major_swing(results[index], classified_results[index])
-    ]
-    chosen_indexes = shortlisted[:target_count]
-
-    if len(chosen_indexes) < target_count:
-        for index in ranked_indexes:
-            if index in chosen_indexes:
-                continue
-            chosen_indexes.append(index)
-            if len(chosen_indexes) == target_count:
-                break
+    chosen_indexes: list[int] = []
+    cluster_radius = 2 if len(results) < 80 else 4
+    for index in ranked_indexes:
+        if not _is_turning_point_candidate(results[index], classified_results[index], len(results)):
+            continue
+        if any(
+            abs(results[index].move_number - results[chosen].move_number) <= cluster_radius
+            for chosen in chosen_indexes
+        ):
+            continue
+        chosen_indexes.append(index)
+        if len(chosen_indexes) == target_count:
+            break
 
     return [
         _turning_point_view(results[index], classified_results[index], len(results))
@@ -128,17 +131,32 @@ def _turning_point_rank(
     classified: ClassifiedMistake,
 ) -> tuple[float, float, int]:
     return (
-        result.estimated_loss,
+        result.estimated_loss + (0.4 if classified.severity == "mistake" else 0.0),
         abs(classified.winrate_delta),
         -result.move_number,
     )
 
 
-def _is_major_swing(
+def _turning_point_limit(total_moves: int) -> int:
+    if total_moves < 20:
+        return 0
+    if total_moves < 50:
+        return 1
+    if total_moves < 120:
+        return 2
+    return min(5, 3 + int(total_moves >= 180) + int(total_moves >= 240))
+
+
+def _is_turning_point_candidate(
     result: MoveAnalysisResult,
     classified: ClassifiedMistake,
+    total_moves: int,
 ) -> bool:
-    return result.estimated_loss >= 1.5 or abs(classified.winrate_delta) >= 0.07
+    if total_moves < 50:
+        return result.estimated_loss >= 2.5 or abs(classified.winrate_delta) >= 0.12
+    if total_moves < 120:
+        return result.estimated_loss >= 2.0 or abs(classified.winrate_delta) >= 0.1
+    return result.estimated_loss >= 1.5 or abs(classified.winrate_delta) >= 0.08
 
 
 def _turning_point_view(
@@ -146,7 +164,7 @@ def _turning_point_view(
     classified: ClassifiedMistake,
     total_moves: int,
 ) -> TurningPoint:
-    phase = phase_for_move(result.move_number, total_moves)
+    phase = phase_for_move(result.move_number, total_moves, result)
     return TurningPoint(
         move_number=result.move_number,
         color=result.color,
@@ -229,7 +247,7 @@ def _phase_summary(
     }
 
     for result, classified in zip(results, classified_results, strict=True):
-        phase = phase_for_move(result.move_number, len(results))
+        phase = phase_for_move(result.move_number, len(results), result)
         losses[phase] += result.estimated_loss
         issue_weights[_issue_for_result(phase, classified.category)] += result.estimated_loss
 
@@ -276,20 +294,77 @@ def _review_summary(
     )
 
 
-def phase_for_move(move_number: int, total_moves: int) -> GamePhase:
+def phase_for_move(
+    move_number: int,
+    total_moves: int,
+    result: MoveAnalysisResult | None = None,
+) -> GamePhase:
     if total_moves <= 1:
         return "opening"
-    if total_moves == 2:
-        return "opening" if move_number == 1 else "endgame"
+    if result is None:
+        return _fallback_phase(move_number, total_moves)
 
-    opening_end = max(1, total_moves // 3)
-    endgame_start = max(opening_end + 1, total_moves - max(1, total_moves // 3) + 1)
+    features = _board_features(result)
+    opening_score = 0
+    middle_score = 0
+    endgame_score = 0
 
-    if move_number <= opening_end:
-        return "opening"
-    if move_number >= endgame_start:
-        return "endgame"
-    return "middle_game"
+    if move_number <= 20:
+        opening_score += 3
+    elif move_number <= 40:
+        opening_score += 1
+        middle_score += 1
+    else:
+        middle_score += 1
+
+    if features.open_region_count >= 6:
+        opening_score += 3
+    elif features.open_region_count >= 4:
+        opening_score += 2
+    elif features.open_region_count >= 2:
+        middle_score += 1
+    else:
+        endgame_score += 2
+
+    if features.recent_contact_moves >= 3:
+        middle_score += 3
+    elif features.recent_contact_moves >= 1:
+        middle_score += 1
+    else:
+        opening_score += 1
+
+    if features.unstable_groups >= 3:
+        middle_score += 3
+    elif features.unstable_groups >= 1:
+        middle_score += 2
+    else:
+        endgame_score += 1
+
+    if features.occupied_ratio >= 0.45:
+        endgame_score += 2
+    elif features.occupied_ratio >= 0.25:
+        middle_score += 1
+
+    if (
+        features.occupied_ratio >= 0.42
+        and features.open_region_count <= 1
+        and features.recent_contact_moves == 0
+        and features.unstable_groups == 0
+    ):
+        endgame_score += 3
+
+    if move_number < 40:
+        endgame_score = -1
+
+    scores: dict[GamePhase, int] = {
+        "opening": opening_score,
+        "middle_game": middle_score,
+        "endgame": endgame_score,
+    }
+    return max(
+        ("opening", "middle_game", "endgame"),
+        key=lambda phase: (scores[phase], _phase_priority(phase)),
+    )
 
 
 def phase_label(phase: GamePhase) -> str:
@@ -312,7 +387,7 @@ def parse_pv_summary(pv_summary: str) -> list[tuple[str, str | None]]:
 
 
 def _issue_for_result(phase: GamePhase, category: MistakeCategory) -> MainIssue:
-    if category == "endgame_loss" or phase == "endgame":
+    if phase == "endgame":
         return "endgame_loss"
     if category in {"direction_error", "defensive_overreaction"}:
         return "balance"
@@ -360,3 +435,163 @@ def _normalize_move(move: str | None) -> str | None:
 def _display_move(move: str | None) -> str:
     normalized = _normalize_move(move)
     return normalized if normalized is not None else "pass"
+
+
+@dataclass(frozen=True)
+class _BoardFeatures:
+    occupied_ratio: float
+    open_region_count: int
+    recent_contact_moves: int
+    unstable_groups: int
+
+
+def _fallback_phase(move_number: int, total_moves: int) -> GamePhase:
+    if total_moves < 8:
+        return "opening"
+    if move_number < 40:
+        if move_number <= max(12, total_moves // 3):
+            return "opening"
+        return "middle_game"
+    if move_number <= max(20, total_moves // 4):
+        return "opening"
+    if move_number >= max(40, math.floor(total_moves * 0.8)):
+        return "endgame"
+    return "middle_game"
+
+
+def _board_features(result: MoveAnalysisResult) -> _BoardFeatures:
+    moves = list(result.position_input.moves)
+    if result.played_move is not None:
+        moves.append((result.color, result.played_move))
+
+    board = _board_after_moves(result.position_input.board_size, moves)
+    occupied_ratio = len(board) / (result.position_input.board_size ** 2)
+    return _BoardFeatures(
+        occupied_ratio=occupied_ratio,
+        open_region_count=_open_region_count(result.position_input.board_size, board),
+        recent_contact_moves=_recent_contact_moves(result.position_input.board_size, moves),
+        unstable_groups=_unstable_group_count(result.position_input.board_size, board),
+    )
+
+
+def _board_after_moves(
+    board_size: int,
+    moves: list[tuple[str, str | None]],
+) -> dict[tuple[int, int], str]:
+    board: dict[tuple[int, int], str] = {}
+    for color, move in moves:
+        point = _coord_to_point(move, board_size)
+        if point is None:
+            continue
+        board[point] = color
+    return board
+
+
+def _coord_to_point(move: str | None, board_size: int) -> tuple[int, int] | None:
+    normalized = _normalize_move(move)
+    if normalized is None or len(normalized) != 2:
+        return None
+    x = ord(normalized[0]) - ord("a")
+    y = ord(normalized[1]) - ord("a")
+    if not (0 <= x < board_size and 0 <= y < board_size):
+        return None
+    return (x, y)
+
+
+def _neighbors(point: tuple[int, int], board_size: int) -> list[tuple[int, int]]:
+    x, y = point
+    candidates = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))
+    return [
+        (nx, ny)
+        for nx, ny in candidates
+        if 0 <= nx < board_size and 0 <= ny < board_size
+    ]
+
+
+def _open_region_count(
+    board_size: int,
+    board: dict[tuple[int, int], str],
+) -> int:
+    region_span = math.ceil(board_size / 3)
+    open_regions = 0
+
+    for start_x in range(0, board_size, region_span):
+        for start_y in range(0, board_size, region_span):
+            stones = 0
+            for x in range(start_x, min(board_size, start_x + region_span)):
+                for y in range(start_y, min(board_size, start_y + region_span)):
+                    if (x, y) in board:
+                        stones += 1
+            if stones <= 2:
+                open_regions += 1
+
+    return open_regions
+
+
+def _recent_contact_moves(
+    board_size: int,
+    moves: list[tuple[str, str | None]],
+) -> int:
+    history_board: dict[tuple[int, int], str] = {}
+    contact_flags: list[bool] = []
+
+    for color, move in moves:
+        point = _coord_to_point(move, board_size)
+        if point is None:
+            contact_flags.append(False)
+            continue
+        is_contact = any(
+            history_board.get(neighbor) not in {None, color}
+            for neighbor in _neighbors(point, board_size)
+        )
+        contact_flags.append(is_contact)
+        history_board[point] = color
+
+    return sum(contact_flags[-8:])
+
+
+def _unstable_group_count(
+    board_size: int,
+    board: dict[tuple[int, int], str],
+) -> int:
+    visited: set[tuple[int, int]] = set()
+    unstable_groups = 0
+
+    for point, color in board.items():
+        if point in visited:
+            continue
+        group, liberties, enemy_contacts = _group_state(board_size, board, point, color)
+        visited.update(group)
+        if liberties <= 2 or (liberties == 3 and enemy_contacts >= 2):
+            unstable_groups += 1
+
+    return unstable_groups
+
+
+def _group_state(
+    board_size: int,
+    board: dict[tuple[int, int], str],
+    start: tuple[int, int],
+    color: str,
+) -> tuple[set[tuple[int, int]], int, int]:
+    stack = [start]
+    group: set[tuple[int, int]] = set()
+    liberties: set[tuple[int, int]] = set()
+    enemy_contacts = 0
+
+    while stack:
+        point = stack.pop()
+        if point in group:
+            continue
+        group.add(point)
+        for neighbor in _neighbors(point, board_size):
+            neighbor_color = board.get(neighbor)
+            if neighbor_color is None:
+                liberties.add(neighbor)
+            elif neighbor_color == color:
+                if neighbor not in group:
+                    stack.append(neighbor)
+            else:
+                enemy_contacts += 1
+
+    return group, len(liberties), enemy_contacts
