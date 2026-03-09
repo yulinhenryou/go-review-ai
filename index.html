@@ -5,31 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>围棋复盘 MVP 演示</title>
   <style>
+    :root {
+      --page-gutter: 20px;
+      --surface: rgba(255, 251, 244, 0.96);
+      --surface-border: #d8cfbf;
+      --shadow-soft: 0 18px 40px rgba(84, 67, 39, 0.08);
+    }
+
+    html {
+      min-height: 100%;
+      background: linear-gradient(180deg, #f4efe6 0%, #fbf8f2 100%);
+    }
+
     body {
-      font-family: sans-serif;
-      margin: 20px;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: var(--page-gutter);
+      max-width: 1440px;
+      min-height: 100vh;
+      box-sizing: border-box;
       line-height: 1.4;
+      color: #2f2920;
     }
 
     h1 {
       margin-top: 0;
-      font-size: 20px;
+      margin-bottom: 18px;
+      font-size: 22px;
+      font-weight: 600;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 16px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(360px, 420px);
+      gap: 20px;
       align-items: start;
+    }
+
+    .board-column {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
     }
 
     #board {
       width: min(100%, 640px);
       aspect-ratio: 1 / 1;
-      border: 1px solid #ccc;
+      border: 1px solid #b79254;
+      border-radius: 18px;
       box-sizing: border-box;
       background: linear-gradient(135deg, #e7c98b, #d7ad63);
       position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 36px rgba(115, 81, 28, 0.18);
     }
 
     #board canvas {
@@ -39,7 +67,6 @@
     }
 
     .controls {
-      margin-top: 12px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -48,7 +75,8 @@
     button {
       padding: 6px 10px;
       border: 1px solid #999;
-      background: #f5f5f5;
+      border-radius: 10px;
+      background: #f7f3ea;
       cursor: pointer;
     }
 
@@ -62,10 +90,14 @@
     }
 
     .panel {
-      border: 1px solid #ccc;
-      padding: 10px;
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      padding: 14px 16px;
       min-height: 200px;
-      background: #fafafa;
+      min-width: 0;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+      box-sizing: border-box;
     }
 
     .upload-controls {
@@ -81,9 +113,18 @@
     }
 
     .meta {
-      margin: 8px 0;
       font-size: 13px;
       color: #333;
+    }
+
+    .board-meta {
+      display: grid;
+      gap: 8px;
+      padding: 14px 16px;
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
     }
 
     .review-meta {
@@ -344,9 +385,32 @@
       cursor: pointer;
     }
 
+    @media (min-width: 901px) {
+      .board-column {
+        position: sticky;
+        top: var(--page-gutter);
+        max-height: calc(100vh - (var(--page-gutter) * 2));
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .panel {
+        max-height: calc(100vh - (var(--page-gutter) * 2));
+        overflow: auto;
+      }
+    }
+
     @media (max-width: 900px) {
+      body {
+        padding: 16px;
+      }
+
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      #board {
+        width: min(100%, 560px);
       }
     }
   </style>
@@ -366,7 +430,7 @@
   <h1>围棋复盘 MVP - 棋盘演示</h1>
 
   <div class="layout">
-    <div>
+    <div class="board-column">
       <div id="board">
         <canvas id="boardCanvas" aria-label="围棋棋盘"></canvas>
       </div>
@@ -382,12 +446,13 @@
         <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
         <button id="uploadAnalyzeBtn" type="button">上传并分析</button>
       </div>
-      <div class="meta" id="uploadStatus">也可以直接上传 SGF 文件进行分析。</div>
-
-      <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
-      <div class="meta review-meta" id="reviewStatus">
-        <span class="review-badge">最新局面</span>
-        <span>当前未查看具体复盘手数。</span>
+      <div class="board-meta">
+        <div class="meta" id="uploadStatus">也可以直接上传 SGF 文件进行分析。</div>
+        <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
+        <div class="meta review-meta" id="reviewStatus">
+          <span class="review-badge">最新局面</span>
+          <span>当前未查看具体复盘手数。</span>
+        </div>
       </div>
     </div>
 
