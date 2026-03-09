@@ -56,6 +56,11 @@
       background: #ececec;
     }
 
+    button:disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
     .panel {
       border: 1px solid #ccc;
       padding: 10px;
@@ -92,6 +97,76 @@
 
     .analysis-section li {
       margin: 2px 0;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 8px;
+      margin: 6px 0 8px;
+      flex-wrap: wrap;
+    }
+
+    .chart-controls button {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .chart-controls button.active {
+      background: #ddd;
+    }
+
+    .trend-chart {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 6px;
+    }
+
+    .trend-chart svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .chart-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .loading-state {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      color: #333;
+    }
+
+    .loading-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d9d9d9;
+      border-top-color: #666;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex: 0 0 auto;
+    }
+
+    .loading-text {
+      font-size: 14px;
+    }
+
+    .error-message {
+      color: #b00020;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     details {
@@ -142,7 +217,7 @@
       <strong>分析结果</strong>
       <div id="analysisSummary">暂无分析结果。</div>
       <details>
-        <summary>5. 原始分析数据</summary>
+        <summary>6. 原始分析数据</summary>
         <pre id="analysisOutput">暂无分析数据。</pre>
       </details>
     </div>
@@ -161,12 +236,15 @@
       var analyzeBtn = document.getElementById("analyzeBtn");
       var BOARD_SIZE = 19;
       var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+      var DISPLAY_COLUMNS = "ABCDEFGHJKLMNOPQRST";
       var STAR_POINTS = [3, 9, 15];
       var moves = [];
       var stonesByPoint = {};
       var currentColor = "B";
       var boardMetrics = null;
-      var recommendedMove = null;
+      var candidateMarkers = [];
+      var chartMetric = "winrate";
+      var defaultAnalyzeButtonText = "开始分析";
 
       function colorName(color) {
         return color === "B" ? "黑棋" : "白棋";
@@ -183,6 +261,26 @@
         var y = SGF_LETTERS.indexOf(sgf.charAt(1));
 
         if (x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE) return null;
+
+        return { x: x, y: y };
+      }
+
+      function fromDisplayCoord(display) {
+        if (typeof display !== "string") return null;
+
+        var normalized = display.trim().toUpperCase();
+        var match = /^([A-HJ-T])\s*(\d{1,2})$/.exec(normalized);
+        var x;
+        var row;
+        var y;
+
+        if (!match) return null;
+
+        x = DISPLAY_COLUMNS.indexOf(match[1]);
+        row = Number(match[2]);
+        y = BOARD_SIZE - row;
+
+        if (x < 0 || row < 1 || row > BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return null;
 
         return { x: x, y: y };
       }
@@ -364,18 +462,35 @@
         return "暂无";
       }
 
-      function extractBestMoveCoord(bestMove) {
-        if (!bestMove) return null;
-        if (typeof bestMove === "string") return bestMove;
-        if (typeof bestMove.sgf === "string" && bestMove.sgf.length === 2) return bestMove.sgf;
-        return null;
+      function extractCoordPoint(coord) {
+        if (!coord) return null;
+
+        if (typeof coord === "string") {
+          return fromSgf(coord) || fromDisplayCoord(coord);
+        }
+
+        return fromSgf(coord.sgf) || fromDisplayCoord(coord.display);
       }
 
-      function getCurrentRecommendedMove(data) {
-        if (!data || typeof data !== "object") return null;
+      function getCurrentCandidateMarkers(data) {
+        if (!data || typeof data !== "object") return [];
 
         var current = data.current_position || {};
-        return fromSgf(extractBestMoveCoord(current.best_move));
+        var candidates = Array.isArray(current.top_candidates) ? current.top_candidates.slice(0, 3) : [];
+
+        return candidates
+          .map(function (candidate, index) {
+            var point = extractCoordPoint(candidate && candidate.move);
+
+            if (!point) return null;
+
+            return {
+              x: point.x,
+              y: point.y,
+              rank: index + 1
+            };
+          })
+          .filter(Boolean);
       }
 
       function playerLabel(color) {
@@ -428,6 +543,177 @@
         output.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
       }
 
+      function setAnalyzeLoadingState(isLoading) {
+        analyzeBtn.disabled = isLoading;
+        analyzeBtn.textContent = isLoading ? "分析中…" : defaultAnalyzeButtonText;
+      }
+
+      function renderLoadingState() {
+        summary.innerHTML = [
+          "<div class=\"loading-state\">",
+          "<div class=\"loading-spinner\" aria-hidden=\"true\"></div>",
+          "<div class=\"loading-text\">正在分析当前局面，请稍候</div>",
+          "</div>"
+        ].join("");
+      }
+
+      function renderErrorState(message) {
+        summary.innerHTML = "<div class=\"error-message\">" + escapeHtml(message) + "</div>";
+      }
+
+      function hasTrendMetric(timeline, metric) {
+        if (!timeline || !timeline.length) return false;
+
+        return timeline.some(function (item) {
+          return item && typeof item[metric] === "number";
+        });
+      }
+
+      function buildTrendSeries(timeline, metric) {
+        if (!timeline || !timeline.length) return [];
+
+        return timeline
+          .map(function (item) {
+            if (!item || typeof item.move_number !== "number" || typeof item[metric] !== "number") {
+              return null;
+            }
+
+            return {
+              moveNumber: item.move_number,
+              value: item[metric]
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function formatTrendValue(metric, value) {
+        if (metric === "winrate") {
+          return Math.round(value * 100) + "%";
+        }
+
+        var rounded = Math.round(value * 10) / 10;
+        return String(rounded);
+      }
+
+      function linePath(points) {
+        if (!points.length) return "";
+
+        return points.map(function (point, index) {
+          return (index === 0 ? "M" : "L") + point.x + " " + point.y;
+        }).join(" ");
+      }
+
+      function renderTrendChart(timeline) {
+        var container = document.getElementById("trendChartSection");
+        if (!container) return;
+
+        var hasWinrate = hasTrendMetric(timeline, "winrate_after");
+        var hasScore = hasTrendMetric(timeline, "score_after");
+        var activeMetric = chartMetric;
+        var series;
+        var minValue;
+        var maxValue;
+        var width;
+        var height;
+        var padding;
+        var points;
+        var path;
+        var axisLabels;
+        var firstPoint;
+        var lastPoint;
+
+        if (!hasWinrate && !hasScore) {
+          container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
+          return;
+        }
+
+        if (activeMetric === "winrate" && !hasWinrate) activeMetric = "score";
+        if (activeMetric === "score" && !hasScore) activeMetric = "winrate";
+        chartMetric = activeMetric;
+
+        series = buildTrendSeries(timeline, activeMetric === "winrate" ? "winrate_after" : "score_after");
+        if (!series.length) {
+          container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
+          return;
+        }
+
+        minValue = series[0].value;
+        maxValue = series[0].value;
+        for (var i = 1; i < series.length; i++) {
+          minValue = Math.min(minValue, series[i].value);
+          maxValue = Math.max(maxValue, series[i].value);
+        }
+
+        if (minValue === maxValue) {
+          minValue -= activeMetric === "winrate" ? 0.02 : 1;
+          maxValue += activeMetric === "winrate" ? 0.02 : 1;
+        }
+
+        width = 300;
+        height = 160;
+        padding = { top: 12, right: 12, bottom: 28, left: 36 };
+        points = series.map(function (item, index) {
+          var x;
+          var y;
+          var xSpan = Math.max(1, series.length - 1);
+          var ySpan = maxValue - minValue;
+
+          x = padding.left + ((width - padding.left - padding.right) * index) / xSpan;
+          y = padding.top + ((height - padding.top - padding.bottom) * (maxValue - item.value)) / ySpan;
+
+          return {
+            x: Math.round(x * 10) / 10,
+            y: Math.round(y * 10) / 10,
+            moveNumber: item.moveNumber,
+            value: item.value
+          };
+        });
+        path = linePath(points);
+        axisLabels = [
+          formatTrendValue(activeMetric, maxValue),
+          formatTrendValue(activeMetric, (minValue + maxValue) / 2),
+          formatTrendValue(activeMetric, minValue)
+        ];
+        firstPoint = points[0];
+        lastPoint = points[points.length - 1];
+
+        container.innerHTML = [
+          "<div class=\"chart-controls\">",
+          hasWinrate ? "<button type=\"button\" data-chart-metric=\"winrate\" class=\"" + (activeMetric === "winrate" ? "active" : "") + "\">胜率</button>" : "",
+          hasScore ? "<button type=\"button\" data-chart-metric=\"score\" class=\"" + (activeMetric === "score" ? "active" : "") + "\">目差</button>" : "",
+          "</div>",
+          "<div class=\"trend-chart\">",
+          "<svg viewBox=\"0 0 " + width + " " + height + "\" role=\"img\" aria-label=\"走势折线图\">",
+          "<line x1=\"" + padding.left + "\" y1=\"" + padding.top + "\" x2=\"" + padding.left + "\" y2=\"" + (height - padding.bottom) + "\" stroke=\"#999\" stroke-width=\"1\" />",
+          "<line x1=\"" + padding.left + "\" y1=\"" + (height - padding.bottom) + "\" x2=\"" + (width - padding.right) + "\" y2=\"" + (height - padding.bottom) + "\" stroke=\"#999\" stroke-width=\"1\" />",
+          "<line x1=\"" + padding.left + "\" y1=\"" + (padding.top + (height - padding.top - padding.bottom) / 2) + "\" x2=\"" + (width - padding.right) + "\" y2=\"" + (padding.top + (height - padding.top - padding.bottom) / 2) + "\" stroke=\"#ddd\" stroke-width=\"1\" />",
+          "<path d=\"" + path + "\" fill=\"none\" stroke=\"#2f6db3\" stroke-width=\"2\" />",
+          points.map(function (point) {
+            return "<circle cx=\"" + point.x + "\" cy=\"" + point.y + "\" r=\"3\" fill=\"#2f6db3\"><title>第" + point.moveNumber + "手: " + formatTrendValue(activeMetric, point.value) + "</title></circle>";
+          }).join(""),
+          "<text x=\"6\" y=\"" + (padding.top + 4) + "\" font-size=\"10\" fill=\"#555\">" + escapeHtml(axisLabels[0]) + "</text>",
+          "<text x=\"6\" y=\"" + (padding.top + (height - padding.top - padding.bottom) / 2 + 4) + "\" font-size=\"10\" fill=\"#555\">" + escapeHtml(axisLabels[1]) + "</text>",
+          "<text x=\"6\" y=\"" + (height - padding.bottom + 4) + "\" font-size=\"10\" fill=\"#555\">" + escapeHtml(axisLabels[2]) + "</text>",
+          "<text x=\"" + firstPoint.x + "\" y=\"" + (height - 8) + "\" text-anchor=\"middle\" font-size=\"10\" fill=\"#555\">第" + firstPoint.moveNumber + "手</text>",
+          (lastPoint.moveNumber !== firstPoint.moveNumber
+            ? "<text x=\"" + lastPoint.x + "\" y=\"" + (height - 8) + "\" text-anchor=\"middle\" font-size=\"10\" fill=\"#555\">第" + lastPoint.moveNumber + "手</text>"
+            : ""),
+          "</svg>",
+          "</div>",
+          "<div class=\"chart-meta\">",
+          escapeHtml(activeMetric === "winrate" ? "显示每手实战后胜率走势。" : "显示每手实战后目差走势。"),
+          " 共 " + escapeHtml(String(series.length)) + " 个点。",
+          "</div>"
+        ].join("");
+
+        Array.prototype.forEach.call(container.querySelectorAll("[data-chart-metric]"), function (button) {
+          button.addEventListener("click", function () {
+            chartMetric = this.getAttribute("data-chart-metric");
+            renderTrendChart(timeline);
+          });
+        });
+      }
+
       function renderAnalysisSummary(data) {
         if (!data || typeof data !== "object") {
           summary.textContent = "暂无分析结果。";
@@ -444,6 +730,7 @@
         var currentPhase = inferPhase(gameSummary);
         var bestMoveLabel = formatCoord(current.best_move);
         var hasBestMove = bestMoveLabel !== "暂无";
+        var timeline = Array.isArray(data.timeline) ? data.timeline : [];
         var keyPointItems = [];
 
         if (turningPoints.length) {
@@ -494,12 +781,18 @@
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>4. 关键点</strong>",
+          "<strong>4. 走势</strong>",
+          "<div id=\"trendChartSection\">暂无走势数据。</div>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>5. 关键点</strong>",
           renderList(keyPointItems, "暂无明显转折点或计划断点。", function (item) {
             return escapeHtml(item);
           }),
           "</div>"
         ].join("");
+
+        renderTrendChart(timeline);
       }
 
       function syncCanvasSize() {
@@ -597,24 +890,60 @@
         context.restore();
       }
 
-      function drawRecommendedMoveMarker(point) {
+      function candidateMarkerStyle(rank) {
+        if (rank === 1) {
+          return {
+            outerStroke: "#1f7a3d",
+            innerStroke: "rgba(232, 247, 237, 0.98)",
+            dotFill: "#1f7a3d",
+            ringScale: 0.52,
+            lineWidth: 0.085
+          };
+        }
+
+        if (rank === 2) {
+          return {
+            outerStroke: "#43a35f",
+            innerStroke: "rgba(239, 250, 242, 0.96)",
+            dotFill: "#43a35f",
+            ringScale: 0.45,
+            lineWidth: 0.07
+          };
+        }
+
+        return {
+          outerStroke: "#7bc98f",
+          innerStroke: "rgba(247, 253, 248, 0.94)",
+          dotFill: "#7bc98f",
+          ringScale: 0.39,
+          lineWidth: 0.06
+        };
+      }
+
+      function drawCandidateMarker(point) {
         var x = boardPoint(point.x);
         var y = boardPoint(point.y);
-        var outerRadius = boardMetrics.cell * 0.22;
-        var innerRadius = boardMetrics.cell * 0.12;
+        var stone = stoneAt(point.x, point.y);
+        var style = candidateMarkerStyle(point.rank);
+        var ringRadius = boardMetrics.cell * (stone ? Math.max(0.5, style.ringScale) : style.ringScale);
+        var dotRadius = boardMetrics.cell * 0.1;
 
         context.save();
-        context.fillStyle = "rgba(220, 20, 60, 0.92)";
-        context.strokeStyle = "#fff7cc";
-        context.lineWidth = Math.max(2, boardMetrics.cell * 0.06);
+        context.strokeStyle = style.outerStroke;
+        context.lineWidth = Math.max(2, boardMetrics.cell * style.lineWidth);
         context.beginPath();
-        context.arc(x, y, outerRadius, 0, Math.PI * 2);
-        context.fill();
+        context.arc(x, y, ringRadius, 0, Math.PI * 2);
         context.stroke();
 
-        context.fillStyle = "#fff7cc";
+        context.strokeStyle = style.innerStroke;
+        context.lineWidth = Math.max(2, boardMetrics.cell * 0.04);
         context.beginPath();
-        context.arc(x, y, innerRadius, 0, Math.PI * 2);
+        context.arc(x, y, ringRadius - Math.max(3, boardMetrics.cell * 0.08), 0, Math.PI * 2);
+        context.stroke();
+
+        context.fillStyle = style.dotFill;
+        context.beginPath();
+        context.arc(x, y, dotRadius, 0, Math.PI * 2);
         context.fill();
         context.restore();
       }
@@ -644,8 +973,8 @@
           drawStone(activeMoves[i].move, activeMoves[i].moveNumber, i === activeMoves.length - 1);
         }
 
-        if (recommendedMove) {
-          drawRecommendedMoveMarker(recommendedMove);
+        for (i = 0; i < candidateMarkers.length; i++) {
+          drawCandidateMarker(candidateMarkers[i]);
         }
       }
 
@@ -672,7 +1001,7 @@
         if (!point) return;
         if (!tryPlaceMove(point, currentColor)) return;
 
-        recommendedMove = null;
+        candidateMarkers = [];
         currentColor = oppositeColor(currentColor);
         drawBoard();
         updateStatus();
@@ -681,7 +1010,7 @@
       undoBtn.addEventListener("click", function () {
         if (!moves.length) return;
         undoLastMove();
-        recommendedMove = null;
+        candidateMarkers = [];
         currentColor = moves.length % 2 === 0 ? "B" : "W";
         drawBoard();
         updateStatus();
@@ -691,19 +1020,23 @@
         moves = [];
         stonesByPoint = {};
         currentColor = "B";
-        recommendedMove = null;
+        candidateMarkers = [];
         drawBoard();
         summary.textContent = "暂无分析结果。";
         output.textContent = "暂无分析数据。";
+        chartMetric = "winrate";
         updateStatus();
       });
 
       analyzeBtn.addEventListener("click", async function () {
+        setAnalyzeLoadingState(true);
+
         try {
-          recommendedMove = null;
+          candidateMarkers = [];
           drawBoard();
-          summary.textContent = "分析中...";
+          renderLoadingState();
           output.textContent = "分析中...";
+          chartMetric = "winrate";
 
           var payload = {
             board_size: BOARD_SIZE,
@@ -735,20 +1068,22 @@
               error: data,
               status: response.status
             };
-            summary.textContent = "分析失败，请展开原始数据查看详情。";
+            renderErrorState("分析失败，请展开原始数据查看详情。");
             renderRawJson(data);
             return;
           }
 
-          recommendedMove = getCurrentRecommendedMove(data);
+          candidateMarkers = getCurrentCandidateMarkers(data);
           drawBoard();
           renderAnalysisSummary(data);
           renderRawJson(data);
         } catch (err) {
-          recommendedMove = null;
+          candidateMarkers = [];
           drawBoard();
-          summary.textContent = "分析失败，请展开原始数据查看详情。";
+          renderErrorState("分析失败，请检查后端服务是否启动，并展开原始数据查看详情。");
           renderRawJson({ error: String(err) });
+        } finally {
+          setAnalyzeLoadingState(false);
         }
       });
 
