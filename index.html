@@ -74,6 +74,22 @@
       color: #333;
     }
 
+    .review-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .review-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #efe4c6;
+      color: #6b4c1c;
+      font-size: 12px;
+    }
+
     pre {
       margin: 0;
       white-space: pre-wrap;
@@ -97,6 +113,33 @@
 
     .analysis-section li {
       margin: 2px 0;
+    }
+
+    .review-item-button {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d7c49b;
+      border-radius: 8px;
+      background: #fff9ec;
+      text-align: left;
+      line-height: 1.45;
+    }
+
+    .review-item-button:hover {
+      background: #f7edd5;
+    }
+
+    .review-item-button.active {
+      border-color: #8f5f1e;
+      background: #f2dfb5;
+    }
+
+    .review-item-meta {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6d5a39;
     }
 
     .chart-controls {
@@ -208,9 +251,14 @@
         <button id="undoBtn" type="button">悔棋</button>
         <button id="clearBtn" type="button">清空棋盘</button>
         <button id="analyzeBtn" type="button">开始分析</button>
+        <button id="latestBtn" type="button" disabled>回到最新局面</button>
       </div>
 
       <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
+      <div class="meta review-meta" id="reviewStatus">
+        <span class="review-badge">最新局面</span>
+        <span>当前未查看具体复盘手数。</span>
+      </div>
     </div>
 
     <div class="panel">
@@ -231,9 +279,11 @@
       var summary = document.getElementById("analysisSummary");
       var output = document.getElementById("analysisOutput");
       var status = document.getElementById("status");
+      var reviewStatus = document.getElementById("reviewStatus");
       var undoBtn = document.getElementById("undoBtn");
       var clearBtn = document.getElementById("clearBtn");
       var analyzeBtn = document.getElementById("analyzeBtn");
+      var latestBtn = document.getElementById("latestBtn");
       var BOARD_SIZE = 19;
       var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
       var DISPLAY_COLUMNS = "ABCDEFGHJKLMNOPQRST";
@@ -245,6 +295,9 @@
       var candidateMarkers = [];
       var chartMetric = "winrate";
       var defaultAnalyzeButtonText = "开始分析";
+      var analysisData = null;
+      var reviewFocus = null;
+      var reviewTargets = [];
 
       function colorName(color) {
         return color === "B" ? "黑棋" : "白棋";
@@ -445,6 +498,27 @@
         status.textContent = "下一手：" + colorName(currentColor) + " | 手数：" + moves.length;
       }
 
+      function updateReviewStatus() {
+        if (!reviewFocus) {
+          reviewStatus.innerHTML = [
+            "<span class=\"review-badge\">最新局面</span>",
+            "<span>当前未查看具体复盘手数。</span>"
+          ].join("");
+          latestBtn.disabled = true;
+          return;
+        }
+
+        reviewStatus.innerHTML = [
+          "<span class=\"review-badge\">复盘第" + escapeHtml(String(reviewFocus.moveNumber)) + "手</span>",
+          "<span>",
+          "实战：" + escapeHtml(formatCoord(reviewFocus.playedMove)) +
+          " | 推荐：" + escapeHtml(formatCoord(reviewFocus.recommendedMove)) +
+          (reviewFocus.label ? " | " + escapeHtml(reviewFocus.label) : ""),
+          "</span>"
+        ].join("");
+        latestBtn.disabled = false;
+      }
+
       function escapeHtml(value) {
         return String(value)
           .replace(/&/g, "&amp;")
@@ -479,6 +553,25 @@
         var candidates = Array.isArray(current.top_candidates) ? current.top_candidates.slice(0, 3) : [];
 
         return candidates
+          .map(function (candidate, index) {
+            var point = extractCoordPoint(candidate && candidate.move);
+
+            if (!point) return null;
+
+            return {
+              x: point.x,
+              y: point.y,
+              rank: index + 1
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function getCandidateMarkersFromCandidates(candidates) {
+        if (!Array.isArray(candidates)) return [];
+
+        return candidates
+          .slice(0, 3)
           .map(function (candidate, index) {
             var point = extractCoordPoint(candidate && candidate.move);
 
@@ -559,6 +652,165 @@
 
       function renderErrorState(message) {
         summary.innerHTML = "<div class=\"error-message\">" + escapeHtml(message) + "</div>";
+      }
+
+      function clearAnalysisState() {
+        analysisData = null;
+        reviewFocus = null;
+        reviewTargets = [];
+        candidateMarkers = [];
+        chartMetric = "winrate";
+        summary.textContent = "暂无分析结果。";
+        output.textContent = "暂无分析数据。";
+        updateReviewStatus();
+      }
+
+      function findTimelineItem(data, moveNumber) {
+        var timeline = data && Array.isArray(data.timeline) ? data.timeline : [];
+
+        for (var i = 0; i < timeline.length; i++) {
+          if (timeline[i] && timeline[i].move_number === moveNumber) {
+            return timeline[i];
+          }
+        }
+
+        return null;
+      }
+
+      function findReviewMistake(data, moveNumber) {
+        var selected = data && data.review && Array.isArray(data.review.mistakes_above_threshold)
+          ? data.review.mistakes_above_threshold
+          : [];
+
+        for (var i = 0; i < selected.length; i++) {
+          if (selected[i] && selected[i].move_number === moveNumber) {
+            return selected[i];
+          }
+        }
+
+        return null;
+      }
+
+      function buildReviewTarget(data, config) {
+        var detail = findReviewMistake(data, config.moveNumber) || findTimelineItem(data, config.moveNumber) || {};
+        var topCandidates = Array.isArray(detail.top_candidates) ? detail.top_candidates : [];
+
+        return {
+          id: config.id,
+          kind: config.kind,
+          title: config.title,
+          summary: config.summary,
+          moveNumber: config.moveNumber,
+          label: config.label,
+          playedMove: detail.played_move || config.playedMove || null,
+          recommendedMove: detail.recommended_move || detail.best_move || config.recommendedMove || null,
+          topCandidates: topCandidates
+        };
+      }
+
+      function buildReviewTargets(data) {
+        var keyPoints = data && data.key_points ? data.key_points : {};
+        var turningPoints = Array.isArray(keyPoints.turning_points) ? keyPoints.turning_points : [];
+        var planBreaks = Array.isArray(keyPoints.plan_breaks) ? keyPoints.plan_breaks : [];
+        var thresholdMistakes = data && data.review && Array.isArray(data.review.mistakes_above_threshold)
+          ? data.review.mistakes_above_threshold
+          : [];
+        var targets = [];
+        var i;
+
+        for (i = 0; i < turningPoints.length; i++) {
+          targets.push(buildReviewTarget(data, {
+            id: "turning-" + turningPoints[i].move_number,
+            kind: "turning_point",
+            title: "转折点",
+            summary: turningPoints[i].summary || "暂无说明",
+            moveNumber: turningPoints[i].move_number,
+            label: turningPoints[i].severity_label || "关键点"
+          }));
+        }
+
+        for (i = 0; i < planBreaks.length; i++) {
+          targets.push(buildReviewTarget(data, {
+            id: "plan-break-" + planBreaks[i].break_move_number,
+            kind: "plan_break",
+            title: "计划断点",
+            summary: planBreaks[i].summary || "暂无说明",
+            moveNumber: planBreaks[i].break_move_number,
+            label: "原计划 " + formatCoord(planBreaks[i].expected_follow_up),
+            playedMove: planBreaks[i].played_move,
+            recommendedMove: planBreaks[i].expected_follow_up
+          }));
+        }
+
+        for (i = 0; i < thresholdMistakes.length; i++) {
+          if (thresholdMistakes[i].severity !== "major_mistake" && thresholdMistakes[i].severity !== "blunder") {
+            continue;
+          }
+
+          targets.push(buildReviewTarget(data, {
+            id: "major-" + thresholdMistakes[i].move_number,
+            kind: "major_mistake",
+            title: thresholdMistakes[i].severity === "blunder" ? "大恶手" : "大问题手",
+            summary: "第" + thresholdMistakes[i].move_number + "手，" +
+              (thresholdMistakes[i].category_label || "关键问题") +
+              "，损失约" + String(thresholdMistakes[i].score_loss) + "目。",
+            moveNumber: thresholdMistakes[i].move_number,
+            label: thresholdMistakes[i].severity_label || "重点复盘"
+          }));
+        }
+
+        return targets;
+      }
+
+      function renderReviewTargetList(items, emptyText) {
+        if (!items.length) {
+          return "<div>" + escapeHtml(emptyText) + "</div>";
+        }
+
+        return "<ul>" + items.map(function (item) {
+          var isActive = reviewFocus && reviewFocus.id === item.id;
+
+          return [
+            "<li>",
+            "<button type=\"button\" class=\"review-item-button" + (isActive ? " active" : "") + "\" data-review-id=\"" + escapeHtml(item.id) + "\">",
+            "<strong>" + escapeHtml(item.title) + " · 第" + escapeHtml(String(item.moveNumber)) + "手</strong>",
+            "<span>" + escapeHtml(item.summary) + "</span>",
+            "<span class=\"review-item-meta\">",
+            "实战 " + escapeHtml(formatCoord(item.playedMove)) +
+            " | 推荐 " + escapeHtml(formatCoord(item.recommendedMove)) +
+            (item.label ? " | " + escapeHtml(item.label) : ""),
+            "</span>",
+            "</button>",
+            "</li>"
+          ].join("");
+        }).join("") + "</ul>";
+      }
+
+      function activateReviewTargetById(targetId) {
+        var target = null;
+
+        for (var i = 0; i < reviewTargets.length; i++) {
+          if (reviewTargets[i].id === targetId) {
+            target = reviewTargets[i];
+            break;
+          }
+        }
+
+        if (!target) return;
+
+        reviewFocus = target;
+        candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
+        drawBoard();
+        updateReviewStatus();
+        renderAnalysisSummary(analysisData);
+      }
+
+      function returnToLatestBoardState() {
+        reviewFocus = null;
+        candidateMarkers = getCurrentCandidateMarkers(analysisData);
+        drawBoard();
+        updateReviewStatus();
+        renderAnalysisSummary(analysisData);
       }
 
       function hasTrendMetric(timeline, metric) {
@@ -723,45 +975,43 @@
         var current = data.current_position || {};
         var gameSummary = data.game_summary || {};
         var keyPoints = data.key_points || {};
-        var turningPoints = keyPoints.turning_points || [];
-        var planBreaks = keyPoints.plan_breaks || [];
         var reviewSummary = keyPoints.review_summary || {};
         var candidates = (current.top_candidates || []).slice(0, 3);
+        var activeCandidates = reviewFocus ? reviewFocus.topCandidates.slice(0, 3) : candidates;
         var currentPhase = inferPhase(gameSummary);
         var bestMoveLabel = formatCoord(current.best_move);
-        var hasBestMove = bestMoveLabel !== "暂无";
+        var activeBestMoveLabel = reviewFocus ? formatCoord(reviewFocus.recommendedMove) : bestMoveLabel;
+        var activeNextPlayer = reviewFocus
+          ? (reviewFocus.moveNumber % 2 === 0 ? "B" : "W")
+          : current.next_player;
+        var hasBestMove = activeBestMoveLabel !== "暂无";
         var timeline = Array.isArray(data.timeline) ? data.timeline : [];
-        var keyPointItems = [];
-
-        if (turningPoints.length) {
-          keyPointItems = keyPointItems.concat(turningPoints.slice(0, 2).map(function (item) {
-            return "转折点，第" + item.move_number + "手：" + (item.summary || "暂无说明");
-          }));
-        }
-
-        if (planBreaks.length) {
-          keyPointItems = keyPointItems.concat(planBreaks.slice(0, 2).map(function (item) {
-            return "计划断点，第" + item.break_move_number + "手：" + (item.summary || "暂无说明");
-          }));
-        }
-
-        if (reviewSummary.summary) {
-          keyPointItems.push("阶段总结：" + reviewSummary.summary);
-        }
+        var reviewTitle = reviewFocus
+          ? "当前查看：第" + reviewFocus.moveNumber + "手"
+          : "当前查看：最新局面";
+        var activeExplanation = reviewFocus
+          ? reviewFocus.summary
+          : (current.short_explanation || "暂无说明");
+        var reviewTargetsByKind = {
+          turning: reviewTargets.filter(function (item) { return item.kind === "turning_point"; }),
+          planBreak: reviewTargets.filter(function (item) { return item.kind === "plan_break"; }),
+          major: reviewTargets.filter(function (item) { return item.kind === "major_mistake"; })
+        };
 
         summary.innerHTML = [
           "<div class=\"analysis-section\">",
           "<strong>1. 当前局面</strong>",
           "<ul>",
-          "<li>轮到谁下：" + escapeHtml(playerLabel(current.next_player)) + "</li>",
-          "<li>当前推荐点：" + escapeHtml(hasBestMove ? bestMoveLabel : "暂无推荐点") + "</li>",
+          "<li>" + escapeHtml(reviewTitle) + "</li>",
+          "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
+          "<li>当前推荐点：" + escapeHtml(hasBestMove ? activeBestMoveLabel : "暂无推荐点") + "</li>",
           "<li>推荐状态：" + escapeHtml(hasBestMove ? "棋盘上已标出当前推荐点。" : "当前局面没有可用的推荐点，棋盘不会显示推荐标记。") + "</li>",
-          "<li>当前一句话说明：" + escapeHtml(current.short_explanation || "暂无说明") + "</li>",
+          "<li>当前一句话说明：" + escapeHtml(activeExplanation) + "</li>",
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>2. 候选点</strong>",
-          renderList(candidates, "暂无候选点。", function (candidate, index) {
+          renderList(activeCandidates, "暂无候选点。", function (candidate, index) {
             return (
               (index + 1) +
               ". " +
@@ -786,13 +1036,165 @@
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>5. 关键点</strong>",
-          renderList(keyPointItems, "暂无明显转折点或计划断点。", function (item) {
-            return escapeHtml(item);
-          }),
+          renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>6. 计划断点</strong>",
+          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无计划断点。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>7. 大问题手</strong>",
+          renderReviewTargetList(reviewTargetsByKind.major, "当前没有达到“大问题手 / 大恶手”级别的条目。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>8. 阶段总结</strong>",
+          "<div>" + escapeHtml(reviewSummary.summary || "暂无阶段总结。") + "</div>",
           "</div>"
         ].join("");
 
         renderTrendChart(timeline);
+
+        Array.prototype.forEach.call(summary.querySelectorAll("[data-review-id]"), function (button) {
+          button.addEventListener("click", function () {
+            activateReviewTargetById(this.getAttribute("data-review-id"));
+          });
+        });
+      }
+
+      function createBoardSnapshot(uptoMoveCount) {
+        var snapshot = {
+          stonesByPoint: {},
+          moves: []
+        };
+
+        function snapshotStoneAt(x, y) {
+          return snapshot.stonesByPoint[pointKey(x, y)] || null;
+        }
+
+        function collectSnapshotGroup(startX, startY) {
+          var startStone = snapshotStoneAt(startX, startY);
+          var stack;
+          var seen;
+          var group;
+          var liberties;
+
+          if (!startStone) return null;
+
+          stack = [{ x: startX, y: startY }];
+          seen = {};
+          group = [];
+          liberties = {};
+
+          while (stack.length) {
+            var point = stack.pop();
+            var key = pointKey(point.x, point.y);
+            var stone;
+            var neighbors;
+            var i;
+
+            if (seen[key]) continue;
+            seen[key] = true;
+
+            stone = snapshotStoneAt(point.x, point.y);
+            if (!stone || stone.color !== startStone.color) continue;
+
+            group.push(stone);
+            neighbors = neighborsOf(point.x, point.y);
+            for (i = 0; i < neighbors.length; i++) {
+              var neighbor = neighbors[i];
+              var neighborStone = snapshotStoneAt(neighbor.x, neighbor.y);
+
+              if (!neighborStone) {
+                liberties[pointKey(neighbor.x, neighbor.y)] = true;
+                continue;
+              }
+
+              if (neighborStone.color === startStone.color && !seen[pointKey(neighbor.x, neighbor.y)]) {
+                stack.push(neighbor);
+              }
+            }
+          }
+
+          return {
+            stones: group,
+            libertyCount: Object.keys(liberties).length
+          };
+        }
+
+        function applySnapshotMove(sourceMove) {
+          var point = extractCoordPoint(sourceMove && (sourceMove.sgf || sourceMove.played_move));
+          var move;
+          var neighbors;
+          var capturedStones;
+          var seenGroups;
+          var i;
+
+          if (!point) {
+            snapshot.moves.push({
+              color: sourceMove.color,
+              sgf: null,
+              captures: [],
+              isCaptured: false,
+              isPass: true
+            });
+            return;
+          }
+
+          move = {
+            x: point.x,
+            y: point.y,
+            color: sourceMove.color,
+            sgf: toSgf(point.x, point.y),
+            captures: [],
+            isCaptured: false,
+            isPass: false
+          };
+          snapshot.stonesByPoint[pointKey(point.x, point.y)] = move;
+
+          neighbors = neighborsOf(point.x, point.y);
+          capturedStones = [];
+          seenGroups = {};
+
+          for (i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+            var neighborStone = snapshotStoneAt(neighbor.x, neighbor.y);
+            var groupInfo;
+            var groupKey;
+            var j;
+
+            if (!neighborStone || neighborStone.color !== oppositeColor(sourceMove.color)) continue;
+
+            groupKey = pointKey(neighbor.x, neighbor.y);
+            if (seenGroups[groupKey]) continue;
+
+            groupInfo = collectSnapshotGroup(neighbor.x, neighbor.y);
+            if (!groupInfo) continue;
+
+            for (j = 0; j < groupInfo.stones.length; j++) {
+              seenGroups[pointKey(groupInfo.stones[j].x, groupInfo.stones[j].y)] = true;
+            }
+
+            if (groupInfo.libertyCount === 0) {
+              for (j = 0; j < groupInfo.stones.length; j++) {
+                capturedStones.push(groupInfo.stones[j]);
+              }
+            }
+          }
+
+          for (i = 0; i < capturedStones.length; i++) {
+            delete snapshot.stonesByPoint[pointKey(capturedStones[i].x, capturedStones[i].y)];
+            capturedStones[i].isCaptured = true;
+          }
+
+          move.captures = capturedStones;
+          snapshot.moves.push(move);
+        }
+
+        for (var i = 0; i < Math.min(uptoMoveCount, moves.length); i++) {
+          applySnapshotMove(moves[i]);
+        }
+
+        return snapshot;
       }
 
       function syncCanvasSize() {
@@ -920,10 +1322,10 @@
         };
       }
 
-      function drawCandidateMarker(point) {
+      function drawCandidateMarker(point, stoneMap) {
         var x = boardPoint(point.x);
         var y = boardPoint(point.y);
-        var stone = stoneAt(point.x, point.y);
+        var stone = stoneMap[pointKey(point.x, point.y)] || null;
         var style = candidateMarkerStyle(point.rank);
         var ringRadius = boardMetrics.cell * (stone ? Math.max(0.5, style.ringScale) : style.ringScale);
         var dotRadius = boardMetrics.cell * 0.1;
@@ -948,8 +1350,38 @@
         context.restore();
       }
 
+      function drawRecommendedMoveMarker(move) {
+        var point = extractCoordPoint(move);
+        var x;
+        var y;
+        var size;
+
+        if (!point) return;
+
+        x = boardPoint(point.x);
+        y = boardPoint(point.y);
+        size = boardMetrics.cell * 0.26;
+
+        context.save();
+        context.strokeStyle = "#c74b16";
+        context.lineWidth = Math.max(2, boardMetrics.cell * 0.06);
+        context.beginPath();
+        context.rect(x - size, y - size, size * 2, size * 2);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(x - size * 0.7, y);
+        context.lineTo(x + size * 0.7, y);
+        context.moveTo(x, y - size * 0.7);
+        context.lineTo(x, y + size * 0.7);
+        context.stroke();
+        context.restore();
+      }
+
       function drawBoard() {
         var activeMoves = [];
+        var renderedMoveCount = reviewFocus ? reviewFocus.moveNumber : moves.length;
+        var snapshot = createBoardSnapshot(renderedMoveCount);
+        var recommendedMove = reviewFocus ? reviewFocus.recommendedMove : (analysisData && analysisData.current_position ? analysisData.current_position.best_move : null);
         var i;
 
         if (!boardMetrics) return;
@@ -960,22 +1392,24 @@
         drawGrid();
         drawStarPoints();
 
-        for (i = 0; i < moves.length; i++) {
-          if (!moves[i].isCaptured) {
+        for (i = 0; i < snapshot.moves.length; i++) {
+          if (!snapshot.moves[i].isCaptured && !snapshot.moves[i].isPass) {
             activeMoves.push({
-              move: moves[i],
+              move: snapshot.moves[i],
               moveNumber: i + 1
             });
           }
         }
 
         for (i = 0; i < activeMoves.length; i++) {
-          drawStone(activeMoves[i].move, activeMoves[i].moveNumber, i === activeMoves.length - 1);
+          drawStone(activeMoves[i].move, activeMoves[i].moveNumber, activeMoves[i].moveNumber === renderedMoveCount);
         }
 
         for (i = 0; i < candidateMarkers.length; i++) {
-          drawCandidateMarker(candidateMarkers[i]);
+          drawCandidateMarker(candidateMarkers[i], snapshot.stonesByPoint);
         }
+
+        drawRecommendedMoveMarker(recommendedMove);
       }
 
       function clickToPoint(event) {
@@ -997,11 +1431,13 @@
       }
 
       canvas.addEventListener("click", function (event) {
+        if (reviewFocus) return;
+
         var point = clickToPoint(event);
         if (!point) return;
         if (!tryPlaceMove(point, currentColor)) return;
 
-        candidateMarkers = [];
+        clearAnalysisState();
         currentColor = oppositeColor(currentColor);
         drawBoard();
         updateStatus();
@@ -1010,7 +1446,7 @@
       undoBtn.addEventListener("click", function () {
         if (!moves.length) return;
         undoLastMove();
-        candidateMarkers = [];
+        clearAnalysisState();
         currentColor = moves.length % 2 === 0 ? "B" : "W";
         drawBoard();
         updateStatus();
@@ -1020,12 +1456,14 @@
         moves = [];
         stonesByPoint = {};
         currentColor = "B";
-        candidateMarkers = [];
+        clearAnalysisState();
         drawBoard();
-        summary.textContent = "暂无分析结果。";
-        output.textContent = "暂无分析数据。";
-        chartMetric = "winrate";
         updateStatus();
+      });
+
+      latestBtn.addEventListener("click", function () {
+        if (!analysisData) return;
+        returnToLatestBoardState();
       });
 
       analyzeBtn.addEventListener("click", async function () {
@@ -1073,12 +1511,16 @@
             return;
           }
 
+          analysisData = data;
+          reviewTargets = buildReviewTargets(data);
+          reviewFocus = null;
           candidateMarkers = getCurrentCandidateMarkers(data);
           drawBoard();
+          updateReviewStatus();
           renderAnalysisSummary(data);
           renderRawJson(data);
         } catch (err) {
-          candidateMarkers = [];
+          clearAnalysisState();
           drawBoard();
           renderErrorState("分析失败，请检查后端服务是否启动，并展开原始数据查看详情。");
           renderRawJson({ error: String(err) });
@@ -1091,6 +1533,7 @@
 
       syncCanvasSize();
       updateStatus();
+      updateReviewStatus();
     })();
   </script>
 </body>
