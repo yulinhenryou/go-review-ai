@@ -134,6 +134,7 @@
       var moves = [];
       var currentColor = "B";
       var boardMetrics = null;
+      var recommendedMove = null;
 
       function colorName(color) {
         return color === "B" ? "Black" : "White";
@@ -141,6 +142,17 @@
 
       function toSgf(x, y) {
         return SGF_LETTERS.charAt(x) + SGF_LETTERS.charAt(y);
+      }
+
+      function fromSgf(sgf) {
+        if (typeof sgf !== "string" || sgf.length !== 2) return null;
+
+        var x = SGF_LETTERS.indexOf(sgf.charAt(0));
+        var y = SGF_LETTERS.indexOf(sgf.charAt(1));
+
+        if (x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE) return null;
+
+        return { x: x, y: y };
       }
 
       function stoneAt(x, y) {
@@ -230,6 +242,28 @@
         context.stroke();
       }
 
+      function drawRecommendedMoveMarker(point) {
+        var x = boardPoint(point.x);
+        var y = boardPoint(point.y);
+        var outerRadius = boardMetrics.cell * 0.22;
+        var innerRadius = boardMetrics.cell * 0.12;
+
+        context.save();
+        context.fillStyle = "rgba(220, 20, 60, 0.92)";
+        context.strokeStyle = "#fff7cc";
+        context.lineWidth = Math.max(2, boardMetrics.cell * 0.06);
+        context.beginPath();
+        context.arc(x, y, outerRadius, 0, Math.PI * 2);
+        context.fill();
+        context.stroke();
+
+        context.fillStyle = "#fff7cc";
+        context.beginPath();
+        context.arc(x, y, innerRadius, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
       function drawBoard() {
         if (!boardMetrics) return;
 
@@ -241,6 +275,10 @@
 
         for (var i = 0; i < moves.length; i++) {
           drawStone(moves[i]);
+        }
+
+        if (recommendedMove) {
+          drawRecommendedMoveMarker(recommendedMove);
         }
       }
 
@@ -272,6 +310,7 @@
           color: currentColor,
           sgf: toSgf(point.x, point.y)
         });
+        recommendedMove = null;
         currentColor = currentColor === "B" ? "W" : "B";
         drawBoard();
         updateStatus();
@@ -280,6 +319,7 @@
       undoBtn.addEventListener("click", function () {
         if (!moves.length) return;
         moves.pop();
+        recommendedMove = null;
         currentColor = moves.length % 2 === 0 ? "B" : "W";
         drawBoard();
         updateStatus();
@@ -288,6 +328,7 @@
       clearBtn.addEventListener("click", function () {
         moves = [];
         currentColor = "B";
+        recommendedMove = null;
         drawBoard();
         output.textContent = "No analysis yet.";
         updateStatus();
@@ -295,6 +336,8 @@
 
       analyzeBtn.addEventListener("click", async function () {
         try {
+          recommendedMove = null;
+          drawBoard();
           output.textContent = "Analyzing...";
 
           var payload = {
@@ -330,8 +373,18 @@
             return;
           }
 
+          recommendedMove = fromSgf(
+            data &&
+            data.selected_mistakes &&
+            data.selected_mistakes[0] &&
+            data.selected_mistakes[0].recommended_move &&
+            data.selected_mistakes[0].recommended_move.sgf
+          );
+          drawBoard();
           output.textContent = JSON.stringify(data, null, 2);
         } catch (err) {
+          recommendedMove = null;
+          drawBoard();
           output.textContent = JSON.stringify({ error: String(err) }, null, 2);
         }
       });
