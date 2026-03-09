@@ -18,6 +18,13 @@ class MoveAnalysisResult:
     engine_analysis: PositionAnalysis
 
 
+@dataclass(frozen=True)
+class GameAnalysis:
+    move_results: list[MoveAnalysisResult]
+    current_position: PositionAnalysis
+    current_position_input: PositionInput
+
+
 def analyze_game(game: ParsedGame, engine: EngineClient) -> list[MoveAnalysisResult]:
     """Analyze each main-line move with a position-like input built before the move."""
     history: list[tuple[str, str | None]] = []
@@ -53,6 +60,23 @@ def analyze_game(game: ParsedGame, engine: EngineClient) -> list[MoveAnalysisRes
     return results
 
 
+def analyze_game_state(game: ParsedGame, engine: EngineClient) -> GameAnalysis:
+    results = analyze_game(game, engine)
+    current_position_input = PositionInput(
+        board_size=game.board_size,
+        komi=game.komi,
+        to_play=_next_player(game.moves),
+        moves=tuple((move.color, move.point) for move in game.moves),
+        played_move=None,
+    )
+    current_position = engine.analyze_position(current_position_input)
+    return GameAnalysis(
+        move_results=results,
+        current_position=current_position,
+        current_position_input=current_position_input,
+    )
+
+
 def analyze_sgf_file(path: str | Path, engine: EngineClient) -> list[MoveAnalysisResult]:
     game = parse_sgf_file(path)
     return analyze_game(game, engine)
@@ -66,3 +90,7 @@ def print_move_summaries(results: list[MoveAnalysisResult]) -> None:
             f"played={played} recommended={result.recommended_move} "
             f"loss={result.estimated_loss:.2f}"
         )
+
+
+def _next_player(moves: list[object]) -> str:
+    return "B" if len(moves) % 2 == 0 else "W"

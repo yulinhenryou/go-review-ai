@@ -32,6 +32,10 @@ class PositionAnalysis:
     best_move: Move
     played_move: Move | None
     estimated_loss: float
+    score_estimate: float
+    winrate: float
+    played_score_estimate: float
+    played_winrate: float
     top_candidates: tuple[CandidateMove, ...]
     pv_summary: str
 
@@ -112,12 +116,15 @@ class KataGoClient:
 
         best_move = top_candidates[0].move
         played_move = position.played_move
-        estimated_loss = _estimate_loss_from_katago(
+        played_candidate = _resolve_played_candidate(
             move_infos=move_infos,
             played_move=played_move,
-            best_score=top_candidates[0].score_estimate,
             board_size=position.board_size,
             fallback_candidates=top_candidates,
+        )
+        estimated_loss = round(
+            max(0.0, top_candidates[0].score_estimate - played_candidate.score_estimate),
+            2,
         )
         pv_summary = _pv_summary_from_katago(
             to_play=position.to_play,
@@ -130,6 +137,10 @@ class KataGoClient:
             best_move=best_move,
             played_move=played_move,
             estimated_loss=estimated_loss,
+            score_estimate=top_candidates[0].score_estimate,
+            winrate=top_candidates[0].winrate,
+            played_score_estimate=played_candidate.score_estimate,
+            played_winrate=played_candidate.winrate,
             top_candidates=top_candidates,
             pv_summary=pv_summary,
         )
@@ -213,7 +224,11 @@ class MockEngineClient:
         top_candidates = _mock_candidates(position, self._candidate_count)
         best_move = top_candidates[0].move
         played_move = position.played_move
-        estimated_loss = _estimate_loss(top_candidates, played_move)
+        played_candidate = _played_candidate_from_candidates(top_candidates, played_move)
+        estimated_loss = round(
+            max(0.0, top_candidates[0].score_estimate - played_candidate.score_estimate),
+            2,
+        )
 
         pv_summary = _pv_summary(position.to_play, top_candidates)
 
@@ -221,6 +236,10 @@ class MockEngineClient:
             best_move=best_move,
             played_move=played_move,
             estimated_loss=estimated_loss,
+            score_estimate=top_candidates[0].score_estimate,
+            winrate=top_candidates[0].winrate,
+            played_score_estimate=played_candidate.score_estimate,
+            played_winrate=played_candidate.winrate,
             top_candidates=top_candidates,
             pv_summary=pv_summary,
         )
@@ -260,16 +279,15 @@ def _initial_player_for_query(to_play: Color, move_count: int) -> Color:
     return "W" if to_play == "B" else "B"
 
 
-def _estimate_loss_from_katago(
+def _resolve_played_candidate(
     *,
     move_infos: list[object],
     played_move: Move | None,
-    best_score: float,
     board_size: int,
     fallback_candidates: tuple[CandidateMove, ...],
-) -> float:
+) -> CandidateMove:
     if played_move is None:
-        return 0.0
+        return fallback_candidates[0]
 
     for move_info in move_infos:
         if not isinstance(move_info, dict):
@@ -281,10 +299,20 @@ def _estimate_loss_from_katago(
         if not isinstance(raw_move, str) or not isinstance(score_raw, (int, float)):
             continue
         if _gtp_to_sgf(raw_move, board_size) == played_move:
-            return round(max(0.0, best_score - float(score_raw)), 2)
+            winrate_raw = move_info.get("winrate")
+            winrate = float(winrate_raw) if isinstance(winrate_raw, (int, float)) else 0.5
+            return CandidateMove(
+                move=played_move,
+                score_estimate=float(score_raw),
+                winrate=winrate,
+            )
 
-    worst_score = fallback_candidates[-1].score_estimate
-    return round(max(0.0, best_score - worst_score + 0.3), 2)
+    fallback = fallback_candidates[-1]
+    return CandidateMove(
+        move=played_move,
+        score_estimate=round(fallback.score_estimate - 0.3, 2),
+        winrate=max(0.0, round(fallback.winrate - 0.02, 2)),
+    )
 
 
 def _pv_summary_from_katago(
@@ -440,20 +468,24 @@ def _mock_candidates(position: PositionInput, candidate_count: int) -> tuple[Can
     )
 
 
-def _estimate_loss(candidates: tuple[CandidateMove, ...], played_move: Move | None) -> float:
+def _played_candidate_from_candidates(
+    candidates: tuple[CandidateMove, ...], played_move: Move | None
+) -> CandidateMove:
     if not played_move:
-        return 0.0
-
-    best_score = candidates[0].score_estimate
+        return candidates[0]
 
     for candidate in candidates:
         if candidate.move == played_move:
-            return round(max(0.0, best_score - candidate.score_estimate), 2)
+            return candidate
 
     # If the played move is outside top candidates, assume at least a bit worse
     # than the worst candidate we return.
-    worst_score = candidates[-1].score_estimate
-    return round(max(0.0, best_score - worst_score + 0.3), 2)
+    fallback = candidates[-1]
+    return CandidateMove(
+        move=played_move,
+        score_estimate=round(fallback.score_estimate - 0.3, 2),
+        winrate=max(0.0, round(fallback.winrate - 0.02, 2)),
+    )
 
 
 def _pv_summary(to_play: Color, candidates: tuple[CandidateMove, ...]) -> str:

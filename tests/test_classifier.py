@@ -145,11 +145,15 @@ def test_classify_selected_mistakes_and_print_summary(capsys) -> None:
         "direction_error",
         "tactical_blunder",
     ]
+    assert [item.severity for item in classified] == [
+        "mistake",
+        "major_mistake",
+    ]
 
     print_classification_summary(classified)
     out = capsys.readouterr().out
-    assert "Move 20: played=pp recommended=dd loss=1.10 category=direction_error" in out
-    assert "Move 76: played=nn recommended=cc loss=2.80 category=tactical_blunder" in out
+    assert "Move 20: played=pp recommended=dd loss=1.10 category=direction_error severity=mistake" in out
+    assert "Move 76: played=nn recommended=cc loss=2.80 category=tactical_blunder severity=major_mistake" in out
     assert "Category totals: direction_error=1, tactical_blunder=1" in out
 
 
@@ -172,6 +176,10 @@ def _make_result(
         best_move=best_move,
         played_move=played_move,
         estimated_loss=estimated_loss,
+        score_estimate=top_candidates[0].score_estimate,
+        winrate=top_candidates[0].winrate,
+        played_score_estimate=_played_candidate(top_candidates, played_move).score_estimate,
+        played_winrate=_played_candidate(top_candidates, played_move).winrate,
         top_candidates=top_candidates,
         pv_summary="",
     )
@@ -183,4 +191,22 @@ def _make_result(
         estimated_loss=estimated_loss,
         position_input=position,
         engine_analysis=analysis,
+    )
+
+
+def _played_candidate(
+    top_candidates: tuple[CandidateMove, ...], played_move: str | None
+) -> CandidateMove:
+    if not played_move:
+        return top_candidates[0]
+
+    for candidate in top_candidates:
+        if candidate.move == played_move:
+            return candidate
+
+    fallback = top_candidates[-1]
+    return CandidateMove(
+        move=played_move,
+        score_estimate=round(fallback.score_estimate - 0.3, 2),
+        winrate=max(0.0, round(fallback.winrate - 0.02, 2)),
     )

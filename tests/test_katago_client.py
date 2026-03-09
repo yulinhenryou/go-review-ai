@@ -26,6 +26,8 @@ def test_mock_client_returns_structured_analysis() -> None:
     assert analysis.best_move == "qd"
     assert analysis.played_move == "dc"
     assert analysis.estimated_loss >= 0.0
+    assert analysis.score_estimate == analysis.top_candidates[0].score_estimate
+    assert analysis.winrate == analysis.top_candidates[0].winrate
     assert len(analysis.top_candidates) == 3
     assert analysis.top_candidates[0].move == "qd"
     assert "B" in analysis.pv_summary
@@ -46,6 +48,8 @@ def test_mock_client_accepts_best_move_as_zero_loss() -> None:
 
     assert analysis.best_move == "dq"
     assert analysis.estimated_loss == 0.0
+    assert analysis.played_score_estimate == analysis.score_estimate
+    assert analysis.played_winrate == analysis.winrate
 
 
 def test_mock_client_rejects_invalid_to_play() -> None:
@@ -126,6 +130,10 @@ def test_katago_client_parses_analysis_output(monkeypatch: pytest.MonkeyPatch) -
     assert analysis.best_move == "pd"
     assert analysis.played_move == "dp"
     assert analysis.estimated_loss == 0.7
+    assert analysis.score_estimate == 2.4
+    assert analysis.winrate == 0.58
+    assert analysis.played_score_estimate == 1.7
+    assert analysis.played_winrate == 0.55
     assert [candidate.move for candidate in analysis.top_candidates] == ["pd", "dp", "pp"]
     assert analysis.pv_summary == "B pd -> W dp -> B pp"
 

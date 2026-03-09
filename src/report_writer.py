@@ -2,35 +2,13 @@ from __future__ import annotations
 
 from collections import Counter
 
-from src.classifier import ClassifiedMistake, MistakeCategory
+from src.classifier import ClassifiedMistake
 from src.sgf_parser import ParsedGame
-
-_CATEGORY_LABELS: dict[MistakeCategory, str] = {
-    "direction_error": "Direction error",
-    "local_overplay": "Local overplay",
-    "defensive_overreaction": "Defensive overreaction",
-    "endgame_loss": "Endgame value loss",
-    "tactical_blunder": "Tactical blunder",
-    "unclear": "Unclear classification",
-}
-
-_CATEGORY_INTERPRETATION: dict[MistakeCategory, str] = {
-    "direction_error": "This likely chose the wrong side or direction of play.",
-    "local_overplay": "This likely pushed too hard in a local fight.",
-    "defensive_overreaction": "This looks playable, but likely more cautious than needed.",
-    "endgame_loss": "This likely missed available endgame points.",
-    "tactical_blunder": "This likely missed a concrete tactical detail.",
-    "unclear": "Engine signals are mixed, so this pattern is not yet clear.",
-}
-
-_CATEGORY_TRAINING: dict[MistakeCategory, str] = {
-    "direction_error": "Review opening direction principles and compare side choices.",
-    "local_overplay": "Practice choosing calmer local continuations in fighting positions.",
-    "defensive_overreaction": "Review examples where active play is stronger than pure safety.",
-    "endgame_loss": "Do short endgame counting drills before each game session.",
-    "tactical_blunder": "Do a focused life-and-death and reading exercise set.",
-    "unclear": "Recheck this position manually because the pattern is not conclusive.",
-}
+from src.user_facing_labels import (
+    category_interpretation,
+    category_label,
+    category_training_suggestion,
+)
 
 
 def generate_review_report(game: ParsedGame, mistakes: list[ClassifiedMistake]) -> str:
@@ -72,7 +50,7 @@ def _top_mistakes(board_size: int, mistakes: list[ClassifiedMistake]) -> str:
             f"played {_format_move(mistake.played_move, board_size)}, "
             f"best {_format_move(mistake.recommended_move, board_size)}, "
             f"loss {mistake.estimated_loss:.2f}, "
-            f"{_CATEGORY_LABELS[mistake.category]}"
+            f"{category_label(mistake.category)}"
         )
     return "\n".join(lines)
 
@@ -94,8 +72,8 @@ def _explanation_block(
     transition = _transition_phrase(index)
     played = _format_move(mistake.played_move, board_size)
     recommended = _format_move(mistake.recommended_move, board_size)
-    label = _CATEGORY_LABELS[mistake.category]
-    interpretation = _CATEGORY_INTERPRETATION[mistake.category]
+    label = category_label(mistake.category)
+    interpretation = category_interpretation(mistake.category)
 
     return [
         f"- Move {mistake.move_number} ({label})",
@@ -125,7 +103,9 @@ def _training_suggestions(mistakes: list[ClassifiedMistake]) -> str:
     counts = Counter(item.category for item in mistakes)
     lines.append("- Primary focus from this game:")
     for category, _count in counts.most_common(2):
-        lines.append(f"- {_CATEGORY_LABELS[category]}: {_CATEGORY_TRAINING[category]}")
+        lines.append(
+            f"- {category_label(category)}: {category_training_suggestion(category)}"
+        )
 
     lines.append("- In your next review, compare your move with the best move before reading comments.")
     return "\n".join(lines)

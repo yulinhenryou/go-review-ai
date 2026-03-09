@@ -5,44 +5,15 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from src.analyzer import MoveAnalysisResult
-from src.classifier import ClassifiedMistake, MistakeCategory
-from src.katago_client import CandidateMove
+from src.classifier import ClassifiedMistake, MistakeCategory, MistakeSeverity
+from src.katago_client import CandidateMove, PositionAnalysis
 from src.sgf_parser import ParsedGame
-
-_CATEGORY_LABELS: dict[MistakeCategory, str] = {
-    "direction_error": "Direction error",
-    "local_overplay": "Local overplay",
-    "defensive_overreaction": "Defensive overreaction",
-    "endgame_loss": "Endgame value loss",
-    "tactical_blunder": "Tactical blunder",
-    "unclear": "Unclear classification",
-}
-
-_CATEGORY_INTERPRETATION: dict[MistakeCategory, str] = {
-    "direction_error": "This likely chose the wrong side or direction of play.",
-    "local_overplay": "This likely pushed too hard in a local fight.",
-    "defensive_overreaction": "This looks playable, but likely more cautious than needed.",
-    "endgame_loss": "This likely missed available endgame points.",
-    "tactical_blunder": "This likely missed a concrete tactical detail.",
-    "unclear": "Engine signals are mixed, so this pattern is not yet clear.",
-}
-
-_CATEGORY_TRAINING: dict[MistakeCategory, str] = {
-    "direction_error": "Review opening direction principles and compare side choices.",
-    "local_overplay": "Practice choosing calmer local continuations in fighting positions.",
-    "defensive_overreaction": "Review examples where active play is stronger than pure safety.",
-    "endgame_loss": "Do short endgame counting drills before each game session.",
-    "tactical_blunder": "Do a focused life-and-death and reading exercise set.",
-    "unclear": "Recheck this position manually because the pattern is not conclusive.",
-}
-
-_CATEGORY_ORDER: tuple[MistakeCategory, ...] = (
-    "direction_error",
-    "local_overplay",
-    "defensive_overreaction",
-    "endgame_loss",
-    "tactical_blunder",
-    "unclear",
+from src.user_facing_labels import (
+    category_interpretation,
+    category_label,
+    category_training_suggestion,
+    ordered_categories,
+    severity_label,
 )
 
 
@@ -78,6 +49,8 @@ class SelectedMistakeResult:
     estimated_loss: float
     category: MistakeCategory
     category_label: str
+    severity: MistakeSeverity
+    severity_label: str
     pv_summary: str
     top_candidates: list[CandidateView]
 
@@ -118,9 +91,48 @@ class TrainingSuggestion:
 
 
 @dataclass(frozen=True)
+class CurrentPositionResult:
+    next_player: str
+    best_move: CoordinateView
+    top_candidates: list[CandidateView]
+    pv_summary: str
+    score_estimate: float
+    winrate: float
+
+
+@dataclass(frozen=True)
+class TimelineItemResult:
+    move_number: int
+    color: str
+    played_move: CoordinateView
+    best_move: CoordinateView
+    score_loss: float
+    winrate_delta: float
+    score_before: float
+    score_after: float
+    winrate_before: float
+    winrate_after: float
+    category: MistakeCategory
+    category_label: str
+    severity: MistakeSeverity
+    severity_label: str
+    is_mistake: bool
+
+
+@dataclass(frozen=True)
+class ReviewSectionResult:
+    mistakes_above_threshold: list[SelectedMistakeResult]
+    classification_totals: list[ClassificationTotal]
+    training_suggestions: list[TrainingSuggestion]
+
+
+@dataclass(frozen=True)
 class ReviewResult:
     schema_version: str
     game_summary: GameSummaryResult
+    current_position: CurrentPositionResult
+    timeline: list[TimelineItemResult]
+    review: ReviewSectionResult
     selected_mistakes: list[SelectedMistakeResult]
     classifications: ClassificationsSummary
     explanations: list[ExplanationResult]
@@ -132,23 +144,31 @@ class ReviewResult:
 
 def build_review_result(
     game: ParsedGame,
-    mistakes: list[ClassifiedMistake],
+    selected_mistakes: list[ClassifiedMistake],
+    threshold_mistakes: list[ClassifiedMistake],
+    all_classified: list[ClassifiedMistake],
     results: list[MoveAnalysisResult],
+    current_position_analysis: PositionAnalysis,
+    next_player: str,
+    loss_threshold: float,
 ) -> ReviewResult:
     by_move = {result.move_number: result for result in results}
 
-    selected_mistakes = [
+    selected_views = [
         _selected_mistake_view(game.board_size, mistake, by_move[mistake.move_number])
-        for mistake in mistakes
+        for mistake in selected_mistakes
     ]
-    classifications = _classifications_summary(mistakes)
-    explanations = [
-        _explanation(game.board_size, item)
-        for item in selected_mistakes
+    threshold_views = [
+        _selected_mistake_view(game.board_size, mistake, by_move[mistake.move_number])
+        for mistake in threshold_mistakes
     ]
+    selected_classifications = _classifications_summary(selected_mistakes)
+    threshold_totals = _classification_totals(threshold_mistakes)
+    selected_training = _training_suggestions(selected_mistakes)
+    threshold_training = _training_suggestions(threshold_mistakes)
 
     return ReviewResult(
-        schema_version="1.0",
+        schema_version="2.0",
         game_summary=GameSummaryResult(
             board_size=game.board_size,
             komi=game.komi,
@@ -158,17 +178,57 @@ def build_review_result(
             },
             result=game.result or "unknown",
             moves_analyzed=len(game.moves),
-            mistakes_reviewed=len(mistakes),
+            mistakes_reviewed=len(selected_mistakes),
         ),
-        selected_mistakes=selected_mistakes,
-        classifications=classifications,
-        explanations=explanations,
-        training_suggestions=_training_suggestions(mistakes),
+        current_position=_current_position_view(
+            board_size=game.board_size,
+            next_player=next_player,
+            analysis=current_position_analysis,
+        ),
+        timeline=[
+            _timeline_item(
+                board_size=game.board_size,
+                result=result,
+                classified=all_classified[result.move_number - 1],
+                loss_threshold=loss_threshold,
+            )
+            for result in results
+        ],
+        review=ReviewSectionResult(
+            mistakes_above_threshold=threshold_views,
+            classification_totals=threshold_totals,
+            training_suggestions=threshold_training,
+        ),
+        selected_mistakes=selected_views,
+        classifications=selected_classifications,
+        explanations=[
+            _explanation(game.board_size, item)
+            for item in selected_views
+        ],
+        training_suggestions=selected_training,
     )
 
 
 def review_result_to_dict(review: ReviewResult) -> dict[str, Any]:
     return review.to_dict()
+
+
+def _current_position_view(
+    board_size: int,
+    next_player: str,
+    analysis: PositionAnalysis,
+) -> CurrentPositionResult:
+    return CurrentPositionResult(
+        next_player=next_player,
+        best_move=_coord_view(analysis.best_move, board_size),
+        top_candidates=[
+            _candidate_view(candidate, board_size)
+            for candidate in analysis.top_candidates
+        ],
+        pv_summary=analysis.pv_summary,
+        score_estimate=analysis.score_estimate,
+        winrate=analysis.winrate,
+    )
 
 
 def _selected_mistake_view(
@@ -183,7 +243,9 @@ def _selected_mistake_view(
         recommended_move=_coord_view(mistake.recommended_move, board_size),
         estimated_loss=mistake.estimated_loss,
         category=mistake.category,
-        category_label=_CATEGORY_LABELS[mistake.category],
+        category_label=category_label(mistake.category),
+        severity=mistake.severity,
+        severity_label=severity_label(mistake.severity),
         pv_summary=result.engine_analysis.pv_summary,
         top_candidates=[
             _candidate_view(candidate, board_size)
@@ -200,33 +262,65 @@ def _candidate_view(candidate: CandidateMove, board_size: int) -> CandidateView:
     )
 
 
+def _timeline_item(
+    board_size: int,
+    result: MoveAnalysisResult,
+    classified: ClassifiedMistake,
+    loss_threshold: float,
+) -> TimelineItemResult:
+    return TimelineItemResult(
+        move_number=result.move_number,
+        color=result.color,
+        played_move=_coord_view(result.played_move, board_size),
+        best_move=_coord_view(result.recommended_move, board_size),
+        score_loss=result.estimated_loss,
+        winrate_delta=round(
+            result.engine_analysis.played_winrate - result.engine_analysis.winrate,
+            2,
+        ),
+        score_before=result.engine_analysis.score_estimate,
+        score_after=result.engine_analysis.played_score_estimate,
+        winrate_before=result.engine_analysis.winrate,
+        winrate_after=result.engine_analysis.played_winrate,
+        category=classified.category,
+        category_label=category_label(classified.category),
+        severity=classified.severity,
+        severity_label=severity_label(classified.severity),
+        is_mistake=result.estimated_loss >= loss_threshold,
+    )
+
+
 def _classifications_summary(mistakes: list[ClassifiedMistake]) -> ClassificationsSummary:
-    counts = Counter(mistake.category for mistake in mistakes)
     return ClassificationsSummary(
         by_move=[
             ClassificationResult(
                 move_number=item.move_number,
                 category=item.category,
-                label=_CATEGORY_LABELS[item.category],
+                label=category_label(item.category),
             )
             for item in mistakes
         ],
-        totals=[
-            ClassificationTotal(
-                category=category,
-                label=_CATEGORY_LABELS[category],
-                count=counts[category],
-            )
-            for category in _CATEGORY_ORDER
-            if counts[category] > 0
-        ],
+        totals=_classification_totals(mistakes),
     )
+
+
+def _classification_totals(mistakes: list[ClassifiedMistake]) -> list[ClassificationTotal]:
+    counts = Counter(mistake.category for mistake in mistakes)
+    return [
+        ClassificationTotal(
+            category=category,
+            label=category_label(category),
+            count=counts[category],
+        )
+        for category in ordered_categories()
+        if counts[category] > 0
+    ]
 
 
 def _explanation(board_size: int, mistake: SelectedMistakeResult) -> ExplanationResult:
     played = mistake.played_move.display
     recommended = mistake.recommended_move.display
-    label = _CATEGORY_LABELS[mistake.category]
+    label = category_label(mistake.category)
     return ExplanationResult(
         move_number=mistake.move_number,
         category=mistake.category,
@@ -235,7 +329,7 @@ def _explanation(board_size: int, mistake: SelectedMistakeResult) -> Explanation
             f"You played {played}; KataGo prefers {recommended} "
             f"(loss {mistake.estimated_loss:.2f})."
         ),
-        why_this_matters=_CATEGORY_INTERPRETATION[mistake.category],
+        why_this_matters=category_interpretation(mistake.category),
     )
 
 
@@ -252,7 +346,7 @@ def _training_suggestions(mistakes: list[ClassifiedMistake]) -> list[TrainingSug
     suggestions = [
         TrainingSuggestion(
             category=category,
-            suggestion=_CATEGORY_TRAINING[category],
+            suggestion=category_training_suggestion(category),
         )
         for category, _count in counts.most_common(2)
     ]
@@ -266,8 +360,8 @@ def _training_suggestions(mistakes: list[ClassifiedMistake]) -> list[TrainingSug
 
 
 def _coord_view(move: str | None, board_size: int) -> CoordinateView:
-    if move is None:
-        return CoordinateView(sgf=None, display="pass")
+    if move is None or move == "pass":
+        return CoordinateView(sgf=None if move is None else move, display="pass")
 
     human = _sgf_to_human_coord(move, board_size)
     if human is None:

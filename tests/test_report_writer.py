@@ -20,9 +20,9 @@ def test_generate_review_report_from_pipeline_data() -> None:
     assert "- Players: Black Player (B) vs White Player (W)" in report
     assert "- Moves analyzed: 4" in report
     assert "Top Mistakes" in report
-    assert "1. Move 3: played qp (R4), best cn (C6), loss 1.80" in report
-    assert "2. Move 1: played pd (Q16), best qd (R16), loss 1.40" in report
-    assert "3. Move 2: played dd (D16), best dq (D3), loss 1.20" in report
+    assert "1. Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in report
+    assert "2. Move 1: played pd (Q16), best qd (R16), loss 1.40, 局部用力过猛" in report
+    assert "3. Move 2: played dd (D16), best dq (D3), loss 1.20, 暂难归类" in report
     assert "Mistake Explanations" in report
     assert "KataGo prefers" in report
     assert "Why this matters:" in report
@@ -43,7 +43,7 @@ def test_generate_review_report_unclear_classification_is_explicit() -> None:
 
     report = generate_review_report(game, mistakes)
 
-    assert "Move 1 (Unclear classification)" in report
+    assert "Move 1 (暂难归类)" in report
     assert "Engine signals are mixed, so this pattern is not yet clear." in report
 
 
@@ -55,7 +55,7 @@ def test_print_sample_report_for_sample_pipeline(capsys) -> None:
     assert "Top Mistakes" in out
     assert "Mistake Explanations" in out
     assert "Final Training Suggestions" in out
-    assert "Move 3: played qp (R4), best cn (C6), loss 1.80" in out
+    assert "Move 3: played qp (R4), best cn (C6), loss 1.80, 暂难归类" in out
 
 
 def test_generate_review_report_formats_pass_move() -> None:

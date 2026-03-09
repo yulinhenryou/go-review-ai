@@ -16,6 +16,13 @@ MistakeCategory = Literal[
     "unclear",
 ]
 
+MistakeSeverity = Literal[
+    "inaccuracy",
+    "mistake",
+    "major_mistake",
+    "blunder",
+]
+
 _CATEGORY_ORDER: tuple[MistakeCategory, ...] = (
     "direction_error",
     "local_overplay",
@@ -43,6 +50,7 @@ class ClassifiedMistake:
     recommended_move: str
     estimated_loss: float
     category: MistakeCategory
+    severity: MistakeSeverity = "mistake"
 
 
 def classify_selected_mistakes(
@@ -64,10 +72,26 @@ def classify_selected_mistakes(
                 recommended_move=mistake.recommended_move,
                 estimated_loss=mistake.estimated_loss,
                 category=category,
+                severity=severity_from_loss(mistake.estimated_loss),
             )
         )
 
     return classified
+
+
+def classify_result(result: MoveAnalysisResult) -> ClassifiedMistake:
+    return ClassifiedMistake(
+        move_number=result.move_number,
+        played_move=result.played_move,
+        recommended_move=result.recommended_move,
+        estimated_loss=result.estimated_loss,
+        category=classify_mistake(extract_features(result)),
+        severity=severity_from_loss(result.estimated_loss),
+    )
+
+
+def classify_all_results(results: list[MoveAnalysisResult]) -> list[ClassifiedMistake]:
+    return [classify_result(result) for result in results]
 
 
 def extract_features(result: MoveAnalysisResult) -> MistakeFeatures:
@@ -152,7 +176,7 @@ def print_classification_summary(classified: list[ClassifiedMistake]) -> None:
         print(
             f"Move {item.move_number}: "
             f"played={played} recommended={item.recommended_move} "
-            f"loss={item.estimated_loss:.2f} category={item.category}"
+            f"loss={item.estimated_loss:.2f} category={item.category} severity={item.severity}"
         )
 
     counts = Counter(item.category for item in classified)
@@ -160,6 +184,16 @@ def print_classification_summary(classified: list[ClassifiedMistake]) -> None:
         f"{category}={counts[category]}" for category in _CATEGORY_ORDER if counts[category]
     )
     print(f"Category totals: {summary}")
+
+
+def severity_from_loss(estimated_loss: float) -> MistakeSeverity:
+    if estimated_loss >= 3.0:
+        return "blunder"
+    if estimated_loss >= 2.0:
+        return "major_mistake"
+    if estimated_loss >= 1.0:
+        return "mistake"
+    return "inaccuracy"
 
 
 def _distance(move_a: str | None, move_b: str | None) -> int | None:

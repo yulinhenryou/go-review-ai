@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from src.analyzer import analyze_game
-from src.classifier import classify_selected_mistakes
+from src.analyzer import analyze_game_state
+from src.classifier import classify_all_results, classify_selected_mistakes
 from src.katago_client import (
     EngineClient,
     KataGoClient,
@@ -38,12 +38,29 @@ def build_review_outputs_for_game(
     loss_threshold: float = 1.0,
     limit: int = 3,
 ) -> tuple[str, ReviewResult]:
-    results = analyze_game(game, engine)
+    analysis = analyze_game_state(game, engine)
+    results = analysis.move_results
     selected = select_top_mistakes(results, loss_threshold=loss_threshold, limit=limit)
+    threshold_mistakes = select_top_mistakes(
+        results,
+        loss_threshold=loss_threshold,
+        limit=len(results),
+    )
     classified = classify_selected_mistakes(selected, results)
+    classified_threshold = classify_selected_mistakes(threshold_mistakes, results)
+    all_classified = classify_all_results(results)
     return (
         generate_review_report(game, classified),
-        build_review_result(game, classified, results),
+        build_review_result(
+            game=game,
+            selected_mistakes=classified,
+            threshold_mistakes=classified_threshold,
+            all_classified=all_classified,
+            results=results,
+            current_position_analysis=analysis.current_position,
+            next_player=analysis.current_position_input.to_play,
+            loss_threshold=loss_threshold,
+        ),
     )
 
 
