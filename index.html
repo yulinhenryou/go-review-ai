@@ -104,6 +104,8 @@
       background: var(--surface);
       box-shadow: var(--shadow-soft);
       box-sizing: border-box;
+      position: sticky;
+      top: var(--page-gutter);
     }
 
     .upload-controls {
@@ -347,6 +349,48 @@
       color: #666;
     }
 
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .section-title-row strong {
+      margin: 0;
+    }
+
+    .winrate-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #d5ccbc;
+      background: #fbf7ef;
+      color: #4c4030;
+      font-size: 12px;
+    }
+
+    .winrate-indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(47, 41, 32, 0.35);
+      box-sizing: border-box;
+      flex: 0 0 auto;
+    }
+
+    .winrate-indicator-dot.black {
+      background: #111;
+      border-color: #111;
+    }
+
+    .winrate-indicator-dot.white {
+      background: #fff;
+    }
+
     .loading-state {
       display: flex;
       align-items: center;
@@ -505,6 +549,7 @@
       var defaultAnalyzeButtonText = "开始分析";
       var analysisData = null;
       var reviewFocus = null;
+      var viewedMoveNumber = null;
       var reviewTargets = [];
       var analysisView = "current";
       var selectedCandidateRank = 1;
@@ -714,7 +759,9 @@
       }
 
       function updateReviewStatus() {
-        if (!reviewFocus) {
+        var activeContext = getActiveContext(analysisData);
+
+        if (!analysisData || !activeContext) {
           reviewStatus.innerHTML = [
             "<span class=\"review-badge\">最新局面</span>",
             "<span>当前未查看具体复盘手数。</span>"
@@ -723,12 +770,23 @@
           return;
         }
 
+        if (activeContext.kind === "current_position") {
+          reviewStatus.innerHTML = [
+            "<span class=\"review-badge\">最新局面</span>",
+            "<span>",
+            "当前显示终局后的推荐点与候选变化。",
+            "</span>"
+          ].join("");
+          latestBtn.disabled = true;
+          return;
+        }
+
         reviewStatus.innerHTML = [
-          "<span class=\"review-badge\">复盘" + escapeHtml(moveRefLabel(reviewFocus.color, reviewFocus.moveNumber)) + "</span>",
+          "<span class=\"review-badge\">复盘" + escapeHtml(moveRefLabel(activeContext.color, activeContext.moveNumber)) + "</span>",
           "<span>",
-          "实战：" + escapeHtml(formatCoord(reviewFocus.playedMove)) +
-          " | 推荐：" + escapeHtml(formatCoord(reviewFocus.recommendedMove)) +
-          (reviewFocus.label ? " | " + escapeHtml(reviewFocus.label) : ""),
+          "实战：" + escapeHtml(formatCoord(activeContext.playedMove)) +
+          " | 推荐：" + escapeHtml(formatCoord(activeContext.recommendedMove)) +
+          (activeContext.label ? " | " + escapeHtml(activeContext.label) : ""),
           "</span>"
         ].join("");
         latestBtn.disabled = false;
@@ -751,10 +809,11 @@
 
       function updateReviewNavigationControls() {
         var bounds = getTimelineMoveBounds();
-        var canNavigate = Boolean(reviewFocus && bounds);
+        var currentMoveNumber = getViewedMoveNumber();
+        var canNavigate = Boolean(bounds && typeof currentMoveNumber === "number");
 
-        prevReviewBtn.disabled = !canNavigate || reviewFocus.moveNumber <= bounds.first;
-        nextReviewBtn.disabled = !canNavigate || reviewFocus.moveNumber >= bounds.last;
+        prevReviewBtn.disabled = !canNavigate || currentMoveNumber <= bounds.first;
+        nextReviewBtn.disabled = !canNavigate || currentMoveNumber >= bounds.last;
       }
 
       function escapeHtml(value) {
@@ -806,6 +865,68 @@
           .filter(Boolean);
       }
 
+      function latestTimelineMoveNumber() {
+        var bounds = getTimelineMoveBounds();
+        return bounds ? bounds.last : null;
+      }
+
+      function getViewedMoveNumber() {
+        if (typeof viewedMoveNumber === "number") {
+          return viewedMoveNumber;
+        }
+
+        return latestTimelineMoveNumber();
+      }
+
+      function isViewingLatestMove() {
+        var latestMove = latestTimelineMoveNumber();
+        return typeof latestMove === "number" && getViewedMoveNumber() === latestMove;
+      }
+
+      function nextPlayerAfterMoveNumber(moveNumber) {
+        if (typeof moveNumber !== "number") return null;
+        return moveNumber % 2 === 0 ? "B" : "W";
+      }
+
+      function buildLatestPositionContext(data) {
+        var current = data && data.current_position ? data.current_position : {};
+        var latestMove = latestTimelineMoveNumber();
+        var latestTimelineItem = findTimelineItem(data, latestMove) || {};
+
+        return {
+          id: "current-position",
+          kind: "current_position",
+          title: "最新局面",
+          summary: current.short_explanation || "暂无说明。",
+          moveNumber: latestMove,
+          color: latestTimelineItem.color || null,
+          label: "当前局面",
+          playedMove: latestTimelineItem.played_move || null,
+          recommendedMove: current.best_move || null,
+          topCandidates: Array.isArray(current.top_candidates) ? current.top_candidates.slice(0, 3) : [],
+          pvSummary: current.pv_summary || "",
+          nextPlayer: current.next_player || nextPlayerAfterMoveNumber(latestMove),
+          winrateOwnerColor: current.next_player || "B"
+        };
+      }
+
+      function getActiveContext(data) {
+        var currentMoveNumber;
+
+        if (!data || typeof data !== "object") return null;
+
+        currentMoveNumber = getViewedMoveNumber();
+        if (isViewingLatestMove()) {
+          return buildLatestPositionContext(data);
+        }
+
+        if (reviewFocus && reviewFocus.moveNumber === currentMoveNumber) {
+          return reviewFocus;
+        }
+
+        return buildTimelineReviewTarget(data, currentMoveNumber);
+      }
+
       function getCandidateMarkersFromCandidates(candidates) {
         if (!Array.isArray(candidates)) return [];
 
@@ -827,15 +948,8 @@
       }
 
       function getActiveCandidates(data) {
-        if (!data || typeof data !== "object") return [];
-
-        if (reviewFocus && Array.isArray(reviewFocus.topCandidates)) {
-          return reviewFocus.topCandidates.slice(0, 3);
-        }
-
-        return data.current_position && Array.isArray(data.current_position.top_candidates)
-          ? data.current_position.top_candidates.slice(0, 3)
-          : [];
+        var activeContext = getActiveContext(data);
+        return activeContext && Array.isArray(activeContext.topCandidates) ? activeContext.topCandidates.slice(0, 3) : [];
       }
 
       function candidateRankLabel(rank) {
@@ -846,7 +960,8 @@
       }
 
       function currentCandidateContextKey() {
-        return reviewFocus ? "review:" + reviewFocus.id : "current";
+        var activeContext = getActiveContext(analysisData);
+        return activeContext ? activeContext.kind + ":" + activeContext.id : "current";
       }
 
       function getSelectedCandidate(data) {
@@ -961,6 +1076,7 @@
       function clearAnalysisState() {
         analysisData = null;
         reviewFocus = null;
+        viewedMoveNumber = null;
         reviewTargets = [];
         candidateMarkers = [];
         selectedCandidateRank = 1;
@@ -1018,6 +1134,7 @@
         analysisData = data;
         reviewTargets = buildReviewTargets(data);
         reviewFocus = null;
+        viewedMoveNumber = latestTimelineMoveNumber();
         resetSelectedCandidate(data);
         candidateMarkers = getCurrentCandidateMarkers(data);
         chartMetric = "winrate";
@@ -1087,7 +1204,9 @@
           playedMove: detail.played_move || config.playedMove || null,
           recommendedMove: detail.recommended_move || detail.best_move || config.recommendedMove || null,
           topCandidates: topCandidates,
-          pvSummary: detail.pv_summary || ""
+          pvSummary: detail.pv_summary || "",
+          nextPlayer: nextPlayerAfterMoveNumber(config.moveNumber),
+          winrateOwnerColor: config.color || detail.color || null
         };
       }
 
@@ -1141,6 +1260,10 @@
 
       function buildTimelineReviewTarget(data, moveNumber) {
         var detail = findTimelineItem(data, moveNumber);
+        var mistake = findReviewMistake(data, moveNumber) || {};
+        var topCandidates = Array.isArray(mistake.top_candidates)
+          ? mistake.top_candidates
+          : (Array.isArray(detail.top_candidates) ? detail.top_candidates : []);
 
         if (!detail || typeof detail.move_number !== "number") {
           return null;
@@ -1155,9 +1278,11 @@
           color: detail.color || null,
           label: detail.teaching_label || detail.severity_label || detail.category_label || "走势定位",
           playedMove: detail.played_move || null,
-          recommendedMove: detail.best_move || null,
-          topCandidates: Array.isArray(detail.top_candidates) ? detail.top_candidates : [],
-          pvSummary: detail.pv_summary || ""
+          recommendedMove: mistake.recommended_move || detail.best_move || null,
+          topCandidates: topCandidates,
+          pvSummary: mistake.pv_summary || detail.pv_summary || "",
+          nextPlayer: nextPlayerAfterMoveNumber(detail.move_number),
+          winrateOwnerColor: detail.color || null
         };
       }
 
@@ -1310,6 +1435,7 @@
         if (!target) return;
 
         reviewFocus = target;
+        viewedMoveNumber = target.moveNumber;
         resetSelectedCandidate(analysisData);
         candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
         drawBoard();
@@ -1320,15 +1446,22 @@
 
       function activateTimelineMove(moveNumber) {
         var target;
+        var latestMove;
 
         if (!analysisData) return;
+        latestMove = latestTimelineMoveNumber();
+        if (typeof latestMove !== "number") return;
+        if (moveNumber < 1 || moveNumber > latestMove) return;
 
-        target = buildTimelineReviewTarget(analysisData, moveNumber);
-        if (!target) return;
-
-        reviewFocus = target;
+        viewedMoveNumber = moveNumber;
+        reviewFocus = null;
         resetSelectedCandidate(analysisData);
-        candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
+        if (moveNumber === latestMove) {
+          candidateMarkers = getCurrentCandidateMarkers(analysisData);
+        } else {
+          target = buildTimelineReviewTarget(analysisData, moveNumber);
+          candidateMarkers = target ? getCandidateMarkersFromCandidates(target.topCandidates) : [];
+        }
         drawBoard();
         updateReviewStatus();
         updateReviewNavigationControls();
@@ -1337,6 +1470,7 @@
 
       function returnToLatestBoardState() {
         reviewFocus = null;
+        viewedMoveNumber = latestTimelineMoveNumber();
         resetSelectedCandidate(analysisData);
         candidateMarkers = getCurrentCandidateMarkers(analysisData);
         drawBoard();
@@ -1348,9 +1482,9 @@
       function stepReviewPosition(offset) {
         var nextMoveNumber;
 
-        if (!analysisData || !reviewFocus || !offset) return;
+        if (!analysisData || !offset) return;
 
-        nextMoveNumber = reviewFocus.moveNumber + offset;
+        nextMoveNumber = getViewedMoveNumber() + offset;
         activateTimelineMove(nextMoveNumber);
       }
 
@@ -1394,14 +1528,14 @@
       function buildCandidateExplanation(data) {
         var selected = getSelectedCandidate(data);
         var activeCandidates = getActiveCandidates(data);
-        var pvSummary = reviewFocus
-          ? (reviewFocus.pvSummary || "")
-          : ((data && data.current_position && data.current_position.pv_summary) || "");
+        var activeContext = getActiveContext(data);
+        var pvSummary = activeContext ? (activeContext.pvSummary || "") : "";
         var candidate;
         var rankLabel;
         var scoreText;
         var winrateText;
         var pvText;
+        var winrateLabel = winrateLabelForColor(activeContext && activeContext.winrateOwnerColor);
 
         if (!selected) {
           return "<div>暂无候选点说明。</div>";
@@ -1430,7 +1564,7 @@
           "<span class=\"candidate-rank-badge\">" + escapeHtml(rankLabel) + "</span>",
           "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
           "</div>",
-          "<p>这一步的预计胜率约为" + escapeHtml(winrateText) + "，目差约为" + escapeHtml(scoreText) + "。</p>",
+          "<p>这一步的预计" + escapeHtml(winrateLabel) + "约为" + escapeHtml(winrateText) + "，目差约为" + escapeHtml(scoreText) + "。</p>",
           "<p>" + escapeHtml(candidateDeltaText(activeCandidates, selected.rank, candidate)) + "</p>",
           "<p>变化参考：" + escapeHtml(pvText) + "</p>",
           "</div>"
@@ -1438,6 +1572,9 @@
       }
 
       function renderCandidateChoiceList(activeCandidates) {
+        var activeContext = getActiveContext(analysisData);
+        var winrateLabel = winrateLabelForColor(activeContext && activeContext.winrateOwnerColor);
+
         if (!activeCandidates.length) {
           return "<div>暂无候选点。</div>";
         }
@@ -1452,7 +1589,7 @@
               "<button type=\"button\" class=\"candidate-choice-button" + (isActive ? " active" : "") + "\" data-candidate-rank=\"" + rank + "\">",
               "<span class=\"candidate-choice-rank\">" + escapeHtml(candidateRankLabel(rank)) + "</span>",
               "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
-              "<span class=\"candidate-choice-meta\">胜率约" +
+              "<span class=\"candidate-choice-meta\">" + escapeHtml(winrateLabel) + "约" +
                 escapeHtml(typeof candidate.winrate === "number" ? String(Math.round(candidate.winrate * 100)) : "0") +
                 "%，目差约" +
                 escapeHtml(typeof candidate.score_estimate === "number" ? String(Math.round(candidate.score_estimate * 10) / 10) : "暂无") +
@@ -1498,27 +1635,67 @@
         return String(rounded);
       }
 
-      function buildTrendContext(timeline) {
+      function perspectiveWinrate(item, perspectiveColor) {
+        if (!item || typeof item.winrate_after !== "number") return null;
+        if (item.color === perspectiveColor) return item.winrate_after;
+        return 1 - item.winrate_after;
+      }
+
+      function winrateLabelForColor(color) {
+        return color === "W" ? "白棋胜率" : "黑棋胜率";
+      }
+
+      function inferWinratePerspectiveColor(data) {
+        var activeContext = getActiveContext(data);
+        var current = data && data.current_position ? data.current_position : {};
+
+        if (activeContext && (activeContext.winrateOwnerColor === "B" || activeContext.winrateOwnerColor === "W")) {
+          return activeContext.winrateOwnerColor;
+        }
+
+        if (current.next_player === "B" || current.next_player === "W") {
+          return current.next_player;
+        }
+
+        return "B";
+      }
+
+      function winrateIndicatorHtml(color) {
+        var normalized = color === "W" ? "W" : "B";
+        return [
+          "<span class=\"winrate-indicator\">",
+          "<span class=\"winrate-indicator-dot " + (normalized === "W" ? "white" : "black") + "\" aria-hidden=\"true\"></span>",
+          escapeHtml(winrateLabelForColor(normalized)),
+          "</span>"
+        ].join("");
+      }
+
+      function buildTrendContext(timeline, perspectiveColor) {
+        var focusMoveNumber = getViewedMoveNumber();
         var latest;
+        var focused;
         var parts = [];
+        var currentWinrate;
 
         if (!timeline || !timeline.length) {
           return "暂无走势背景。";
         }
 
         latest = timeline[timeline.length - 1];
-        if (!latest || typeof latest.move_number !== "number") {
+        focused = findTimelineItem({ timeline: timeline }, focusMoveNumber) || latest;
+        if (!focused || typeof focused.move_number !== "number") {
           return "暂无走势背景。";
         }
 
-        parts.push("目前看到第" + latest.move_number + "手。");
+        parts.push("目前看到第" + focused.move_number + "手。");
 
-        if (typeof latest.winrate_after === "number") {
-          parts.push("实战后胜率约 " + formatTrendValue("winrate", latest.winrate_after) + "。");
+        currentWinrate = perspectiveWinrate(focused, perspectiveColor);
+        if (typeof currentWinrate === "number") {
+          parts.push(winrateLabelForColor(perspectiveColor) + "约 " + formatTrendValue("winrate", currentWinrate) + "。");
         }
 
-        if (typeof latest.score_after === "number") {
-          parts.push("目差约 " + formatTrendValue("score", latest.score_after) + "。");
+        if (typeof focused.score_after === "number") {
+          parts.push("目差约 " + formatTrendValue("score", focused.score_after) + "。");
         }
 
         return parts.join("");
@@ -1550,7 +1727,9 @@
         var axisLabels;
         var firstPoint;
         var lastPoint;
-        var selectedMoveNumber = reviewFocus ? reviewFocus.moveNumber : (timeline.length ? timeline[timeline.length - 1].move_number : null);
+        var selectedMoveNumber = getViewedMoveNumber();
+        var winratePerspectiveColor = inferWinratePerspectiveColor(analysisData);
+        var winrateTitle = winrateLabelForColor(winratePerspectiveColor);
 
         if (!hasWinrate && !hasScore) {
           container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
@@ -1561,7 +1740,22 @@
         if (activeMetric === "score" && !hasScore) activeMetric = "winrate";
         chartMetric = activeMetric;
 
-        series = buildTrendSeries(timeline, activeMetric === "winrate" ? "winrate_after" : "score_after");
+        series = activeMetric === "winrate"
+          ? timeline
+              .map(function (item) {
+                var value = perspectiveWinrate(item, winratePerspectiveColor);
+
+                if (!item || typeof item.move_number !== "number" || typeof value !== "number") {
+                  return null;
+                }
+
+                return {
+                  moveNumber: item.move_number,
+                  value: value
+                };
+              })
+              .filter(Boolean)
+          : buildTrendSeries(timeline, "score_after");
         if (!series.length) {
           container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
           return;
@@ -1613,6 +1807,10 @@
           hasWinrate ? "<button type=\"button\" data-chart-metric=\"winrate\" class=\"" + (activeMetric === "winrate" ? "active" : "") + "\">胜率</button>" : "",
           hasScore ? "<button type=\"button\" data-chart-metric=\"score\" class=\"" + (activeMetric === "score" ? "active" : "") + "\">目差</button>" : "",
           "</div>",
+          "<div class=\"section-title-row\">",
+          "<strong>" + escapeHtml(activeMetric === "winrate" ? "胜率走势" : "目差走势") + "</strong>",
+          (activeMetric === "winrate" ? winrateIndicatorHtml(winratePerspectiveColor) : ""),
+          "</div>",
           "<div class=\"trend-chart\">",
           "<svg viewBox=\"0 0 " + width + " " + height + "\" role=\"img\" aria-label=\"走势折线图\">",
           "<line x1=\"" + padding.left + "\" y1=\"" + padding.top + "\" x2=\"" + padding.left + "\" y2=\"" + (height - padding.bottom) + "\" stroke=\"#999\" stroke-width=\"1\" />",
@@ -1646,9 +1844,9 @@
           "</svg>",
           "</div>",
           "<div class=\"chart-meta\">",
-          escapeHtml(activeMetric === "winrate" ? "显示每手实战后胜率走势。" : "显示每手实战后目差走势。"),
+          escapeHtml(activeMetric === "winrate" ? "显示每手实战后的" + winrateTitle + "走势。" : "显示每手实战后目差走势。"),
           " 共 " + escapeHtml(String(series.length)) + " 个点。",
-          reviewFocus ? " 当前选中第" + escapeHtml(String(reviewFocus.moveNumber)) + "手。" : " 当前显示最新局面。",
+          typeof selectedMoveNumber === "number" ? " 当前选中第" + escapeHtml(String(selectedMoveNumber)) + "手。" : " 当前显示最新局面。",
           "</div>",
           "<div class=\"chart-note\">点击图上的点，可直接跳到对应手数；点“回到最新局面”可返回当前终局位置。</div>"
         ].join("");
@@ -1685,20 +1883,19 @@
         var gameSummary = data.game_summary || {};
         var keyPoints = data.key_points || {};
         var reviewSummary = keyPoints.review_summary || {};
+        var activeContext = getActiveContext(data);
         var activeCandidates = getActiveCandidates(data);
         var currentPhase = inferPhase(gameSummary);
         var bestMoveLabel = formatCoord(current.best_move);
-        var activeBestMoveLabel = reviewFocus ? formatCoord(reviewFocus.recommendedMove) : bestMoveLabel;
-        var activeNextPlayer = reviewFocus
-          ? (reviewFocus.moveNumber % 2 === 0 ? "B" : "W")
-          : current.next_player;
+        var activeBestMoveLabel = activeContext ? formatCoord(activeContext.recommendedMove) : bestMoveLabel;
+        var activeNextPlayer = activeContext ? activeContext.nextPlayer : current.next_player;
         var hasBestMove = activeBestMoveLabel !== "暂无";
         var timeline = Array.isArray(data.timeline) ? data.timeline : [];
-        var reviewTitle = reviewFocus
-          ? "当前查看：" + moveRefLabel(reviewFocus.color, reviewFocus.moveNumber)
+        var reviewTitle = activeContext && activeContext.kind !== "current_position"
+          ? "当前查看：" + moveRefLabel(activeContext.color, activeContext.moveNumber)
           : "当前查看：最新局面";
-        var activeExplanation = reviewFocus
-          ? reviewFocus.summary
+        var activeExplanation = activeContext
+          ? activeContext.summary
           : (current.short_explanation || "暂无说明");
         var reviewTargetsByKind = {
           highlight: reviewTargets.filter(function (item) { return item.kind === "highlight_move"; }),
@@ -1707,7 +1904,7 @@
           leaveMainBattlefield: reviewTargets.filter(function (item) { return item.kind === "leave_main_battlefield"; }),
           major: reviewTargets.filter(function (item) { return item.kind === "major_mistake"; })
         };
-        var trendContext = buildTrendContext(timeline);
+        var trendContext = buildTrendContext(timeline, inferWinratePerspectiveColor(data));
         var reviewOverview = [
           "亮点手 " + reviewTargetsByKind.highlight.length + " 个",
           "转折点 " + reviewTargetsByKind.turning.length + " 个",
@@ -1730,10 +1927,16 @@
           "<div class=\"analysis-section\">",
           "<strong>2. 当前说明</strong>",
           "<div>" + escapeHtml(activeExplanation) + "</div>",
-          "<div class=\"section-note\">当前模式优先展示最新局面判断与推荐点。</div>",
+          "<div class=\"section-note\">" + escapeHtml(
+            activeContext && activeContext.kind === "current_position"
+              ? "当前模式展示终局后的推荐点与候选变化。"
+              : "当前模式展示所查看手数的实战落点与推荐变化。"
+          ) + "</div>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>3. 候选点</strong>",
+          "<div class=\"section-title-row\"><strong>3. 候选点</strong>" +
+            winrateIndicatorHtml(activeContext && activeContext.winrateOwnerColor) +
+          "</div>",
           "<div class=\"section-note\">点击棋盘上的 1 / 2 / 3 候选标记，右侧说明会立即切换。</div>",
           renderCandidateChoiceList(activeCandidates),
           buildCandidateExplanation(data),
@@ -1801,7 +2004,9 @@
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>9. 当前候选点</strong>",
+          "<div class=\"section-title-row\"><strong>9. 当前候选点</strong>" +
+            winrateIndicatorHtml(activeContext && activeContext.winrateOwnerColor) +
+          "</div>",
           "<div class=\"section-note\">点击棋盘候选标记可查看该点的短变化说明。</div>",
           renderCandidateChoiceList(activeCandidates),
           buildCandidateExplanation(data),
@@ -2030,6 +2235,7 @@
         var radius = boardMetrics.cell * 0.45;
         var gradient = context.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
         var label = String(moveNumber);
+        var isViewedMove = analysisData && moveNumber === getViewedMoveNumber();
 
         if (move.color === "B") {
           gradient.addColorStop(0, "#666");
@@ -2048,13 +2254,13 @@
 
         if (isLatestMove) {
           context.save();
-          context.strokeStyle = reviewFocus && moveNumber === reviewFocus.moveNumber ? "#c74b16" : (move.color === "B" ? "#f5d36b" : "#b85c00");
-          context.lineWidth = Math.max(2, boardMetrics.cell * (reviewFocus && moveNumber === reviewFocus.moveNumber ? 0.11 : 0.08));
+          context.strokeStyle = isViewedMove ? "#c74b16" : (move.color === "B" ? "#f5d36b" : "#b85c00");
+          context.lineWidth = Math.max(2, boardMetrics.cell * (isViewedMove ? 0.11 : 0.08));
           context.beginPath();
           context.arc(x, y, radius * 0.78, 0, Math.PI * 2);
           context.stroke();
 
-          if (reviewFocus && moveNumber === reviewFocus.moveNumber) {
+          if (isViewedMove) {
             context.strokeStyle = "rgba(199, 75, 22, 0.28)";
             context.lineWidth = Math.max(4, boardMetrics.cell * 0.14);
             context.beginPath();
@@ -2188,9 +2394,10 @@
 
       function drawBoard() {
         var activeMoves = [];
-        var renderedMoveCount = reviewFocus ? reviewFocus.moveNumber : moves.length;
+        var renderedMoveCount = analysisData ? (getViewedMoveNumber() || moves.length) : moves.length;
         var snapshot = createBoardSnapshot(renderedMoveCount);
-        var recommendedMove = reviewFocus ? reviewFocus.recommendedMove : (analysisData && analysisData.current_position ? analysisData.current_position.best_move : null);
+        var activeContext = getActiveContext(analysisData);
+        var recommendedMove = activeContext ? activeContext.recommendedMove : null;
         var i;
 
         if (!boardMetrics) return;
@@ -2243,7 +2450,7 @@
         var point = clickToPoint(event);
         if (!point) return;
         if (analysisData && trySelectCandidateAtPoint(point)) return;
-        if (reviewFocus) return;
+        if (analysisData && !isViewingLatestMove()) return;
         if (!tryPlaceMove(point, currentColor)) return;
 
         clearAnalysisState();
@@ -2406,7 +2613,7 @@
       });
 
       document.addEventListener("keydown", function (event) {
-        if (shouldIgnoreReviewKeydown(event) || !reviewFocus) return;
+        if (shouldIgnoreReviewKeydown(event) || !analysisData || typeof getViewedMoveNumber() !== "number") return;
 
         if (event.key === "ArrowLeft") {
           event.preventDefault();
