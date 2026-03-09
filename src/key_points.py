@@ -100,16 +100,38 @@ def _turning_points(
     if target_count == 0:
         return []
 
+    eligible_indexes = [
+        index
+        for index in range(len(results))
+        if _is_turning_point_candidate(results[index], classified_results[index], len(results))
+    ]
+    if not eligible_indexes:
+        return []
+
+    cliff_ranked_indexes = sorted(
+        eligible_indexes,
+        key=lambda index: _turning_point_cliff_rank(results[index], classified_results[index]),
+        reverse=True,
+    )
     ranked_indexes = sorted(
-        range(len(results)),
+        eligible_indexes,
         key=lambda index: _turning_point_rank(results[index], classified_results[index]),
         reverse=True,
     )
 
     chosen_indexes: list[int] = []
     cluster_radius = 2 if len(results) < 80 else 4
+    for index in cliff_ranked_indexes:
+        if not _is_cliff_like_change(results[index], classified_results[index]):
+            continue
+        if index in chosen_indexes:
+            continue
+        chosen_indexes.append(index)
+        if len(chosen_indexes) == target_count:
+            break
+
     for index in ranked_indexes:
-        if not _is_turning_point_candidate(results[index], classified_results[index], len(results)):
+        if index in chosen_indexes:
             continue
         if any(
             abs(results[index].move_number - results[chosen].move_number) <= cluster_radius
@@ -120,6 +142,8 @@ def _turning_points(
         if len(chosen_indexes) == target_count:
             break
 
+    chosen_indexes.sort(key=lambda index: results[index].move_number)
+
     return [
         _turning_point_view(results[index], classified_results[index], len(results))
         for index in chosen_indexes
@@ -129,10 +153,25 @@ def _turning_points(
 def _turning_point_rank(
     result: MoveAnalysisResult,
     classified: ClassifiedMistake,
-) -> tuple[float, float, int]:
+) -> tuple[float, float, float, int]:
+    transition_bonus = 1.0 if _is_nearly_losing_transition(result) else 0.0
     return (
-        result.estimated_loss + (0.4 if classified.severity == "mistake" else 0.0),
         abs(classified.winrate_delta),
+        transition_bonus,
+        result.estimated_loss + _severity_bonus(classified.severity),
+        -result.move_number,
+    )
+
+
+def _turning_point_cliff_rank(
+    result: MoveAnalysisResult,
+    classified: ClassifiedMistake,
+) -> tuple[float, float, float, int]:
+    transition_bonus = 1.0 if _is_nearly_losing_transition(result) else 0.0
+    return (
+        abs(classified.winrate_delta) + transition_bonus,
+        transition_bonus,
+        result.estimated_loss,
         -result.move_number,
     )
 
@@ -152,11 +191,38 @@ def _is_turning_point_candidate(
     classified: ClassifiedMistake,
     total_moves: int,
 ) -> bool:
+    if _is_nearly_losing_transition(result):
+        return True
     if total_moves < 50:
         return result.estimated_loss >= 2.5 or abs(classified.winrate_delta) >= 0.12
     if total_moves < 120:
         return result.estimated_loss >= 2.0 or abs(classified.winrate_delta) >= 0.1
     return result.estimated_loss >= 1.5 or abs(classified.winrate_delta) >= 0.08
+
+
+def _is_cliff_like_change(
+    result: MoveAnalysisResult,
+    classified: ClassifiedMistake,
+) -> bool:
+    return abs(classified.winrate_delta) >= 0.14 or _is_nearly_losing_transition(result)
+
+
+def _is_nearly_losing_transition(result: MoveAnalysisResult) -> bool:
+    return (
+        result.engine_analysis.winrate >= 0.45
+        and result.engine_analysis.played_winrate <= 0.20
+        and (result.engine_analysis.winrate - result.engine_analysis.played_winrate) >= 0.18
+    )
+
+
+def _severity_bonus(severity: MistakeSeverity) -> float:
+    bonuses: dict[MistakeSeverity, float] = {
+        "inaccuracy": 0.0,
+        "mistake": 0.2,
+        "major_mistake": 0.5,
+        "blunder": 0.8,
+    }
+    return bonuses[severity]
 
 
 def _turning_point_view(

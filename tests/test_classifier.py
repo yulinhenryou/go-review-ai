@@ -170,6 +170,21 @@ def test_severity_from_loss_uses_threshold_bands() -> None:
     assert severity_from_loss(5.0) == "blunder"
 
 
+def test_severity_from_loss_escalates_for_winrate_collapse() -> None:
+    assert severity_from_loss(
+        1.2,
+        winrate_delta=-0.22,
+        winrate_before=0.58,
+        winrate_after=0.36,
+    ) == "major_mistake"
+    assert severity_from_loss(
+        1.2,
+        winrate_delta=-0.41,
+        winrate_before=0.59,
+        winrate_after=0.18,
+    ) == "blunder"
+
+
 def _make_result(
     move_number: int,
     played_move: str | None,

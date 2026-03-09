@@ -71,5 +71,8 @@ def _selected_mistake_from_result(result: MoveAnalysisResult) -> SelectedMistake
         severity=severity_from_loss(
             result.estimated_loss,
             thresholds=DEFAULT_SEVERITY_THRESHOLDS,
+            winrate_delta=result.engine_analysis.played_winrate - result.engine_analysis.winrate,
+            winrate_before=result.engine_analysis.winrate,
+            winrate_after=result.engine_analysis.played_winrate,
         ),
     )

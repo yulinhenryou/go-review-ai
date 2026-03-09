@@ -1,5 +1,5 @@
 from src.analyzer import MoveAnalysisResult
-from src.classifier import ClassifiedMistake
+from src.classifier import ClassifiedMistake, classify_all_results
 from src.katago_client import CandidateMove, PositionAnalysis, PositionInput
 from src.key_points import build_key_point_analysis, parse_pv_summary, phase_for_move
 
@@ -222,6 +222,65 @@ def test_short_game_never_labels_endgame_or_multiple_turning_points() -> None:
         phase_for_move(result.move_number, len(results), result)
         for result in results
     } == {"opening"}
+
+
+def test_late_game_winrate_collapse_is_flagged_as_turning_point() -> None:
+    results: list[MoveAnalysisResult] = []
+    for move_number in range(1, 61):
+        if move_number == 18:
+            results.append(
+                _make_result(
+                    move_number=move_number,
+                    played_move="qp",
+                    best_move="cn",
+                    estimated_loss=2.6,
+                    top_candidates=(
+                        CandidateMove("cn", score_estimate=2.4, winrate=0.58),
+                        CandidateMove("co", score_estimate=1.8, winrate=0.55),
+                        CandidateMove("bn", score_estimate=1.2, winrate=0.50),
+                    ),
+                )
+            )
+            continue
+
+        if move_number == 58:
+            results.append(
+                _make_result(
+                    move_number=move_number,
+                    played_move="aa",
+                    best_move="ab",
+                    estimated_loss=1.2,
+                    top_candidates=(
+                        CandidateMove("ab", score_estimate=1.8, winrate=0.62),
+                        CandidateMove("aa", score_estimate=-0.4, winrate=0.18),
+                        CandidateMove("ba", score_estimate=-0.6, winrate=0.15),
+                    ),
+                )
+            )
+            continue
+
+        results.append(
+            _make_result(
+                move_number=move_number,
+                played_move="pd",
+                best_move="qd",
+                estimated_loss=0.2,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=0.6, winrate=0.51),
+                    CandidateMove("pd", score_estimate=0.5, winrate=0.50),
+                    CandidateMove("dp", score_estimate=0.4, winrate=0.49),
+                ),
+            )
+        )
+
+    classified = classify_all_results(results)
+
+    analysis = build_key_point_analysis(results, classified)
+
+    assert classified[57].severity == "blunder"
+    assert [item.move_number for item in analysis.turning_points] == [18, 58]
+    assert analysis.turning_points[-1].severity == "blunder"
+    assert analysis.turning_points[-1].winrate_delta == -0.44
 
 
 def _make_result(

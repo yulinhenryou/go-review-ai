@@ -75,7 +75,13 @@ def classify_selected_mistakes(
                     2,
                 ),
                 category=category,
-                severity=severity_from_loss(mistake.estimated_loss),
+                severity=severity_from_loss(
+                    mistake.estimated_loss,
+                    winrate_delta=result.engine_analysis.played_winrate
+                    - result.engine_analysis.winrate,
+                    winrate_before=result.engine_analysis.winrate,
+                    winrate_after=result.engine_analysis.played_winrate,
+                ),
             )
         )
 
@@ -93,7 +99,13 @@ def classify_result(result: MoveAnalysisResult) -> ClassifiedMistake:
             2,
         ),
         category=classify_mistake(extract_features(result)),
-        severity=severity_from_loss(result.estimated_loss),
+        severity=severity_from_loss(
+            result.estimated_loss,
+            winrate_delta=result.engine_analysis.played_winrate
+            - result.engine_analysis.winrate,
+            winrate_before=result.engine_analysis.winrate,
+            winrate_after=result.engine_analysis.played_winrate,
+        ),
     )
 
 

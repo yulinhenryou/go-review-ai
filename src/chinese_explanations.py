@@ -69,8 +69,9 @@ def plan_break_summary_cn(
     score_loss: float,
 ) -> str:
     return (
-        f"从第{anchor_move_number}手开始形成的推荐行棋次序，到了第{break_move_number}手没有接上。"
-        f"原本应顺着走{expected_follow_up}，实战却下成{played_move}，损失{score_loss:.2f}目。"
+        f"从第{anchor_move_number}手开始，局面的主战场脉络已经比较清楚。"
+        f"到了第{break_move_number}手，原本应顺着走{expected_follow_up}，"
+        f"实战却下成{played_move}，等于脱离了主战场，损失{score_loss:.2f}目。"
     )
 
 
@@ -125,7 +126,7 @@ def explanation_why_cn(
 ) -> str:
     base = category_interpretation_cn(category)
     if plan_break_note:
-        return f"{base} 而且这里没有接上前面已经形成的推荐次序，方向上出现了断点。"
+        return f"{base} 而且这里没有顺着前面已经形成的主战场继续走，实战有些脱离主战场。"
     return f"{base} 问题主要发生在{phase_label_cn(phase)}。"
 
 
