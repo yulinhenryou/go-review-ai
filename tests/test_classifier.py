@@ -5,6 +5,7 @@ from src.classifier import (
     extract_features,
     print_classification_summary,
 )
+from src.mistake_severity import severity_from_loss
 from src.katago_client import CandidateMove, PositionAnalysis, PositionInput
 from src.mistake_selector import SelectedMistake
 
@@ -146,15 +147,27 @@ def test_classify_selected_mistakes_and_print_summary(capsys) -> None:
         "tactical_blunder",
     ]
     assert [item.severity for item in classified] == [
+        "inaccuracy",
         "mistake",
-        "major_mistake",
     ]
+    assert [item.winrate_delta for item in classified] == [-0.04, -0.08]
 
     print_classification_summary(classified)
     out = capsys.readouterr().out
-    assert "Move 20: played=pp recommended=dd loss=1.10 category=direction_error severity=mistake" in out
-    assert "Move 76: played=nn recommended=cc loss=2.80 category=tactical_blunder severity=major_mistake" in out
+    assert "Move 20: played=pp recommended=dd loss=1.10 category=direction_error severity=inaccuracy" in out
+    assert "Move 76: played=nn recommended=cc loss=2.80 category=tactical_blunder severity=mistake" in out
     assert "Category totals: direction_error=1, tactical_blunder=1" in out
+
+
+def test_severity_from_loss_uses_threshold_bands() -> None:
+    assert severity_from_loss(0.69) == "inaccuracy"
+    assert severity_from_loss(0.7) == "inaccuracy"
+    assert severity_from_loss(1.49) == "inaccuracy"
+    assert severity_from_loss(1.5) == "mistake"
+    assert severity_from_loss(2.99) == "mistake"
+    assert severity_from_loss(3.0) == "major_mistake"
+    assert severity_from_loss(4.99) == "major_mistake"
+    assert severity_from_loss(5.0) == "blunder"
 
 
 def _make_result(

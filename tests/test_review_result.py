@@ -40,8 +40,8 @@ def test_build_review_result_from_pipeline_data() -> None:
         "winrate_after": 0.48,
         "category": "local_overplay",
         "category_label": "局部用力过猛",
-        "severity": "mistake",
-        "severity_label": "问题手",
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
         "is_mistake": True,
     }
 
@@ -50,6 +50,9 @@ def test_build_review_result_from_pipeline_data() -> None:
         "sgf": "cn",
         "display": "C6",
     }
+    assert payload["selected_mistakes"][0]["score_loss"] == 1.8
+    assert payload["selected_mistakes"][0]["estimated_loss"] == 1.8
+    assert payload["selected_mistakes"][0]["winrate_delta"] == -0.08
     assert payload["selected_mistakes"][0]["category_label"] == "暂难归类"
     assert payload["selected_mistakes"][0]["severity_label"] == "问题手"
 
@@ -58,6 +61,7 @@ def test_build_review_result_from_pipeline_data() -> None:
         {"category": "unclear", "label": "暂难归类", "count": 2},
     ]
     assert payload["review"]["mistakes_above_threshold"][0]["move_number"] == 3
+    assert [item["move_number"] for item in payload["review"]["mistakes_above_threshold"]] == [3, 1, 2, 4]
     assert payload["review"]["classification_totals"] == [
         {"category": "local_overplay", "label": "局部用力过猛", "count": 1},
         {"category": "unclear", "label": "暂难归类", "count": 3},

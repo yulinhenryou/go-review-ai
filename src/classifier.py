@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from src.analyzer import MoveAnalysisResult
+from src.mistake_severity import MistakeSeverity, severity_from_loss
 from src.mistake_selector import SelectedMistake
 
 MistakeCategory = Literal[
@@ -14,13 +15,6 @@ MistakeCategory = Literal[
     "endgame_loss",
     "tactical_blunder",
     "unclear",
-]
-
-MistakeSeverity = Literal[
-    "inaccuracy",
-    "mistake",
-    "major_mistake",
-    "blunder",
 ]
 
 _CATEGORY_ORDER: tuple[MistakeCategory, ...] = (
@@ -50,7 +44,12 @@ class ClassifiedMistake:
     recommended_move: str
     estimated_loss: float
     category: MistakeCategory
-    severity: MistakeSeverity = "mistake"
+    winrate_delta: float = 0.0
+    severity: MistakeSeverity = "inaccuracy"
+
+    @property
+    def score_loss(self) -> float:
+        return self.estimated_loss
 
 
 def classify_selected_mistakes(
@@ -71,6 +70,10 @@ def classify_selected_mistakes(
                 played_move=mistake.played_move,
                 recommended_move=mistake.recommended_move,
                 estimated_loss=mistake.estimated_loss,
+                winrate_delta=round(
+                    result.engine_analysis.played_winrate - result.engine_analysis.winrate,
+                    2,
+                ),
                 category=category,
                 severity=severity_from_loss(mistake.estimated_loss),
             )
@@ -85,6 +88,10 @@ def classify_result(result: MoveAnalysisResult) -> ClassifiedMistake:
         played_move=result.played_move,
         recommended_move=result.recommended_move,
         estimated_loss=result.estimated_loss,
+        winrate_delta=round(
+            result.engine_analysis.played_winrate - result.engine_analysis.winrate,
+            2,
+        ),
         category=classify_mistake(extract_features(result)),
         severity=severity_from_loss(result.estimated_loss),
     )
@@ -184,18 +191,6 @@ def print_classification_summary(classified: list[ClassifiedMistake]) -> None:
         f"{category}={counts[category]}" for category in _CATEGORY_ORDER if counts[category]
     )
     print(f"Category totals: {summary}")
-
-
-def severity_from_loss(estimated_loss: float) -> MistakeSeverity:
-    if estimated_loss >= 3.0:
-        return "blunder"
-    if estimated_loss >= 2.0:
-        return "major_mistake"
-    if estimated_loss >= 1.0:
-        return "mistake"
-    return "inaccuracy"
-
-
 def _distance(move_a: str | None, move_b: str | None) -> int | None:
     point_a = _parse_point(move_a)
     point_b = _parse_point(move_b)

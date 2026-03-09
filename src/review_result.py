@@ -5,8 +5,9 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from src.analyzer import MoveAnalysisResult
-from src.classifier import ClassifiedMistake, MistakeCategory, MistakeSeverity
+from src.classifier import ClassifiedMistake, MistakeCategory
 from src.katago_client import CandidateMove, PositionAnalysis
+from src.mistake_severity import MistakeSeverity
 from src.sgf_parser import ParsedGame
 from src.user_facing_labels import (
     category_interpretation,
@@ -46,7 +47,9 @@ class SelectedMistakeResult:
     color: str
     played_move: CoordinateView
     recommended_move: CoordinateView
+    score_loss: float
     estimated_loss: float
+    winrate_delta: float
     category: MistakeCategory
     category_label: str
     severity: MistakeSeverity
@@ -241,7 +244,9 @@ def _selected_mistake_view(
         color=result.color,
         played_move=_coord_view(mistake.played_move, board_size),
         recommended_move=_coord_view(mistake.recommended_move, board_size),
+        score_loss=mistake.score_loss,
         estimated_loss=mistake.estimated_loss,
+        winrate_delta=mistake.winrate_delta,
         category=mistake.category,
         category_label=category_label(mistake.category),
         severity=mistake.severity,

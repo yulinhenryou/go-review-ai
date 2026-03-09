@@ -67,8 +67,8 @@
       "winrate_after": 0.48,
       "category": "local_overplay",
       "category_label": "局部用力过猛",
-      "severity": "mistake",
-      "severity_label": "问题手",
+      "severity": "inaccuracy",
+      "severity_label": "可商榷",
       "is_mistake": true
     },
     {
@@ -90,8 +90,8 @@
       "winrate_after": 0.43,
       "category": "unclear",
       "category_label": "暂难归类",
-      "severity": "mistake",
-      "severity_label": "问题手",
+      "severity": "inaccuracy",
+      "severity_label": "可商榷",
       "is_mistake": true
     },
     {
@@ -136,8 +136,8 @@
       "winrate_after": 0.43,
       "category": "unclear",
       "category_label": "暂难归类",
-      "severity": "mistake",
-      "severity_label": "问题手",
+      "severity": "inaccuracy",
+      "severity_label": "可商榷",
       "is_mistake": true
     }
   ],
@@ -154,7 +154,9 @@
           "sgf": "cn",
           "display": "C6"
         },
+        "score_loss": 1.8,
         "estimated_loss": 1.8,
+        "winrate_delta": -0.08,
         "category": "unclear",
         "category_label": "暂难归类",
         "severity": "mistake",
@@ -198,11 +200,13 @@
           "sgf": "qd",
           "display": "R16"
         },
+        "score_loss": 1.4,
         "estimated_loss": 1.4,
+        "winrate_delta": -0.06,
         "category": "local_overplay",
         "category_label": "局部用力过猛",
-        "severity": "mistake",
-        "severity_label": "问题手",
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
         "pv_summary": "B qd -> W dp -> B pq",
         "top_candidates": [
           {
@@ -242,11 +246,13 @@
           "sgf": "dq",
           "display": "D3"
         },
+        "score_loss": 1.2,
         "estimated_loss": 1.2,
+        "winrate_delta": -0.05,
         "category": "unclear",
         "category_label": "暂难归类",
-        "severity": "mistake",
-        "severity_label": "问题手",
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
         "pv_summary": "W dq -> B cp -> W qq",
         "top_candidates": [
           {
@@ -286,11 +292,13 @@
           "sgf": "dq",
           "display": "D3"
         },
+        "score_loss": 1.2,
         "estimated_loss": 1.2,
+        "winrate_delta": -0.05,
         "category": "unclear",
         "category_label": "暂难归类",
-        "severity": "mistake",
-        "severity_label": "问题手",
+        "severity": "inaccuracy",
+        "severity_label": "可商榷",
         "pv_summary": "W dq -> B cp -> W qq",
         "top_candidates": [
           {
@@ -359,7 +367,9 @@
         "sgf": "cn",
         "display": "C6"
       },
+      "score_loss": 1.8,
       "estimated_loss": 1.8,
+      "winrate_delta": -0.08,
       "category": "unclear",
       "category_label": "暂难归类",
       "severity": "mistake",
@@ -403,11 +413,13 @@
         "sgf": "qd",
         "display": "R16"
       },
+      "score_loss": 1.4,
       "estimated_loss": 1.4,
+      "winrate_delta": -0.06,
       "category": "local_overplay",
       "category_label": "局部用力过猛",
-      "severity": "mistake",
-      "severity_label": "问题手",
+      "severity": "inaccuracy",
+      "severity_label": "可商榷",
       "pv_summary": "B qd -> W dp -> B pq",
       "top_candidates": [
         {
@@ -447,11 +459,13 @@
         "sgf": "dq",
         "display": "D3"
       },
+      "score_loss": 1.2,
       "estimated_loss": 1.2,
+      "winrate_delta": -0.05,
       "category": "unclear",
       "category_label": "暂难归类",
-      "severity": "mistake",
-      "severity_label": "问题手",
+      "severity": "inaccuracy",
+      "severity_label": "可商榷",
       "pv_summary": "W dq -> B cp -> W qq",
       "top_candidates": [
         {

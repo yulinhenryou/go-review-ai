@@ -11,7 +11,7 @@ from src.katago_client import (
     KataGoUnavailableError,
     MockEngineClient,
 )
-from src.mistake_selector import select_top_mistakes
+from src.mistake_selector import select_mistakes_above_threshold
 from src.report_writer import generate_review_report
 from src.review_result import ReviewResult, build_review_result
 from src.sgf_parser import ParsedGame, parse_sgf, parse_sgf_file
@@ -40,12 +40,11 @@ def build_review_outputs_for_game(
 ) -> tuple[str, ReviewResult]:
     analysis = analyze_game_state(game, engine)
     results = analysis.move_results
-    selected = select_top_mistakes(results, loss_threshold=loss_threshold, limit=limit)
-    threshold_mistakes = select_top_mistakes(
+    threshold_mistakes = select_mistakes_above_threshold(
         results,
         loss_threshold=loss_threshold,
-        limit=len(results),
     )
+    selected = threshold_mistakes[:limit]
     classified = classify_selected_mistakes(selected, results)
     classified_threshold = classify_selected_mistakes(threshold_mistakes, results)
     all_classified = classify_all_results(results)

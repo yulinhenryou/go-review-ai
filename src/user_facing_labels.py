@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from src.classifier import MistakeCategory, MistakeSeverity
+from src.classifier import MistakeCategory
+from src.mistake_severity import MistakeSeverity
 
 _CATEGORY_LABELS: dict[MistakeCategory, str] = {
     "direction_error": "方向判断问题",

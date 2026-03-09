@@ -26,9 +26,12 @@ def test_analyze_sgf_upload_returns_structured_review() -> None:
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["moves_analyzed"] == 4
     assert len(payload["selected_mistakes"]) == 3
+    assert payload["selected_mistakes"][0]["score_loss"] == 1.8
+    assert payload["selected_mistakes"][0]["winrate_delta"] == -0.08
     assert payload["current_position"]["next_player"] == "B"
     assert len(payload["timeline"]) == 4
     assert "mistakes_above_threshold" in payload["review"]
+    assert len(payload["review"]["mistakes_above_threshold"]) == 4
 
 
 def test_analyze_sgf_rejects_invalid_sgf() -> None:
@@ -93,7 +96,7 @@ def test_analyze_moves_returns_structured_review() -> None:
     assert len(payload["selected_mistakes"]) == 2
     assert payload["selected_mistakes"][0]["category_label"] == "暂难归类"
     assert payload["classifications"]["totals"][0]["label"] == "局部用力过猛"
-    assert payload["timeline"][0]["severity"] == "mistake"
+    assert payload["timeline"][0]["severity"] == "inaccuracy"
     assert payload["review"]["mistakes_above_threshold"][0]["move_number"] == 3
 
 
