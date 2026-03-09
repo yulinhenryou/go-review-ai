@@ -72,6 +72,12 @@
       flex-wrap: wrap;
     }
 
+    .review-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     button {
       padding: 6px 10px;
       border: 1px solid #999;
@@ -386,14 +392,6 @@
     }
 
     @media (min-width: 901px) {
-      .board-column {
-        position: sticky;
-        top: var(--page-gutter);
-        max-height: calc(100vh - (var(--page-gutter) * 2));
-        overflow: auto;
-        padding-right: 4px;
-      }
-
       .panel {
         max-height: calc(100vh - (var(--page-gutter) * 2));
         overflow: auto;
@@ -442,6 +440,11 @@
         <button id="latestBtn" type="button" disabled>回到最新局面</button>
       </div>
 
+      <div class="review-nav" aria-label="复盘导航">
+        <button id="prevReviewBtn" type="button" disabled>上一步</button>
+        <button id="nextReviewBtn" type="button" disabled>下一步</button>
+      </div>
+
       <div class="upload-controls">
         <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
         <button id="uploadAnalyzeBtn" type="button">上传并分析</button>
@@ -483,6 +486,8 @@
       var clearBtn = document.getElementById("clearBtn");
       var analyzeBtn = document.getElementById("analyzeBtn");
       var latestBtn = document.getElementById("latestBtn");
+      var prevReviewBtn = document.getElementById("prevReviewBtn");
+      var nextReviewBtn = document.getElementById("nextReviewBtn");
       var sgfFileInput = document.getElementById("sgfFileInput");
       var uploadAnalyzeBtn = document.getElementById("uploadAnalyzeBtn");
       var uploadStatus = document.getElementById("uploadStatus");
@@ -729,6 +734,29 @@
         latestBtn.disabled = false;
       }
 
+      function getTimelineMoveBounds() {
+        var timeline = analysisData && Array.isArray(analysisData.timeline) ? analysisData.timeline : [];
+
+        if (!timeline.length) {
+          return null;
+        }
+
+        return {
+          first: typeof timeline[0].move_number === "number" ? timeline[0].move_number : 1,
+          last: typeof timeline[timeline.length - 1].move_number === "number"
+            ? timeline[timeline.length - 1].move_number
+            : timeline.length
+        };
+      }
+
+      function updateReviewNavigationControls() {
+        var bounds = getTimelineMoveBounds();
+        var canNavigate = Boolean(reviewFocus && bounds);
+
+        prevReviewBtn.disabled = !canNavigate || reviewFocus.moveNumber <= bounds.first;
+        nextReviewBtn.disabled = !canNavigate || reviewFocus.moveNumber >= bounds.last;
+      }
+
       function escapeHtml(value) {
         return String(value)
           .replace(/&/g, "&amp;")
@@ -941,6 +969,7 @@
         output.textContent = "暂无分析数据。";
         setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
         updateReviewStatus();
+        updateReviewNavigationControls();
       }
 
       function resetBoardState() {
@@ -995,6 +1024,7 @@
         drawBoard();
         updateStatus();
         updateReviewStatus();
+        updateReviewNavigationControls();
         renderAnalysisSummary(data);
         renderRawJson(data);
       }
@@ -1284,6 +1314,7 @@
         candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
         drawBoard();
         updateReviewStatus();
+        updateReviewNavigationControls();
         renderAnalysisSummary(analysisData);
       }
 
@@ -1300,6 +1331,7 @@
         candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
         drawBoard();
         updateReviewStatus();
+        updateReviewNavigationControls();
         renderAnalysisSummary(analysisData);
       }
 
@@ -1309,7 +1341,27 @@
         candidateMarkers = getCurrentCandidateMarkers(analysisData);
         drawBoard();
         updateReviewStatus();
+        updateReviewNavigationControls();
         renderAnalysisSummary(analysisData);
+      }
+
+      function stepReviewPosition(offset) {
+        var nextMoveNumber;
+
+        if (!analysisData || !reviewFocus || !offset) return;
+
+        nextMoveNumber = reviewFocus.moveNumber + offset;
+        activateTimelineMove(nextMoveNumber);
+      }
+
+      function shouldIgnoreReviewKeydown(event) {
+        var target = event.target;
+        var tagName;
+
+        if (!target) return false;
+
+        tagName = target.tagName;
+        return target.isContentEditable || tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
       }
 
       function candidateDeltaText(activeCandidates, rank, candidate) {
@@ -2221,6 +2273,14 @@
         returnToLatestBoardState();
       });
 
+      prevReviewBtn.addEventListener("click", function () {
+        stepReviewPosition(-1);
+      });
+
+      nextReviewBtn.addEventListener("click", function () {
+        stepReviewPosition(1);
+      });
+
       Array.prototype.forEach.call(analysisViewSwitch.querySelectorAll("[data-analysis-view]"), function (button) {
         button.addEventListener("click", function () {
           setAnalysisView(this.getAttribute("data-analysis-view"));
@@ -2345,11 +2405,24 @@
         }
       });
 
+      document.addEventListener("keydown", function (event) {
+        if (shouldIgnoreReviewKeydown(event) || !reviewFocus) return;
+
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          stepReviewPosition(-1);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          stepReviewPosition(1);
+        }
+      });
+
       window.addEventListener("resize", syncCanvasSize);
 
       syncCanvasSize();
       updateStatus();
       updateReviewStatus();
+      updateReviewNavigationControls();
       syncAnalysisViewButtons();
       setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
     })();
