@@ -220,11 +220,12 @@
         }
       }
 
-      function drawStone(move) {
+      function drawStone(move, moveNumber, isLatestMove) {
         var x = boardPoint(move.x);
         var y = boardPoint(move.y);
         var radius = boardMetrics.cell * 0.45;
         var gradient = context.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
+        var label = String(moveNumber);
 
         if (move.color === "B") {
           gradient.addColorStop(0, "#666");
@@ -240,6 +241,24 @@
         context.fill();
         context.strokeStyle = move.color === "B" ? "#000" : "#999";
         context.stroke();
+
+        if (isLatestMove) {
+          context.save();
+          context.strokeStyle = move.color === "B" ? "#f5d36b" : "#b85c00";
+          context.lineWidth = Math.max(2, boardMetrics.cell * 0.08);
+          context.beginPath();
+          context.arc(x, y, radius * 0.78, 0, Math.PI * 2);
+          context.stroke();
+          context.restore();
+        }
+
+        context.save();
+        context.fillStyle = move.color === "B" ? "#f4f4f4" : "#111";
+        context.font = "bold " + Math.max(10, Math.floor(radius * (label.length > 2 ? 0.9 : 1.1))) + "px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(label, x, y + 0.5);
+        context.restore();
       }
 
       function drawRecommendedMoveMarker(point) {
@@ -274,7 +293,7 @@
         drawStarPoints();
 
         for (var i = 0; i < moves.length; i++) {
-          drawStone(moves[i]);
+          drawStone(moves[i], i + 1, i === moves.length - 1);
         }
 
         if (recommendedMove) {
