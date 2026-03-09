@@ -30,6 +30,7 @@ def test_build_review_result_from_pipeline_data() -> None:
     )
     assert payload["key_points"]["turning_points"] == []
     assert payload["key_points"]["plan_breaks"] == []
+    assert payload["key_points"]["leave_main_battlefields"] == []
     assert payload["key_points"]["phase_summary"] == {
         "opening_loss": 5.6,
         "middle_game_loss": 0.0,
@@ -64,6 +65,8 @@ def test_build_review_result_from_pipeline_data() -> None:
         "severity": "inaccuracy",
         "severity_label": "可商榷",
         "is_mistake": True,
+        "teaching_label": None,
+        "swing_direction": "negative",
     }
 
     assert [item["move_number"] for item in payload["selected_mistakes"]] == [3, 1, 2]
@@ -89,8 +92,8 @@ def test_build_review_result_from_pipeline_data() -> None:
     ]
     assert payload["review"]["training_suggestions"][0]["category"] == "unclear"
 
-    assert payload["explanations"][0]["title"] == "第3手（暂难归类）"
-    assert "这一手值得重点复盘。布局第3手" in payload["explanations"][0]["summary"]
+    assert payload["explanations"][0]["title"] == "黑第3手（暂难归类）"
+    assert "这一手值得重点复盘。布局阶段的黑第3手" in payload["explanations"][0]["summary"]
     assert payload["training_suggestions"][0]["suggestion"] == (
         "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
     )
@@ -117,7 +120,7 @@ def test_structured_review_builder_in_main_and_text_report_still_works() -> None
     assert len(review.key_points.turning_points) == 0
     assert len(review.timeline) == 4
     assert "整局总结" in report
-    assert "第3手：实战qp（R4），推荐cn（C6），损失1.80目，暂难归类" in report
+    assert "黑第3手：实战R4，推荐C6，损失1.80目，暂难归类" in report
 
 
 def test_build_review_result_formats_pass_coordinate() -> None:
@@ -135,6 +138,7 @@ def test_build_review_result_formats_pass_coordinate() -> None:
     assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["key_points"]["turning_points"] == []
+    assert payload["key_points"]["leave_main_battlefields"] == []
     assert payload["current_position"]["short_explanation"] == (
         "现在轮到白棋。KataGo建议走R16，目差预计为1.6，胜率约54%。"
     )
@@ -154,6 +158,7 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
     assert payload["selected_mistakes"] == []
     assert payload["game_summary"]["mistakes_reviewed"] == 0
     assert payload["key_points"]["plan_breaks"] == []
+    assert payload["key_points"]["leave_main_battlefields"] == []
     assert payload["current_position"] == {
         "next_player": "B",
         "best_move": {"sgf": "pq", "display": "Q3"},
@@ -174,7 +179,7 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
                 "winrate": 0.49,
             },
         ],
-        "pv_summary": "B pq -> W dp -> B cq",
+        "pv_summary": "黑Q3 -> 白D4 -> 黑C3",
         "score_estimate": 0.4,
         "winrate": 0.51,
         "short_explanation": (
@@ -188,6 +193,69 @@ def test_severity_label_uses_chinese_user_facing_values() -> None:
     assert severity_label("mistake") == "问题手"
     assert severity_label("major_mistake") == "明显失误"
     assert severity_label("blunder") == "大失误"
+
+
+def test_plan_break_user_facing_text_uses_new_chinese_phrase() -> None:
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[oq])")
+    review = build_structured_review_for_game(
+        game,
+        engine=_PlanBreakEngine(),
+        loss_threshold=1.0,
+        limit=3,
+    )
+    payload = review.to_dict()
+
+    assert "没有接上前面的思路" in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert "黑第3手" in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert "Q3" in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert "P3" in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert "pq" not in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert "oq" not in payload["key_points"]["plan_breaks"][0]["summary"]
+    assert payload["key_points"]["leave_main_battlefields"] == []
+    assert (
+        "没有接上" in payload["explanations"][0]["why_this_matters"]
+        or "处理思路" in payload["explanations"][0]["why_this_matters"]
+        or "局部" in payload["explanations"][0]["why_this_matters"]
+    )
+    assert "主战场" not in payload["explanations"][0]["why_this_matters"]
+
+
+def test_leave_main_battlefield_user_facing_text_uses_specific_label() -> None:
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
+    review = build_structured_review_for_game(
+        game,
+        engine=_LeaveMainBattlefieldEngine(),
+        loss_threshold=1.0,
+        limit=3,
+    )
+    payload = review.to_dict()
+
+    assert payload["key_points"]["plan_breaks"] == []
+    assert "主战场" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "黑第3手" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "Q3" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "C17" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "pq" not in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "cc" not in payload["key_points"]["leave_main_battlefields"][0]["summary"]
+    assert "主战场" in payload["explanations"][0]["why_this_matters"]
+    assert "没有接上前面的思路" not in payload["explanations"][0]["why_this_matters"]
+
+
+def test_positive_move_uses_positive_teaching_label_and_human_pv_summary() -> None:
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd])")
+    review = build_structured_review_for_game(
+        game,
+        engine=_PositiveMoveEngine(),
+        loss_threshold=1.0,
+        limit=3,
+    )
+    payload = review.to_dict()
+
+    assert payload["timeline"][0]["teaching_label"] == "关键好手"
+    assert payload["timeline"][0]["swing_direction"] == "positive"
+    assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
+    assert payload["selected_mistakes"] == []
+    assert payload["current_position"]["pv_summary"] == "白D16 -> 黑Q3 -> 白C3"
 
 
 class _PassPositionEngine:
@@ -206,6 +274,150 @@ class _PassPositionEngine:
                 CandidateMove("pq", score_estimate=0.9, winrate=0.51),
             ),
             pv_summary="B qd -> W dp -> B pq",
+        )
+
+
+class _PlanBreakEngine:
+    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
+        move_count = len(position.moves)
+
+        if move_count == 0:
+            return PositionAnalysis(
+                best_move="qd",
+                played_move=position.played_move,
+                estimated_loss=0.0,
+                score_estimate=2.0,
+                winrate=0.56,
+                played_score_estimate=2.0,
+                played_winrate=0.56,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B qd -> W dp -> B pq",
+            )
+
+        if move_count == 1:
+            return PositionAnalysis(
+                best_move="dp",
+                played_move=position.played_move,
+                estimated_loss=0.0,
+                score_estimate=1.5,
+                winrate=0.54,
+                played_score_estimate=1.5,
+                played_winrate=0.54,
+                top_candidates=(
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="W dp -> B pq -> W cq",
+            )
+
+        if move_count == 2 and position.played_move is not None:
+            return PositionAnalysis(
+                best_move="pq",
+                played_move=position.played_move,
+                estimated_loss=1.4,
+                score_estimate=1.6,
+                winrate=0.55,
+                played_score_estimate=0.2,
+                played_winrate=0.49,
+                top_candidates=(
+                    CandidateMove("pq", score_estimate=1.6, winrate=0.55),
+                    CandidateMove("cq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cp", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="B pq -> W cq -> B cp",
+            )
+
+        return PositionAnalysis(
+            best_move="dd",
+            played_move=position.played_move,
+            estimated_loss=0.0,
+            score_estimate=0.8,
+            winrate=0.52,
+            played_score_estimate=0.8,
+            played_winrate=0.52,
+            top_candidates=(
+                CandidateMove("dd", score_estimate=0.8, winrate=0.52),
+                CandidateMove("pq", score_estimate=0.6, winrate=0.51),
+                CandidateMove("pp", score_estimate=0.5, winrate=0.5),
+            ),
+            pv_summary="W dd -> B pq -> W pp",
+        )
+
+
+class _LeaveMainBattlefieldEngine:
+    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
+        move_count = len(position.moves)
+
+        if move_count == 0:
+            return PositionAnalysis(
+                best_move="qd",
+                played_move=position.played_move,
+                estimated_loss=0.0,
+                score_estimate=2.0,
+                winrate=0.56,
+                played_score_estimate=2.0,
+                played_winrate=0.56,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B qd -> W dp -> B pq",
+            )
+
+        if move_count == 1:
+            return PositionAnalysis(
+                best_move="dp",
+                played_move=position.played_move,
+                estimated_loss=0.0,
+                score_estimate=1.5,
+                winrate=0.54,
+                played_score_estimate=1.5,
+                played_winrate=0.54,
+                top_candidates=(
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="W dp -> B pq -> W cq",
+            )
+
+        if move_count == 2 and position.played_move is not None:
+            return PositionAnalysis(
+                best_move="pq",
+                played_move=position.played_move,
+                estimated_loss=1.8,
+                score_estimate=1.8,
+                winrate=0.57,
+                played_score_estimate=0.0,
+                played_winrate=0.48,
+                top_candidates=(
+                    CandidateMove("pq", score_estimate=1.8, winrate=0.57),
+                    CandidateMove("oq", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pp", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B pq -> W oq -> B pp",
+            )
+
+        return PositionAnalysis(
+            best_move="dd",
+            played_move=position.played_move,
+            estimated_loss=0.0,
+            score_estimate=0.8,
+            winrate=0.52,
+            played_score_estimate=0.8,
+            played_winrate=0.52,
+            top_candidates=(
+                CandidateMove("dd", score_estimate=0.8, winrate=0.52),
+                CandidateMove("pq", score_estimate=0.6, winrate=0.51),
+                CandidateMove("pp", score_estimate=0.5, winrate=0.5),
+            ),
+            pv_summary="W dd -> B pq -> W pp",
         )
 
 
@@ -242,4 +454,40 @@ class _OpeningNoMistakesEngine:
                 CandidateMove("cq", score_estimate=-0.1, winrate=0.48),
             ),
             pv_summary="B pq -> W dp -> B cq",
+        )
+
+
+class _PositiveMoveEngine:
+    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
+        if len(position.moves) == 0 and position.played_move is not None:
+            return PositionAnalysis(
+                best_move="qd",
+                played_move=position.played_move,
+                estimated_loss=0.0,
+                score_estimate=0.4,
+                winrate=0.49,
+                played_score_estimate=2.1,
+                played_winrate=0.61,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=0.4, winrate=0.49),
+                    CandidateMove("dp", score_estimate=0.2, winrate=0.48),
+                    CandidateMove("cq", score_estimate=0.1, winrate=0.47),
+                ),
+                pv_summary="B qd -> W dp -> B cq",
+            )
+
+        return PositionAnalysis(
+            best_move="dd",
+            played_move=position.played_move,
+            estimated_loss=0.0,
+            score_estimate=1.2,
+            winrate=0.55,
+            played_score_estimate=1.2,
+            played_winrate=0.55,
+            top_candidates=(
+                CandidateMove("dd", score_estimate=1.2, winrate=0.55),
+                CandidateMove("pq", score_estimate=1.0, winrate=0.53),
+                CandidateMove("cp", score_estimate=0.8, winrate=0.52),
+            ),
+            pv_summary="W dd -> B pq -> W cq",
         )

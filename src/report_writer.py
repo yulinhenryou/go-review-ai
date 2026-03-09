@@ -25,6 +25,7 @@ def generate_review_report(
     sections = [
         _game_summary(game, mistakes),
         _review_summary(review),
+        _positive_highlights(review),
         _top_mistakes(game.board_size, mistakes),
         _mistake_explanations(game.board_size, mistakes, review),
         _training_suggestions(mistakes),
@@ -76,11 +77,44 @@ def _top_mistakes(board_size: int, mistakes: list[ClassifiedMistake]) -> str:
 
     for idx, mistake in enumerate(mistakes, start=1):
         lines.append(
-            f"{idx}. 第{mistake.move_number}手："
+            f"{idx}. {_move_ref(mistake.move_number)}："
             f"实战{_format_move(mistake.played_move, board_size)}，"
             f"推荐{_format_move(mistake.recommended_move, board_size)}，"
             f"损失{mistake.estimated_loss:.2f}目，"
             f"{category_label(mistake.category)}"
+        )
+    return "\n".join(lines)
+
+
+def _positive_highlights(review: ReviewResult | None) -> str:
+    if review is None:
+        return ""
+
+    highlights = [
+        item
+        for item in review.timeline
+        if item.teaching_label in {"好手", "关键好手", "胜负手"}
+    ]
+    if not highlights:
+        return ""
+
+    priority = {"胜负手": 3, "关键好手": 2, "好手": 1}
+    highlights.sort(
+        key=lambda item: (
+            -priority.get(item.teaching_label or "", 0),
+            -(item.score_after - item.score_before),
+            item.move_number,
+        )
+    )
+
+    lines = ["亮点手"]
+    for idx, item in enumerate(highlights[:3], start=1):
+        lines.append(
+            f"{idx}. {_move_ref(item.move_number)}："
+            f"{item.teaching_label}，"
+            f"实战{item.played_move.display}，"
+            f"局势好转，"
+            f"目数收益约{max(0.0, item.score_after - item.score_before):.2f}目。"
         )
     return "\n".join(lines)
 
@@ -112,7 +146,7 @@ def _explanation_block(
         f"这一手损失{mistake.estimated_loss:.2f}目。"
     )
     default_why = category_interpretation(mistake.category)
-    title = explanation.title if explanation else f"第{mistake.move_number}手（{category_label(mistake.category)}）"
+    title = explanation.title if explanation else f"{_move_ref(mistake.move_number)}（{category_label(mistake.category)}）"
     summary = explanation.summary if explanation else default_summary
     why = explanation.why_this_matters if explanation else default_why
     return [
@@ -143,7 +177,12 @@ def _format_move(move: str | None, board_size: int) -> str:
     coord = _sgf_to_human_coord(move, board_size)
     if coord is None:
         return move
-    return f"{move}（{coord}）"
+    return coord
+
+
+def _move_ref(move_number: int) -> str:
+    color = "黑" if move_number % 2 == 1 else "白"
+    return f"{color}第{move_number}手"
 
 
 def _sgf_to_human_coord(move: str, board_size: int) -> str | None:

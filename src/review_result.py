@@ -14,11 +14,13 @@ from src.chinese_explanations import (
 from src.classifier import ClassifiedMistake, MistakeCategory
 from src.key_points import (
     KeyPointAnalysis,
+    LeaveMainBattlefield,
     MainIssue,
     PlanBreak,
     ReviewSummary,
     TurningPoint,
     build_key_point_analysis,
+    parse_pv_summary,
     phase_label,
     phase_for_move,
 )
@@ -136,6 +138,8 @@ class TimelineItemResult:
     severity: MistakeSeverity
     severity_label: str
     is_mistake: bool
+    teaching_label: str | None
+    swing_direction: str
 
 
 @dataclass(frozen=True)
@@ -182,6 +186,7 @@ class PhaseSummaryResult:
 class KeyPointsResult:
     turning_points: list[TurningPointResult]
     plan_breaks: list[PlanBreakResult]
+    leave_main_battlefields: list[PlanBreakResult]
     phase_summary: PhaseSummaryResult
     review_summary: "ReviewSummaryResult"
 
@@ -240,6 +245,9 @@ def build_review_result(
     threshold_training = _training_suggestions(threshold_mistakes)
     turning_point_moves = {item.move_number for item in key_point_analysis.turning_points}
     plan_break_moves = {item.break_move_number for item in key_point_analysis.plan_breaks}
+    leave_main_battlefield_moves = {
+        item.break_move_number for item in key_point_analysis.leave_main_battlefields
+    }
 
     return ReviewResult(
         schema_version="2.0",
@@ -283,6 +291,7 @@ def build_review_result(
                 total_moves=len(results),
                 turning_point_moves=turning_point_moves,
                 plan_break_moves=plan_break_moves,
+                leave_main_battlefield_moves=leave_main_battlefield_moves,
             )
             for item in selected_views
         ],
@@ -307,7 +316,7 @@ def _current_position_view(
             _candidate_view(candidate, board_size)
             for candidate in analysis.top_candidates
         ],
-        pv_summary=analysis.pv_summary,
+        pv_summary=_pv_summary_view(board_size, analysis.pv_summary),
         score_estimate=analysis.score_estimate,
         winrate=analysis.winrate,
         short_explanation=_current_position_explanation(
@@ -351,7 +360,7 @@ def _selected_mistake_view(
         category_label=category_label(mistake.category),
         severity=mistake.severity,
         severity_label=severity_label(mistake.severity),
-        pv_summary=result.engine_analysis.pv_summary,
+        pv_summary=_pv_summary_view(board_size, result.engine_analysis.pv_summary),
         top_candidates=[
             _candidate_view(candidate, board_size)
             for candidate in result.engine_analysis.top_candidates
@@ -392,6 +401,8 @@ def _timeline_item(
         severity=classified.severity,
         severity_label=severity_label(classified.severity),
         is_mistake=result.estimated_loss >= loss_threshold,
+        teaching_label=_teaching_label_for_result(result),
+        swing_direction=_swing_direction(result),
     )
 
 
@@ -399,6 +410,10 @@ def _key_points_view(board_size: int, analysis: KeyPointAnalysis) -> KeyPointsRe
     return KeyPointsResult(
         turning_points=[_turning_point_result(item) for item in analysis.turning_points],
         plan_breaks=[_plan_break_result(board_size, item) for item in analysis.plan_breaks],
+        leave_main_battlefields=[
+            _leave_main_battlefield_result(board_size, item)
+            for item in analysis.leave_main_battlefields
+        ],
         phase_summary=_phase_summary_result(analysis),
         review_summary=_review_summary_result(analysis.review_summary),
     )
@@ -418,6 +433,21 @@ def _turning_point_result(item: TurningPoint) -> TurningPointResult:
 
 
 def _plan_break_result(board_size: int, item: PlanBreak) -> PlanBreakResult:
+    return PlanBreakResult(
+        anchor_move_number=item.anchor_move_number,
+        break_move_number=item.break_move_number,
+        color=item.color,
+        expected_follow_up=_coord_view(item.expected_follow_up, board_size),
+        played_move=_coord_view(item.played_move, board_size),
+        score_loss=item.score_loss,
+        summary=item.summary,
+    )
+
+
+def _leave_main_battlefield_result(
+    board_size: int,
+    item: LeaveMainBattlefield,
+) -> PlanBreakResult:
     return PlanBreakResult(
         anchor_move_number=item.anchor_move_number,
         break_move_number=item.break_move_number,
@@ -485,6 +515,7 @@ def _explanation(
     total_moves: int | None = None,
     turning_point_moves: set[int] | None = None,
     plan_break_moves: set[int] | None = None,
+    leave_main_battlefield_moves: set[int] | None = None,
 ) -> ExplanationResult:
     played = mistake.played_move.display
     recommended = mistake.recommended_move.display
@@ -492,12 +523,14 @@ def _explanation(
     phase = phase_for_move(mistake.move_number, total_moves or mistake.move_number)
     is_turning_point = mistake.move_number in (turning_point_moves or set())
     is_plan_break = mistake.move_number in (plan_break_moves or set())
+    is_leave_main_battlefield = mistake.move_number in (leave_main_battlefield_moves or set())
     return ExplanationResult(
         move_number=mistake.move_number,
         category=mistake.category,
-        title=explanation_title_cn(mistake.move_number, label),
+        title=explanation_title_cn(mistake.move_number, mistake.color, label),
         summary=explanation_summary_cn(
             move_number=mistake.move_number,
+            color=mistake.color,
             phase=phase,
             played_move=played,
             recommended_move=recommended,
@@ -507,11 +540,61 @@ def _explanation(
             is_turning_point=is_turning_point,
         ),
         why_this_matters=explanation_why_cn(
+            move_number=mistake.move_number,
             category=mistake.category,
             phase=phase,
-            plan_break_note=is_plan_break,
+            plan_break_note=is_plan_break and not is_leave_main_battlefield,
+            leave_main_battlefield_note=is_leave_main_battlefield,
         ),
     )
+
+
+def _score_delta(result: MoveAnalysisResult) -> float:
+    return round(
+        result.engine_analysis.played_score_estimate - result.engine_analysis.score_estimate,
+        2,
+    )
+
+
+def _winrate_delta(result: MoveAnalysisResult) -> float:
+    return round(
+        result.engine_analysis.played_winrate - result.engine_analysis.winrate,
+        2,
+    )
+
+
+def _swing_direction(result: MoveAnalysisResult) -> str:
+    score_delta = _score_delta(result)
+    winrate_delta = _winrate_delta(result)
+    if score_delta >= 0.1 or winrate_delta >= 0.01:
+        return "positive"
+    if score_delta <= -0.1 or winrate_delta <= -0.01:
+        return "negative"
+    return "neutral"
+
+
+def _teaching_label_for_result(result: MoveAnalysisResult) -> str | None:
+    score_delta = _score_delta(result)
+    winrate_delta = _winrate_delta(result)
+    if score_delta >= 3.0 or winrate_delta >= 0.18:
+        return "胜负手"
+    if score_delta >= 1.5 or winrate_delta >= 0.10:
+        return "关键好手"
+    if score_delta >= 0.7 or winrate_delta >= 0.04:
+        return "好手"
+    return None
+
+
+def _pv_summary_view(board_size: int, pv_summary: str) -> str:
+    steps = parse_pv_summary(pv_summary)
+    if not steps:
+        return pv_summary
+
+    parts = []
+    for color, move in steps:
+        color_label = "黑" if color == "B" else "白"
+        parts.append(f"{color_label}{_coord_view(move, board_size).display}")
+    return " -> ".join(parts)
 
 
 def _training_suggestions(mistakes: list[ClassifiedMistake]) -> list[TrainingSuggestion]:

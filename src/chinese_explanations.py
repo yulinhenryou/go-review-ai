@@ -47,32 +47,94 @@ def current_position_explanation_cn(
     )
 
 
+def move_color_label_cn(color: str) -> str:
+    if color == "B":
+        return "黑"
+    if color == "W":
+        return "白"
+    return ""
+
+
+def move_ref_cn(color: str, move_number: int) -> str:
+    color_label = move_color_label_cn(color)
+    if color_label:
+        return f"{color_label}第{move_number}手"
+    return f"第{move_number}手"
+
+
 def turning_point_summary_cn(
     *,
+    color: str,
     move_number: int,
     phase: str,
     score_loss: float,
     winrate_delta: float,
 ) -> str:
+    move_ref = move_ref_cn(color, move_number)
     return (
-        f"第{move_number}手是{phase_label_cn(phase)}阶段的重要转折点，"
-        f"这一手让局面损失{score_loss:.2f}目，胜率波动{winrate_delta:.0%}。"
+        f"{move_ref}是{phase_label_cn(phase)}阶段的重要转折点，"
+        f"{_swing_summary_cn(score_loss=score_loss, winrate_delta=winrate_delta)}"
     )
 
 
 def plan_break_summary_cn(
     *,
     anchor_move_number: int,
+    color: str,
     break_move_number: int,
     expected_follow_up: str,
     played_move: str,
     score_loss: float,
 ) -> str:
-    return (
-        f"从第{anchor_move_number}手开始，局面的主战场脉络已经比较清楚。"
-        f"到了第{break_move_number}手，原本应顺着走{expected_follow_up}，"
-        f"实战却下成{played_move}，等于脱离了主战场，损失{score_loss:.2f}目。"
+    move_ref = move_ref_cn(color, break_move_number)
+    variants = (
+        (
+            f"从第{anchor_move_number}手开始，前几手的处理思路已经比较清楚。"
+            f"到了{move_ref}，原本更该接着走{expected_follow_up}，"
+            f"实战却下成{played_move}，没有接上前面的思路，{_score_change_cn(score_loss)}。"
+        ),
+        (
+            f"前面几手的重点到第{anchor_move_number}手后已经逐渐明朗，"
+            f"{move_ref}这里本来应继续按{expected_follow_up}处理，"
+            f"实战却下成{played_move}，局部判断有些脱节，{_score_change_cn(score_loss)}。"
+        ),
+        (
+            f"这一段原本的主线已经形成，{move_ref}更合拍的下法是{expected_follow_up}。"
+            f"实战改下{played_move}，问题不在于离开局部，而在于没有把前面的处理接上，"
+            f"因此{_score_change_cn(score_loss)}。"
+        ),
     )
+    return variants[break_move_number % len(variants)]
+
+
+def leave_main_battlefield_summary_cn(
+    *,
+    anchor_move_number: int,
+    color: str,
+    break_move_number: int,
+    expected_follow_up: str,
+    played_move: str,
+    score_loss: float,
+) -> str:
+    move_ref = move_ref_cn(color, break_move_number)
+    variants = (
+        (
+            f"从第{anchor_move_number}手开始，这一带已经是当前最要紧的主战场。"
+            f"到了{move_ref}，推荐仍然集中在这里，原本更该走{expected_follow_up}，"
+            f"实战却下成{played_move}，等于脱离了主战场，{_score_change_cn(score_loss)}。"
+        ),
+        (
+            f"当前最重要的战斗还在这一带，{move_ref}本来该继续用{expected_follow_up}应对。"
+            f"实战却转去下{played_move}，把焦点移到了别处，节奏上有些脱离主战场，"
+            f"{_score_change_cn(score_loss)}。"
+        ),
+        (
+            f"这里前面的攻守还没有告一段落，推荐主线也一直围着这一块展开。"
+            f"{move_ref}若走{expected_follow_up}才是正着，实战却下成{played_move}，"
+            f"更大的问题是离开了当前真正该处理的主战场，{_score_change_cn(score_loss)}。"
+        ),
+    )
+    return variants[break_move_number % len(variants)]
 
 
 def phase_summary_cn(*, biggest_problem_phase: str, main_issue: str) -> str:
@@ -95,13 +157,14 @@ def review_summary_total_cn(
     )
 
 
-def explanation_title_cn(move_number: int, category_label: str) -> str:
-    return f"第{move_number}手（{category_label}）"
+def explanation_title_cn(move_number: int, color: str, category_label: str) -> str:
+    return f"{move_ref_cn(color, move_number)}（{category_label}）"
 
 
 def explanation_summary_cn(
     *,
     move_number: int,
+    color: str,
     phase: str,
     played_move: str,
     recommended_move: str,
@@ -111,23 +174,62 @@ def explanation_summary_cn(
     is_turning_point: bool,
 ) -> str:
     opening = "这是本局关键处之一。" if is_turning_point else "这一手值得重点复盘。"
+    move_ref = move_ref_cn(color, move_number)
     return (
-        f"{opening}{phase_label_cn(phase)}第{move_number}手，"
+        f"{opening}{phase_label_cn(phase)}阶段的{move_ref}，"
         f"实战下了{played_move}，更稳妥的下法是{recommended_move}。"
-        f"这一手属于{severity_label}，损失{score_loss:.2f}目，胜率变化{winrate_delta:.0%}。"
+        f"这一手属于{severity_label}，{_swing_summary_cn(score_loss=score_loss, winrate_delta=winrate_delta)}"
     )
 
 
 def explanation_why_cn(
     *,
+    move_number: int,
     category: MistakeCategory,
     phase: str,
     plan_break_note: bool,
+    leave_main_battlefield_note: bool,
 ) -> str:
     base = category_interpretation_cn(category)
+    if leave_main_battlefield_note:
+        variants = (
+            f"{base} 当前主战场还在这里，实战却转到了别处，节奏上有些脱离主战场。",
+            f"{base} 这一手把焦点从当前最重要的战斗区域移开了，前面的攻守没有继续下去。",
+            f"{base} 这里更大的问题不是手法本身，而是离开了当前真正该处理的主战场。",
+        )
+        return variants[move_number % len(variants)]
     if plan_break_note:
-        return f"{base} 而且这里没有顺着前面已经形成的主战场继续走，实战有些脱离主战场。"
+        variants = (
+            f"{base} 这一步没有顺着前面的处理思路继续，局部判断有些脱节。",
+            f"{base} 前面几手的重点已经比较清楚，但这一手的处理没有接上。",
+            f"{base} 这里的问题不在于离开局部，而在于局部的下法没有延续前面的主线。",
+        )
+        return variants[move_number % len(variants)]
     return f"{base} 问题主要发生在{phase_label_cn(phase)}。"
+
+
+def _score_change_cn(score_loss: float) -> str:
+    if score_loss <= -0.05:
+        return f"收益约{abs(score_loss):.2f}目"
+    if score_loss < 0.05:
+        return "目数变化不大"
+    return f"损失约{score_loss:.2f}目"
+
+
+def _winrate_change_cn(winrate_delta: float) -> str:
+    if winrate_delta >= 0.005:
+        return f"胜率提升{winrate_delta:.0%}"
+    if winrate_delta <= -0.005:
+        return f"胜率下滑{abs(winrate_delta):.0%}"
+    return "胜率变化不大"
+
+
+def _swing_summary_cn(*, score_loss: float, winrate_delta: float) -> str:
+    if score_loss <= -0.05 or winrate_delta >= 0.005:
+        return f"这一手带来{_score_change_cn(score_loss)}，{_winrate_change_cn(winrate_delta)}。"
+    if score_loss < 0.05 and abs(winrate_delta) < 0.005:
+        return "这一手目数和胜率都没有明显变化。"
+    return f"这一手造成{_score_change_cn(score_loss)}，{_winrate_change_cn(winrate_delta)}。"
 
 
 def category_interpretation_cn(category: MistakeCategory) -> str:

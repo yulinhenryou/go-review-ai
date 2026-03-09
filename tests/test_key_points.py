@@ -123,7 +123,7 @@ def test_build_key_point_analysis_detects_plan_break() -> None:
         ),
         _make_result(
             move_number=3,
-            played_move="cc",
+            played_move="oq",
             best_move="pq",
             estimated_loss=1.4,
             top_candidates=(
@@ -137,17 +137,170 @@ def test_build_key_point_analysis_detects_plan_break() -> None:
     classified = [
         ClassifiedMistake(1, "qd", "qd", 0.0, "unclear", 0.0, "inaccuracy"),
         ClassifiedMistake(2, "dp", "dp", 0.0, "unclear", 0.0, "inaccuracy"),
-        ClassifiedMistake(3, "cc", "pq", 1.4, "tactical_blunder", -0.06, "inaccuracy"),
+        ClassifiedMistake(3, "oq", "pq", 1.4, "tactical_blunder", -0.06, "inaccuracy"),
     ]
 
     analysis = build_key_point_analysis(results, classified)
 
     assert len(analysis.plan_breaks) == 1
+    assert analysis.leave_main_battlefields == []
     assert analysis.plan_breaks[0].anchor_move_number == 1
     assert analysis.plan_breaks[0].break_move_number == 3
     assert analysis.plan_breaks[0].expected_follow_up == "pq"
-    assert analysis.plan_breaks[0].played_move == "cc"
-    assert "原本应顺着走pq，实战却下成cc" in analysis.plan_breaks[0].summary
+    assert analysis.plan_breaks[0].played_move == "oq"
+    assert "没有接上前面的思路" in analysis.plan_breaks[0].summary
+
+
+def test_build_key_point_analysis_detects_leave_main_battlefield() -> None:
+    results = [
+        _make_result(
+            move_number=1,
+            played_move="qd",
+            best_move="qd",
+            estimated_loss=0.0,
+            top_candidates=(
+                CandidateMove("qd", score_estimate=2.0, winrate=0.56),
+                CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+            ),
+            pv_summary="B qd -> W dp -> B pq",
+        ),
+        _make_result(
+            move_number=2,
+            played_move="dp",
+            best_move="dp",
+            estimated_loss=0.0,
+            top_candidates=(
+                CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                CandidateMove("cq", score_estimate=1.1, winrate=0.52),
+            ),
+            pv_summary="W dp -> B pq -> W cq",
+        ),
+        _make_result(
+            move_number=3,
+            played_move="cc",
+            best_move="pq",
+            estimated_loss=1.8,
+            top_candidates=(
+                CandidateMove("pq", score_estimate=1.8, winrate=0.57),
+                CandidateMove("oq", score_estimate=1.5, winrate=0.54),
+                CandidateMove("pp", score_estimate=1.3, winrate=0.53),
+            ),
+            pv_summary="B pq -> W oq -> B pp",
+        ),
+    ]
+    classified = [
+        ClassifiedMistake(1, "qd", "qd", 0.0, "unclear", 0.0, "inaccuracy"),
+        ClassifiedMistake(2, "dp", "dp", 0.0, "unclear", 0.0, "inaccuracy"),
+        ClassifiedMistake(3, "cc", "pq", 1.8, "tactical_blunder", -0.09, "mistake"),
+    ]
+
+    analysis = build_key_point_analysis(results, classified)
+
+    assert analysis.plan_breaks == []
+    assert len(analysis.leave_main_battlefields) == 1
+    assert analysis.leave_main_battlefields[0].break_move_number == 3
+    assert analysis.leave_main_battlefields[0].played_move == "cc"
+    assert "脱离了主战场" in analysis.leave_main_battlefields[0].summary
+
+
+def test_plan_break_and_leave_main_battlefield_summaries_use_distinct_teaching_tone() -> None:
+    plan_break_summary = build_key_point_analysis(
+        [
+            _make_result(
+                move_number=1,
+                played_move="qd",
+                best_move="qd",
+                estimated_loss=0.0,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B qd -> W dp -> B pq",
+            ),
+            _make_result(
+                move_number=2,
+                played_move="dp",
+                best_move="dp",
+                estimated_loss=0.0,
+                top_candidates=(
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="W dp -> B pq -> W cq",
+            ),
+            _make_result(
+                move_number=5,
+                played_move="oq",
+                best_move="pq",
+                estimated_loss=1.4,
+                top_candidates=(
+                    CandidateMove("pq", score_estimate=1.6, winrate=0.55),
+                    CandidateMove("cq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cp", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="B pq -> W cq -> B cp",
+            ),
+        ],
+        [
+            ClassifiedMistake(1, "qd", "qd", 0.0, "unclear", 0.0, "inaccuracy"),
+            ClassifiedMistake(2, "dp", "dp", 0.0, "unclear", 0.0, "inaccuracy"),
+            ClassifiedMistake(5, "oq", "pq", 1.4, "tactical_blunder", -0.06, "inaccuracy"),
+        ],
+    ).plan_breaks[0].summary
+
+    leave_main_battlefield_summary = build_key_point_analysis(
+        [
+            _make_result(
+                move_number=1,
+                played_move="qd",
+                best_move="qd",
+                estimated_loss=0.0,
+                top_candidates=(
+                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B qd -> W dp -> B pq",
+            ),
+            _make_result(
+                move_number=2,
+                played_move="dp",
+                best_move="dp",
+                estimated_loss=0.0,
+                top_candidates=(
+                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
+                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
+                ),
+                pv_summary="W dp -> B pq -> W cq",
+            ),
+            _make_result(
+                move_number=5,
+                played_move="cc",
+                best_move="pq",
+                estimated_loss=1.8,
+                top_candidates=(
+                    CandidateMove("pq", score_estimate=1.8, winrate=0.57),
+                    CandidateMove("oq", score_estimate=1.5, winrate=0.54),
+                    CandidateMove("pp", score_estimate=1.3, winrate=0.53),
+                ),
+                pv_summary="B pq -> W oq -> B pp",
+            ),
+        ],
+        [
+            ClassifiedMistake(1, "qd", "qd", 0.0, "unclear", 0.0, "inaccuracy"),
+            ClassifiedMistake(2, "dp", "dp", 0.0, "unclear", 0.0, "inaccuracy"),
+            ClassifiedMistake(5, "cc", "pq", 1.8, "tactical_blunder", -0.09, "mistake"),
+        ],
+    ).leave_main_battlefields[0].summary
+
+    assert "局部" in plan_break_summary or "处理" in plan_break_summary
+    assert "主战场" not in plan_break_summary
+    assert "主战场" in leave_main_battlefield_summary
 
 
 def test_parse_pv_summary_and_phase_for_move_are_deterministic() -> None:

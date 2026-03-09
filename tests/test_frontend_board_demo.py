@@ -26,6 +26,16 @@ def test_frontend_board_demo_contains_review_jump_controls() -> None:
     assert 'var analysisView = "current";' in html
     assert "function setAnalysisView(view)" in html
     assert 'data-review-id=\\"' in html
+    assert "没有接上前面的思路" in html
+    assert "脱离主战场" in html
+    assert "function moveRefLabel(color, moveNumber)" in html
+    assert "function buildPositiveReviewTargets(data)" in html
+    assert "亮点手" in html
+    assert "关键好手" in html
+    assert "胜负手" in html
+    assert "目数变化不大。" in html
+    assert "胜率提升约" in html
+    assert "胜率下滑约" in html
     assert "function createBoardSnapshot(uptoMoveCount)" in html
     assert "function drawRecommendedMoveMarker(move)" in html
     assert "var selectedCandidateRank = 1;" in html

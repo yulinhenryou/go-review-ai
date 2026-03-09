@@ -6,6 +6,7 @@ from typing import Literal
 
 from src.analyzer import MoveAnalysisResult
 from src.chinese_explanations import (
+    leave_main_battlefield_summary_cn,
     phase_label_cn,
     phase_overview_text,
     phase_summary_cn,
@@ -43,6 +44,17 @@ class PlanBreak:
 
 
 @dataclass(frozen=True)
+class LeaveMainBattlefield:
+    anchor_move_number: int
+    break_move_number: int
+    color: str
+    expected_follow_up: str | None
+    played_move: str | None
+    score_loss: float
+    summary: str
+
+
+@dataclass(frozen=True)
 class PhaseSummary:
     opening_loss: float
     middle_game_loss: float
@@ -66,6 +78,7 @@ class ReviewSummary:
 class KeyPointAnalysis:
     turning_points: list[TurningPoint]
     plan_breaks: list[PlanBreak]
+    leave_main_battlefields: list[LeaveMainBattlefield]
     phase_summary: PhaseSummary
     review_summary: ReviewSummary
 
@@ -78,12 +91,13 @@ def build_key_point_analysis(
         raise ValueError("results and classified_results must have matching lengths")
 
     turning_points = _turning_points(results, classified_results)
-    plan_breaks = _plan_breaks(results)
+    plan_breaks, leave_main_battlefields = _plan_breaks(results)
     phase_summary = _phase_summary(results, classified_results)
     review_summary = _review_summary(turning_points, phase_summary)
     return KeyPointAnalysis(
         turning_points=turning_points,
         plan_breaks=plan_breaks,
+        leave_main_battlefields=leave_main_battlefields,
         phase_summary=phase_summary,
         review_summary=review_summary,
     )
@@ -239,6 +253,7 @@ def _turning_point_view(
         severity=classified.severity,
         phase=phase,
         summary=turning_point_summary_cn(
+            color=result.color,
             move_number=result.move_number,
             phase=phase,
             score_loss=result.estimated_loss,
@@ -247,8 +262,11 @@ def _turning_point_view(
     )
 
 
-def _plan_breaks(results: list[MoveAnalysisResult]) -> list[PlanBreak]:
-    detected: list[PlanBreak] = []
+def _plan_breaks(
+    results: list[MoveAnalysisResult],
+) -> tuple[list[PlanBreak], list[LeaveMainBattlefield]]:
+    plan_breaks: list[PlanBreak] = []
+    leave_main_battlefields: list[LeaveMainBattlefield] = []
 
     for index in range(len(results) - 2):
         anchor = results[index]
@@ -276,7 +294,32 @@ def _plan_breaks(results: list[MoveAnalysisResult]) -> list[PlanBreak]:
         if follow_up.estimated_loss < 1.0 and abs(winrate_delta) < 0.05:
             continue
 
-        detected.append(
+        if _is_leave_main_battlefield(anchor, reply, follow_up, pv_steps[2][1], winrate_delta):
+            leave_main_battlefields.append(
+                LeaveMainBattlefield(
+                    anchor_move_number=anchor.move_number,
+                    break_move_number=follow_up.move_number,
+                    color=follow_up.color,
+                    expected_follow_up=_normalize_move(pv_steps[2][1]),
+                    played_move=follow_up.played_move,
+                    score_loss=follow_up.estimated_loss,
+                    summary=leave_main_battlefield_summary_cn(
+                        anchor_move_number=anchor.move_number,
+                        color=follow_up.color,
+                        break_move_number=follow_up.move_number,
+                        expected_follow_up=_display_move(
+                            pv_steps[2][1], follow_up.position_input.board_size
+                        ),
+                        played_move=_display_move(
+                            follow_up.played_move, follow_up.position_input.board_size
+                        ),
+                        score_loss=follow_up.estimated_loss,
+                    ),
+                )
+            )
+            continue
+
+        plan_breaks.append(
             PlanBreak(
                 anchor_move_number=anchor.move_number,
                 break_move_number=follow_up.move_number,
@@ -286,15 +329,87 @@ def _plan_breaks(results: list[MoveAnalysisResult]) -> list[PlanBreak]:
                 score_loss=follow_up.estimated_loss,
                 summary=plan_break_summary_cn(
                     anchor_move_number=anchor.move_number,
+                    color=follow_up.color,
                     break_move_number=follow_up.move_number,
-                    expected_follow_up=_display_move(pv_steps[2][1]),
-                    played_move=_display_move(follow_up.played_move),
+                    expected_follow_up=_display_move(
+                        pv_steps[2][1], follow_up.position_input.board_size
+                    ),
+                    played_move=_display_move(
+                        follow_up.played_move, follow_up.position_input.board_size
+                    ),
                     score_loss=follow_up.estimated_loss,
                 ),
             )
         )
 
-    return detected
+    return plan_breaks, leave_main_battlefields
+
+
+def _is_leave_main_battlefield(
+    anchor: MoveAnalysisResult,
+    reply: MoveAnalysisResult,
+    follow_up: MoveAnalysisResult,
+    expected_follow_up: str | None,
+    winrate_delta: float,
+) -> bool:
+    board_size = follow_up.position_input.board_size
+    local_radius = max(2, board_size // 6)
+    far_distance = max(5, board_size // 3)
+    urgency_loss = max(1.5, round(board_size / 20, 2))
+    urgency_winrate = 0.08
+
+    if follow_up.played_move is None or expected_follow_up is None:
+        return False
+    if follow_up.estimated_loss < urgency_loss and abs(winrate_delta) < urgency_winrate:
+        return False
+    if not _engine_focuses_on_battlefield(follow_up, expected_follow_up, local_radius):
+        return False
+
+    battlefield_points = [
+        _coord_to_point(anchor.played_move, board_size),
+        _coord_to_point(reply.played_move, board_size),
+        _coord_to_point(expected_follow_up, board_size),
+    ]
+    played_point = _coord_to_point(follow_up.played_move, board_size)
+    if played_point is None:
+        return False
+
+    local_points = [point for point in battlefield_points if point is not None]
+    if len(local_points) < 2:
+        return False
+
+    return all(
+        _chebyshev_distance(played_point, point) >= far_distance
+        for point in local_points
+    )
+
+
+def _engine_focuses_on_battlefield(
+    follow_up: MoveAnalysisResult,
+    expected_follow_up: str,
+    local_radius: int,
+) -> bool:
+    board_size = follow_up.position_input.board_size
+    expected_point = _coord_to_point(expected_follow_up, board_size)
+    if expected_point is None:
+        return False
+
+    nearby_candidates = 0
+    for candidate in follow_up.engine_analysis.top_candidates[:3]:
+        candidate_point = _coord_to_point(candidate.move, board_size)
+        if candidate_point is None:
+            continue
+        if _chebyshev_distance(candidate_point, expected_point) <= local_radius:
+            nearby_candidates += 1
+
+    return nearby_candidates >= 2
+
+
+def _chebyshev_distance(
+    left: tuple[int, int],
+    right: tuple[int, int],
+) -> int:
+    return max(abs(left[0] - right[0]), abs(left[1] - right[1]))
 
 
 def _phase_summary(
@@ -498,9 +613,25 @@ def _normalize_move(move: str | None) -> str | None:
     return lowered
 
 
-def _display_move(move: str | None) -> str:
+def _display_move(move: str | None, board_size: int | None = None) -> str:
     normalized = _normalize_move(move)
-    return normalized if normalized is not None else "pass"
+    if normalized is None:
+        return "pass"
+    if board_size is None:
+        return normalized
+    human = _human_coord(normalized, board_size)
+    return human if human is not None else normalized
+
+
+def _human_coord(move: str, board_size: int) -> str | None:
+    point = _coord_to_point(move, board_size)
+    if point is None:
+        return None
+    x, y = point
+    column_index = x + (1 if x >= 8 else 0)
+    column = chr(ord("A") + column_index)
+    row = board_size - y
+    return f"{column}{row}"
 
 
 @dataclass(frozen=True)
