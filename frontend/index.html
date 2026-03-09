@@ -115,6 +115,30 @@
       margin: 2px 0;
     }
 
+    .view-switch {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0 12px;
+      flex-wrap: wrap;
+    }
+
+    .view-switch button {
+      border-radius: 999px;
+      background: #f2efe6;
+    }
+
+    .view-switch button.active {
+      border-color: #8f5f1e;
+      background: #ead19e;
+      color: #5c3d12;
+    }
+
+    .section-note {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #666;
+    }
+
     .review-item-button {
       display: block;
       width: 100%;
@@ -263,6 +287,10 @@
 
     <div class="panel">
       <strong>分析结果</strong>
+      <div class="view-switch" id="analysisViewSwitch" aria-label="分析视图切换">
+        <button id="currentViewBtn" type="button" class="active" data-analysis-view="current">当前局面</button>
+        <button id="reviewViewBtn" type="button" data-analysis-view="review">整盘复盘</button>
+      </div>
       <div id="analysisSummary">暂无分析结果。</div>
       <details>
         <summary>6. 原始分析数据</summary>
@@ -284,6 +312,7 @@
       var clearBtn = document.getElementById("clearBtn");
       var analyzeBtn = document.getElementById("analyzeBtn");
       var latestBtn = document.getElementById("latestBtn");
+      var analysisViewSwitch = document.getElementById("analysisViewSwitch");
       var BOARD_SIZE = 19;
       var SGF_LETTERS = "abcdefghijklmnopqrstuvwxyz";
       var DISPLAY_COLUMNS = "ABCDEFGHJKLMNOPQRST";
@@ -298,6 +327,7 @@
       var analysisData = null;
       var reviewFocus = null;
       var reviewTargets = [];
+      var analysisView = "current";
 
       function colorName(color) {
         return color === "B" ? "黑棋" : "白棋";
@@ -665,6 +695,23 @@
         updateReviewStatus();
       }
 
+      function syncAnalysisViewButtons() {
+        Array.prototype.forEach.call(analysisViewSwitch.querySelectorAll("[data-analysis-view]"), function (button) {
+          var isActive = button.getAttribute("data-analysis-view") === analysisView;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      function setAnalysisView(view) {
+        analysisView = view === "review" ? "review" : "current";
+        syncAnalysisViewButtons();
+
+        if (analysisData) {
+          renderAnalysisSummary(analysisData);
+        }
+      }
+
       function findTimelineItem(data, moveNumber) {
         var timeline = data && Array.isArray(data.timeline) ? data.timeline : [];
 
@@ -847,6 +894,32 @@
         return String(rounded);
       }
 
+      function buildTrendContext(timeline) {
+        var latest;
+        var parts = [];
+
+        if (!timeline || !timeline.length) {
+          return "暂无走势背景。";
+        }
+
+        latest = timeline[timeline.length - 1];
+        if (!latest || typeof latest.move_number !== "number") {
+          return "暂无走势背景。";
+        }
+
+        parts.push("目前看到第" + latest.move_number + "手。");
+
+        if (typeof latest.winrate_after === "number") {
+          parts.push("实战后胜率约 " + formatTrendValue("winrate", latest.winrate_after) + "。");
+        }
+
+        if (typeof latest.score_after === "number") {
+          parts.push("目差约 " + formatTrendValue("score", latest.score_after) + "。");
+        }
+
+        return parts.join("");
+      }
+
       function linePath(points) {
         if (!points.length) return "";
 
@@ -997,8 +1070,13 @@
           planBreak: reviewTargets.filter(function (item) { return item.kind === "plan_break"; }),
           major: reviewTargets.filter(function (item) { return item.kind === "major_mistake"; })
         };
-
-        summary.innerHTML = [
+        var trendContext = buildTrendContext(timeline);
+        var reviewOverview = [
+          "转折点 " + reviewTargetsByKind.turning.length + " 个",
+          "计划断点 " + reviewTargetsByKind.planBreak.length + " 个",
+          "大问题手 " + reviewTargetsByKind.major.length + " 个"
+        ].join("，");
+        var currentSections = [
           "<div class=\"analysis-section\">",
           "<strong>1. 当前局面</strong>",
           "<ul>",
@@ -1006,11 +1084,15 @@
           "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
           "<li>当前推荐点：" + escapeHtml(hasBestMove ? activeBestMoveLabel : "暂无推荐点") + "</li>",
           "<li>推荐状态：" + escapeHtml(hasBestMove ? "棋盘上已标出当前推荐点。" : "当前局面没有可用的推荐点，棋盘不会显示推荐标记。") + "</li>",
-          "<li>当前一句话说明：" + escapeHtml(activeExplanation) + "</li>",
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>2. 候选点</strong>",
+          "<strong>2. 当前说明</strong>",
+          "<div>" + escapeHtml(activeExplanation) + "</div>",
+          "<div class=\"section-note\">当前模式优先展示最新局面判断与推荐点。</div>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>3. 候选点</strong>",
           renderList(activeCandidates, "暂无候选点。", function (candidate, index) {
             return (
               (index + 1) +
@@ -1024,33 +1106,83 @@
           }),
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>3. 阶段判断</strong>",
+          "<strong>4. 当前趋势</strong>",
+          "<div>" + escapeHtml(trendContext) + "</div>",
+          "<div id=\"trendChartSection\">暂无走势数据。</div>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>5. 阶段判断</strong>",
           "<ul>",
           "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
           "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
           "</ul>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>4. 走势</strong>",
-          "<div id=\"trendChartSection\">暂无走势数据。</div>",
+          "<strong>6. 整盘复盘概览</strong>",
+          "<div>" + escapeHtml(reviewOverview) + "</div>",
+          "<div class=\"section-note\">切换到“整盘复盘”可查看并点击关键复盘条目。</div>",
           "</div>",
           "<div class=\"analysis-section\">",
-          "<strong>5. 关键点</strong>",
-          renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>6. 计划断点</strong>",
-          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无计划断点。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>7. 大问题手</strong>",
-          renderReviewTargetList(reviewTargetsByKind.major, "当前没有达到“大问题手 / 大恶手”级别的条目。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>8. 阶段总结</strong>",
+          "<strong>7. 阶段总结</strong>",
           "<div>" + escapeHtml(reviewSummary.summary || "暂无阶段总结。") + "</div>",
           "</div>"
         ].join("");
+        var reviewSections = [
+          "<div class=\"analysis-section\">",
+          "<strong>1. 整盘复盘重点</strong>",
+          "<div>" + escapeHtml(reviewSummary.summary || "暂无阶段总结。") + "</div>",
+          "<div class=\"section-note\">点击下面条目后，棋盘会跳转到对应手数并显示该处推荐点。</div>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>2. 转折点</strong>",
+          renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>3. 计划断点</strong>",
+          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无计划断点。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>4. 大问题手</strong>",
+          renderReviewTargetList(reviewTargetsByKind.major, "当前没有达到“大问题手 / 大恶手”级别的条目。"),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>5. 当前趋势参考</strong>",
+          "<div>" + escapeHtml(trendContext) + "</div>",
+          "<div id=\"trendChartSection\">暂无走势数据。</div>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>6. 当前局面参考</strong>",
+          "<ul>",
+          "<li>" + escapeHtml(reviewTitle) + "</li>",
+          "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
+          "<li>当前推荐点：" + escapeHtml(hasBestMove ? activeBestMoveLabel : "暂无推荐点") + "</li>",
+          "<li>一句话说明：" + escapeHtml(activeExplanation) + "</li>",
+          "</ul>",
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>7. 当前候选点</strong>",
+          renderList(activeCandidates, "暂无候选点。", function (candidate, index) {
+            return (
+              (index + 1) +
+              ". " +
+              escapeHtml(formatCoord(candidate.move)) +
+              "，胜率约" +
+              escapeHtml(String(Math.round((candidate.winrate || 0) * 100))) +
+              "%，目差预计为" +
+              escapeHtml(String(candidate.score_estimate))
+            );
+          }),
+          "</div>",
+          "<div class=\"analysis-section\">",
+          "<strong>8. 阶段判断</strong>",
+          "<ul>",
+          "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
+          "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
+          "</ul>",
+          "</div>"
+        ].join("");
+
+        summary.innerHTML = analysisView === "review" ? reviewSections : currentSections;
 
         renderTrendChart(timeline);
 
@@ -1466,6 +1598,12 @@
         returnToLatestBoardState();
       });
 
+      Array.prototype.forEach.call(analysisViewSwitch.querySelectorAll("[data-analysis-view]"), function (button) {
+        button.addEventListener("click", function () {
+          setAnalysisView(this.getAttribute("data-analysis-view"));
+        });
+      });
+
       analyzeBtn.addEventListener("click", async function () {
         setAnalyzeLoadingState(true);
 
@@ -1534,6 +1672,7 @@
       syncCanvasSize();
       updateStatus();
       updateReviewStatus();
+      syncAnalysisViewButtons();
     })();
   </script>
 </body>
