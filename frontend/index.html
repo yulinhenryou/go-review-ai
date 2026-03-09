@@ -364,6 +364,20 @@
         return "暂无";
       }
 
+      function extractBestMoveCoord(bestMove) {
+        if (!bestMove) return null;
+        if (typeof bestMove === "string") return bestMove;
+        if (typeof bestMove.sgf === "string" && bestMove.sgf.length === 2) return bestMove.sgf;
+        return null;
+      }
+
+      function getCurrentRecommendedMove(data) {
+        if (!data || typeof data !== "object") return null;
+
+        var current = data.current_position || {};
+        return fromSgf(extractBestMoveCoord(current.best_move));
+      }
+
       function playerLabel(color) {
         if (color === "B") return "黑棋";
         if (color === "W") return "白棋";
@@ -428,6 +442,8 @@
         var reviewSummary = keyPoints.review_summary || {};
         var candidates = (current.top_candidates || []).slice(0, 3);
         var currentPhase = inferPhase(gameSummary);
+        var bestMoveLabel = formatCoord(current.best_move);
+        var hasBestMove = bestMoveLabel !== "暂无";
         var keyPointItems = [];
 
         if (turningPoints.length) {
@@ -451,7 +467,8 @@
           "<strong>1. 当前局面</strong>",
           "<ul>",
           "<li>轮到谁下：" + escapeHtml(playerLabel(current.next_player)) + "</li>",
-          "<li>当前推荐点：" + escapeHtml(formatCoord(current.best_move)) + "</li>",
+          "<li>当前推荐点：" + escapeHtml(hasBestMove ? bestMoveLabel : "暂无推荐点") + "</li>",
+          "<li>推荐状态：" + escapeHtml(hasBestMove ? "棋盘上已标出当前推荐点。" : "当前局面没有可用的推荐点，棋盘不会显示推荐标记。") + "</li>",
           "<li>当前一句话说明：" + escapeHtml(current.short_explanation || "暂无说明") + "</li>",
           "</ul>",
           "</div>",
@@ -723,13 +740,7 @@
             return;
           }
 
-          recommendedMove = fromSgf(
-            data &&
-            data.selected_mistakes &&
-            data.selected_mistakes[0] &&
-            data.selected_mistakes[0].recommended_move &&
-            data.selected_mistakes[0].recommended_move.sgf
-          );
+          recommendedMove = getCurrentRecommendedMove(data);
           drawBoard();
           renderAnalysisSummary(data);
           renderRawJson(data);
