@@ -18,6 +18,10 @@ def test_frontend_board_demo_contains_review_jump_controls() -> None:
     assert 'id="analysisViewSwitch"' in html
     assert 'data-analysis-view="current"' in html
     assert 'data-analysis-view="review"' in html
+    assert 'class="board-column"' in html
+    assert 'class="board-meta"' in html
+    assert "position: sticky;" in html
+    assert "overflow: auto;" in html
     assert "function buildReviewTargets(data)" in html
     assert 'var analysisView = "current";' in html
     assert "function setAnalysisView(view)" in html

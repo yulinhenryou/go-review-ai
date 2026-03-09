@@ -18,3 +18,9 @@ reportAnalysisWinratesAs = BLACK
 2026-03-10 05:00:56+1100: Loaded model /opt/homebrew/Cellar/katago/1.16.4/share/katago/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz
 2026-03-10 05:00:56+1100: Analyzing up to 2 positions at a time in parallel
 2026-03-10 05:00:56+1100: Started, ready to begin handling requests
+2026-03-10 05:00:58+1100: /opt/homebrew/Cellar/katago/1.16.4/share/katago/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz
+2026-03-10 05:00:58+1100: NN rows: 202
+2026-03-10 05:00:58+1100: NN batches: 27
+2026-03-10 05:00:58+1100: NN avg batch size: 7.48148
+2026-03-10 05:00:58+1100: GPU -1 finishing, processed 202 rows 27 batches
+2026-03-10 05:00:58+1100: All cleaned up, quitting
