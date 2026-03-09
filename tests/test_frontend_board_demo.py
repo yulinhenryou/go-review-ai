@@ -15,3 +15,8 @@ def test_frontend_board_demo_contains_review_jump_controls() -> None:
     assert 'data-review-id=\\"' in html
     assert "function createBoardSnapshot(uptoMoveCount)" in html
     assert "function drawRecommendedMoveMarker(move)" in html
+    assert "var selectedCandidateRank = 1;" in html
+    assert "function buildCandidateExplanation(data)" in html
+    assert 'data-candidate-rank=\\"' in html
+    assert "function trySelectCandidateAtPoint(point)" in html
+    assert '点击棋盘上的 1 / 2 / 3 候选标记' in html

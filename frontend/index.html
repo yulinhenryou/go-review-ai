@@ -166,6 +166,88 @@
       color: #6d5a39;
     }
 
+    .candidate-choice-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .candidate-choice-button {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cfd8c7;
+      border-radius: 8px;
+      background: #f6faf4;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    .candidate-choice-button:hover {
+      background: #eef6ea;
+    }
+
+    .candidate-choice-button.active {
+      border-color: #1f7a3d;
+      background: #e2f0e5;
+      box-shadow: inset 0 0 0 1px rgba(31, 122, 61, 0.2);
+    }
+
+    .candidate-choice-rank {
+      display: inline-block;
+      margin-bottom: 3px;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #ddebdc;
+      color: #245a2f;
+      font-size: 12px;
+    }
+
+    .candidate-choice-button.active .candidate-choice-rank {
+      background: #1f7a3d;
+      color: #fff;
+    }
+
+    .candidate-choice-meta {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #52624f;
+    }
+
+    .candidate-detail-panel {
+      margin-top: 8px;
+      padding: 10px;
+      border: 1px solid #d7e3d5;
+      border-radius: 10px;
+      background: #f8fcf7;
+    }
+
+    .candidate-detail-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .candidate-detail-title strong {
+      margin: 0;
+    }
+
+    .candidate-rank-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #1f7a3d;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .candidate-detail-panel p {
+      margin: 6px 0 0;
+    }
+
     .chart-controls {
       display: flex;
       gap: 8px;
@@ -328,6 +410,7 @@
       var reviewFocus = null;
       var reviewTargets = [];
       var analysisView = "current";
+      var selectedCandidateRank = 1;
 
       function colorName(color) {
         return color === "B" ? "黑棋" : "白棋";
@@ -591,7 +674,8 @@
             return {
               x: point.x,
               y: point.y,
-              rank: index + 1
+              rank: index + 1,
+              move: candidate.move
             };
           })
           .filter(Boolean);
@@ -610,10 +694,64 @@
             return {
               x: point.x,
               y: point.y,
-              rank: index + 1
+              rank: index + 1,
+              move: candidate.move
             };
           })
           .filter(Boolean);
+      }
+
+      function getActiveCandidates(data) {
+        if (!data || typeof data !== "object") return [];
+
+        if (reviewFocus && Array.isArray(reviewFocus.topCandidates)) {
+          return reviewFocus.topCandidates.slice(0, 3);
+        }
+
+        return data.current_position && Array.isArray(data.current_position.top_candidates)
+          ? data.current_position.top_candidates.slice(0, 3)
+          : [];
+      }
+
+      function candidateRankLabel(rank) {
+        if (rank === 1) return "第1选择";
+        if (rank === 2) return "第2选择";
+        if (rank === 3) return "第3选择";
+        return "候选点";
+      }
+
+      function currentCandidateContextKey() {
+        return reviewFocus ? "review:" + reviewFocus.id : "current";
+      }
+
+      function getSelectedCandidate(data) {
+        var candidates = getActiveCandidates(data);
+        var index = Math.max(0, selectedCandidateRank - 1);
+
+        if (!candidates.length) return null;
+        if (index >= candidates.length) index = 0;
+
+        return {
+          rank: index + 1,
+          candidate: candidates[index]
+        };
+      }
+
+      function resetSelectedCandidate(data) {
+        selectedCandidateRank = getActiveCandidates(data).length ? 1 : 0;
+      }
+
+      function ensureSelectedCandidate(data) {
+        var candidates = getActiveCandidates(data);
+
+        if (!candidates.length) {
+          selectedCandidateRank = 0;
+          return;
+        }
+
+        if (selectedCandidateRank < 1 || selectedCandidateRank > candidates.length) {
+          selectedCandidateRank = 1;
+        }
       }
 
       function playerLabel(color) {
@@ -689,6 +827,7 @@
         reviewFocus = null;
         reviewTargets = [];
         candidateMarkers = [];
+        selectedCandidateRank = 1;
         chartMetric = "winrate";
         summary.textContent = "暂无分析结果。";
         output.textContent = "暂无分析数据。";
@@ -751,7 +890,8 @@
           label: config.label,
           playedMove: detail.played_move || config.playedMove || null,
           recommendedMove: detail.recommended_move || detail.best_move || config.recommendedMove || null,
-          topCandidates: topCandidates
+          topCandidates: topCandidates,
+          pvSummary: detail.pv_summary || ""
         };
       }
 
@@ -846,6 +986,7 @@
         if (!target) return;
 
         reviewFocus = target;
+        resetSelectedCandidate(analysisData);
         candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
         drawBoard();
         updateReviewStatus();
@@ -854,10 +995,111 @@
 
       function returnToLatestBoardState() {
         reviewFocus = null;
+        resetSelectedCandidate(analysisData);
         candidateMarkers = getCurrentCandidateMarkers(analysisData);
         drawBoard();
         updateReviewStatus();
         renderAnalysisSummary(analysisData);
+      }
+
+      function candidateDeltaText(activeCandidates, rank, candidate) {
+        var best = activeCandidates && activeCandidates[0];
+        var scoreDiff;
+        var winrateDiff;
+        var parts = [];
+
+        if (rank === 1 || !best) {
+          return "这是当前最优推荐点。";
+        }
+
+        if (typeof best.score_estimate === "number" && typeof candidate.score_estimate === "number") {
+          scoreDiff = Math.round((best.score_estimate - candidate.score_estimate) * 10) / 10;
+          parts.push("比第1选择少" + String(scoreDiff) + "目左右");
+        }
+
+        if (typeof best.winrate === "number" && typeof candidate.winrate === "number") {
+          winrateDiff = Math.round((best.winrate - candidate.winrate) * 100);
+          parts.push("胜率低约" + String(winrateDiff) + "%");
+        }
+
+        if (!parts.length) {
+          return "这是备选变化，可作为局部对比参考。";
+        }
+
+        return "这是备选变化，" + parts.join("，") + "。";
+      }
+
+      function buildCandidateExplanation(data) {
+        var selected = getSelectedCandidate(data);
+        var activeCandidates = getActiveCandidates(data);
+        var pvSummary = reviewFocus
+          ? (reviewFocus.pvSummary || "")
+          : ((data && data.current_position && data.current_position.pv_summary) || "");
+        var candidate;
+        var rankLabel;
+        var scoreText;
+        var winrateText;
+        var pvText;
+
+        if (!selected) {
+          return "<div>暂无候选点说明。</div>";
+        }
+
+        candidate = selected.candidate;
+        rankLabel = candidateRankLabel(selected.rank);
+        scoreText = typeof candidate.score_estimate === "number"
+          ? String(Math.round(candidate.score_estimate * 10) / 10) + "目"
+          : "暂无目差";
+        winrateText = typeof candidate.winrate === "number"
+          ? String(Math.round(candidate.winrate * 100)) + "%"
+          : "暂无胜率";
+
+        if (pvSummary) {
+          pvText = selected.rank === 1
+            ? pvSummary
+            : "当前只拿到主推荐主线：" + pvSummary;
+        } else {
+          pvText = "暂无完整PV，只展示候选点本身的胜率与目差。";
+        }
+
+        return [
+          "<div class=\"candidate-detail-panel\" data-candidate-context=\"" + escapeHtml(currentCandidateContextKey()) + "\">",
+          "<div class=\"candidate-detail-title\">",
+          "<span class=\"candidate-rank-badge\">" + escapeHtml(rankLabel) + "</span>",
+          "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
+          "</div>",
+          "<p>这一步的预计胜率约为" + escapeHtml(winrateText) + "，目差约为" + escapeHtml(scoreText) + "。</p>",
+          "<p>" + escapeHtml(candidateDeltaText(activeCandidates, selected.rank, candidate)) + "</p>",
+          "<p>变化参考：" + escapeHtml(pvText) + "</p>",
+          "</div>"
+        ].join("");
+      }
+
+      function renderCandidateChoiceList(activeCandidates) {
+        if (!activeCandidates.length) {
+          return "<div>暂无候选点。</div>";
+        }
+
+        return [
+          "<div class=\"candidate-choice-list\">",
+          activeCandidates.map(function (candidate, index) {
+            var rank = index + 1;
+            var isActive = rank === selectedCandidateRank;
+
+            return [
+              "<button type=\"button\" class=\"candidate-choice-button" + (isActive ? " active" : "") + "\" data-candidate-rank=\"" + rank + "\">",
+              "<span class=\"candidate-choice-rank\">" + escapeHtml(candidateRankLabel(rank)) + "</span>",
+              "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
+              "<span class=\"candidate-choice-meta\">胜率约" +
+                escapeHtml(typeof candidate.winrate === "number" ? String(Math.round(candidate.winrate * 100)) : "0") +
+                "%，目差约" +
+                escapeHtml(typeof candidate.score_estimate === "number" ? String(Math.round(candidate.score_estimate * 10) / 10) : "暂无") +
+                "</span>",
+              "</button>"
+            ].join("");
+          }).join(""),
+          "</div>"
+        ].join("");
       }
 
       function hasTrendMetric(timeline, metric) {
@@ -1049,8 +1291,7 @@
         var gameSummary = data.game_summary || {};
         var keyPoints = data.key_points || {};
         var reviewSummary = keyPoints.review_summary || {};
-        var candidates = (current.top_candidates || []).slice(0, 3);
-        var activeCandidates = reviewFocus ? reviewFocus.topCandidates.slice(0, 3) : candidates;
+        var activeCandidates = getActiveCandidates(data);
         var currentPhase = inferPhase(gameSummary);
         var bestMoveLabel = formatCoord(current.best_move);
         var activeBestMoveLabel = reviewFocus ? formatCoord(reviewFocus.recommendedMove) : bestMoveLabel;
@@ -1076,6 +1317,8 @@
           "脱离主战场 " + reviewTargetsByKind.planBreak.length + " 个",
           "大问题手 " + reviewTargetsByKind.major.length + " 个"
         ].join("，");
+
+        ensureSelectedCandidate(data);
         var currentSections = [
           "<div class=\"analysis-section\">",
           "<strong>1. 当前局面</strong>",
@@ -1093,17 +1336,9 @@
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>3. 候选点</strong>",
-          renderList(activeCandidates, "暂无候选点。", function (candidate, index) {
-            return (
-              (index + 1) +
-              ". " +
-              escapeHtml(formatCoord(candidate.move)) +
-              "，胜率约" +
-              escapeHtml(String(Math.round((candidate.winrate || 0) * 100))) +
-              "%，目差预计为" +
-              escapeHtml(String(candidate.score_estimate))
-            );
-          }),
+          "<div class=\"section-note\">点击棋盘上的 1 / 2 / 3 候选标记，右侧说明会立即切换。</div>",
+          renderCandidateChoiceList(activeCandidates),
+          buildCandidateExplanation(data),
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>4. 当前趋势</strong>",
@@ -1161,17 +1396,9 @@
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>7. 当前候选点</strong>",
-          renderList(activeCandidates, "暂无候选点。", function (candidate, index) {
-            return (
-              (index + 1) +
-              ". " +
-              escapeHtml(formatCoord(candidate.move)) +
-              "，胜率约" +
-              escapeHtml(String(Math.round((candidate.winrate || 0) * 100))) +
-              "%，目差预计为" +
-              escapeHtml(String(candidate.score_estimate))
-            );
-          }),
+          "<div class=\"section-note\">点击棋盘候选标记可查看该点的短变化说明。</div>",
+          renderCandidateChoiceList(activeCandidates),
+          buildCandidateExplanation(data),
           "</div>",
           "<div class=\"analysis-section\">",
           "<strong>8. 阶段判断</strong>",
@@ -1189,6 +1416,14 @@
         Array.prototype.forEach.call(summary.querySelectorAll("[data-review-id]"), function (button) {
           button.addEventListener("click", function () {
             activateReviewTargetById(this.getAttribute("data-review-id"));
+          });
+        });
+
+        Array.prototype.forEach.call(summary.querySelectorAll("[data-candidate-rank]"), function (button) {
+          button.addEventListener("click", function () {
+            selectedCandidateRank = Number(this.getAttribute("data-candidate-rank")) || 1;
+            drawBoard();
+            renderAnalysisSummary(data);
           });
         });
       }
@@ -1424,14 +1659,15 @@
         context.restore();
       }
 
-      function candidateMarkerStyle(rank) {
+      function candidateMarkerStyle(rank, isSelected) {
         if (rank === 1) {
           return {
             outerStroke: "#1f7a3d",
             innerStroke: "rgba(232, 247, 237, 0.98)",
             dotFill: "#1f7a3d",
             ringScale: 0.52,
-            lineWidth: 0.085
+            lineWidth: isSelected ? 0.11 : 0.085,
+            glow: "rgba(31, 122, 61, 0.28)"
           };
         }
 
@@ -1441,7 +1677,8 @@
             innerStroke: "rgba(239, 250, 242, 0.96)",
             dotFill: "#43a35f",
             ringScale: 0.45,
-            lineWidth: 0.07
+            lineWidth: isSelected ? 0.095 : 0.07,
+            glow: "rgba(67, 163, 95, 0.26)"
           };
         }
 
@@ -1450,7 +1687,8 @@
           innerStroke: "rgba(247, 253, 248, 0.94)",
           dotFill: "#7bc98f",
           ringScale: 0.39,
-          lineWidth: 0.06
+          lineWidth: isSelected ? 0.085 : 0.06,
+          glow: "rgba(123, 201, 143, 0.24)"
         };
       }
 
@@ -1458,11 +1696,16 @@
         var x = boardPoint(point.x);
         var y = boardPoint(point.y);
         var stone = stoneMap[pointKey(point.x, point.y)] || null;
-        var style = candidateMarkerStyle(point.rank);
-        var ringRadius = boardMetrics.cell * (stone ? Math.max(0.5, style.ringScale) : style.ringScale);
-        var dotRadius = boardMetrics.cell * 0.1;
+        var isSelected = point.rank === selectedCandidateRank;
+        var style = candidateMarkerStyle(point.rank, isSelected);
+        var ringRadius = boardMetrics.cell * (stone ? Math.max(0.5, style.ringScale) : style.ringScale) + (isSelected ? boardMetrics.cell * 0.04 : 0);
+        var dotRadius = boardMetrics.cell * (isSelected ? 0.13 : 0.1);
 
         context.save();
+        if (isSelected) {
+          context.shadowColor = style.glow;
+          context.shadowBlur = Math.max(8, boardMetrics.cell * 0.35);
+        }
         context.strokeStyle = style.outerStroke;
         context.lineWidth = Math.max(2, boardMetrics.cell * style.lineWidth);
         context.beginPath();
@@ -1479,7 +1722,27 @@
         context.beginPath();
         context.arc(x, y, dotRadius, 0, Math.PI * 2);
         context.fill();
+
+        context.shadowBlur = 0;
+        context.fillStyle = isSelected ? "#fff" : "#1d3d25";
+        context.font = "bold " + Math.max(10, Math.floor(boardMetrics.cell * 0.23)) + "px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(String(point.rank), x, y + 0.5);
         context.restore();
+      }
+
+      function trySelectCandidateAtPoint(point) {
+        for (var i = 0; i < candidateMarkers.length; i++) {
+          if (candidateMarkers[i].x === point.x && candidateMarkers[i].y === point.y) {
+            selectedCandidateRank = candidateMarkers[i].rank;
+            drawBoard();
+            renderAnalysisSummary(analysisData);
+            return true;
+          }
+        }
+
+        return false;
       }
 
       function drawRecommendedMoveMarker(move) {
@@ -1563,10 +1826,10 @@
       }
 
       canvas.addEventListener("click", function (event) {
-        if (reviewFocus) return;
-
         var point = clickToPoint(event);
         if (!point) return;
+        if (analysisData && trySelectCandidateAtPoint(point)) return;
+        if (reviewFocus) return;
         if (!tryPlaceMove(point, currentColor)) return;
 
         clearAnalysisState();
@@ -1652,6 +1915,7 @@
           analysisData = data;
           reviewTargets = buildReviewTargets(data);
           reviewFocus = null;
+          resetSelectedCandidate(data);
           candidateMarkers = getCurrentCandidateMarkers(data);
           drawBoard();
           updateReviewStatus();
