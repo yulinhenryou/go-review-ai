@@ -25,6 +25,9 @@ def test_build_review_result_from_pipeline_data() -> None:
     assert payload["current_position"]["best_move"] == {"sgf": "jj", "display": "K10"}
     assert payload["current_position"]["score_estimate"] == 0.9
     assert payload["current_position"]["winrate"] == 0.53
+    assert payload["current_position"]["short_explanation"] == (
+        "Black to play. KataGo recommends K10, with score estimate 0.9 and winrate 53%."
+    )
 
     assert len(payload["timeline"]) == 4
     assert payload["timeline"][0] == {
@@ -112,6 +115,51 @@ def test_build_review_result_formats_pass_coordinate() -> None:
     assert payload["timeline"][0]["played_move"] == {"sgf": None, "display": "pass"}
     assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
     assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
+    assert payload["current_position"]["short_explanation"] == (
+        "White to play. KataGo recommends R16, with score estimate 1.6 and winrate 54%."
+    )
+
+
+def test_current_position_recommendation_exists_even_without_selected_mistakes() -> None:
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd];W[dd])")
+
+    review = build_structured_review_for_game(
+        game,
+        engine=_OpeningNoMistakesEngine(),
+        loss_threshold=1.0,
+        limit=3,
+    )
+    payload = review.to_dict()
+
+    assert payload["selected_mistakes"] == []
+    assert payload["game_summary"]["mistakes_reviewed"] == 0
+    assert payload["current_position"] == {
+        "next_player": "B",
+        "best_move": {"sgf": "pq", "display": "Q3"},
+        "top_candidates": [
+            {
+                "move": {"sgf": "pq", "display": "Q3"},
+                "score_estimate": 0.4,
+                "winrate": 0.51,
+            },
+            {
+                "move": {"sgf": "dp", "display": "D4"},
+                "score_estimate": 0.3,
+                "winrate": 0.5,
+            },
+            {
+                "move": {"sgf": "cq", "display": "C3"},
+                "score_estimate": 0.2,
+                "winrate": 0.49,
+            },
+        ],
+        "pv_summary": "B pq -> W dp -> B cq",
+        "score_estimate": 0.4,
+        "winrate": 0.51,
+        "short_explanation": (
+            "Black to play. KataGo recommends Q3, with score estimate 0.4 and winrate 51%."
+        ),
+    }
 
 
 def test_severity_label_uses_chinese_user_facing_values() -> None:
@@ -137,4 +185,40 @@ class _PassPositionEngine:
                 CandidateMove("pq", score_estimate=0.9, winrate=0.51),
             ),
             pv_summary="B qd -> W dp -> B pq",
+        )
+
+
+class _OpeningNoMistakesEngine:
+    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
+        if len(position.moves) == 2 and position.played_move is None:
+            return PositionAnalysis(
+                best_move="pq",
+                played_move=None,
+                estimated_loss=0.0,
+                score_estimate=0.4,
+                winrate=0.51,
+                played_score_estimate=0.4,
+                played_winrate=0.51,
+                top_candidates=(
+                    CandidateMove("pq", score_estimate=0.4, winrate=0.51),
+                    CandidateMove("dp", score_estimate=0.3, winrate=0.5),
+                    CandidateMove("cq", score_estimate=0.2, winrate=0.49),
+                ),
+                pv_summary="B pq -> W dp -> B cq",
+            )
+
+        return PositionAnalysis(
+            best_move=position.played_move or "pq",
+            played_move=position.played_move,
+            estimated_loss=0.0,
+            score_estimate=0.1,
+            winrate=0.5,
+            played_score_estimate=0.1,
+            played_winrate=0.5,
+            top_candidates=(
+                CandidateMove(position.played_move or "pq", score_estimate=0.1, winrate=0.5),
+                CandidateMove("dp", score_estimate=0.0, winrate=0.49),
+                CandidateMove("cq", score_estimate=-0.1, winrate=0.48),
+            ),
+            pv_summary="B pq -> W dp -> B cq",
         )

@@ -101,6 +101,7 @@ class CurrentPositionResult:
     pv_summary: str
     score_estimate: float
     winrate: float
+    short_explanation: str
 
 
 @dataclass(frozen=True)
@@ -221,9 +222,10 @@ def _current_position_view(
     next_player: str,
     analysis: PositionAnalysis,
 ) -> CurrentPositionResult:
+    best_move = _coord_view(analysis.best_move, board_size)
     return CurrentPositionResult(
         next_player=next_player,
-        best_move=_coord_view(analysis.best_move, board_size),
+        best_move=best_move,
         top_candidates=[
             _candidate_view(candidate, board_size)
             for candidate in analysis.top_candidates
@@ -231,6 +233,26 @@ def _current_position_view(
         pv_summary=analysis.pv_summary,
         score_estimate=analysis.score_estimate,
         winrate=analysis.winrate,
+        short_explanation=_current_position_explanation(
+            next_player=next_player,
+            best_move=best_move.display,
+            score_estimate=analysis.score_estimate,
+            winrate=analysis.winrate,
+        ),
+    )
+
+
+def _current_position_explanation(
+    *,
+    next_player: str,
+    best_move: str,
+    score_estimate: float,
+    winrate: float,
+) -> str:
+    color = "Black" if next_player == "B" else "White"
+    return (
+        f"{color} to play. KataGo recommends {best_move}, "
+        f"with score estimate {score_estimate:.1f} and winrate {winrate:.0%}."
     )
 
 
