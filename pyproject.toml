@@ -1,0 +1,20 @@
+[project]
+name = "go-review-ai"
+version = "0.1.0"
+description = "CLI MVP for analyzing Go SGF files with KataGo and generating review reports."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+api = [
+    "fastapi",
+    "python-multipart",
+    "uvicorn",
+]
+dev = [
+    "httpx",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
