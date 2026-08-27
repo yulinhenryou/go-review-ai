@@ -6,7 +6,7 @@ pytest.importorskip("httpx")
 from fastapi.testclient import TestClient
 
 from app.main import create_app
-from src.katago_client import MockEngineClient
+from tests.mock_engine import MockEngineClient
 
 
 def test_analyze_sgf_upload_returns_structured_review() -> None:
@@ -22,7 +22,7 @@ def test_analyze_sgf_upload_returns_structured_review() -> None:
     assert response.status_code == 200
     payload = response.json()
 
-    assert payload["schema_version"] == "2.1"
+    assert payload["schema_version"] == "2.2"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["moves_analyzed"] == 4
     assert len(payload["selected_mistakes"]) == 3
@@ -87,7 +87,7 @@ def test_analyze_moves_returns_structured_review() -> None:
     assert response.status_code == 200
     payload = response.json()
 
-    assert payload["schema_version"] == "2.1"
+    assert payload["schema_version"] == "2.2"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["komi"] == 6.5
     assert payload["game_summary"]["players"] == {

@@ -1,6 +1,6 @@
 from src.analyzer import analyze_game_state, analyze_sgf_file, print_move_summaries
 from src.sgf_parser import parse_sgf_file
-from src.katago_client import MockEngineClient
+from tests.mock_engine import MockEngineClient
 
 
 def test_move_by_move_pipeline_with_mock_engine(capsys) -> None:

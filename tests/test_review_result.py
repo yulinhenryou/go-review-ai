@@ -1,6 +1,7 @@
+from tests.mock_engine import MockEngineClient
 import json
 
-from src.katago_client import CandidateMove, MockEngineClient, PositionAnalysis, PositionInput
+from src.katago_client import CandidateMove, PositionAnalysis, PositionInput
 from src.main import build_review_report_for_sgf, build_structured_review_for_game, build_structured_review_for_sgf
 from src.sgf_parser import parse_sgf
 from src.user_facing_labels import severity_label
@@ -15,7 +16,7 @@ def test_build_review_result_from_pipeline_data() -> None:
     )
     payload = review.to_dict()
 
-    assert review.schema_version == "2.1"
+    assert review.schema_version == "2.2"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["players"]["black"] == "Black Player"
     assert payload["game_summary"]["moves_analyzed"] == 4
@@ -50,6 +51,13 @@ def test_build_review_result_from_pipeline_data() -> None:
 
     assert len(payload["timeline"]) == 4
     assert payload["timeline"][0] == {
+        "evidence": None,
+        "played_candidate": None,
+        "raw_score_loss": None,
+        "score_black_before": 1.8,
+        "score_black_after": 0.4,
+        "winrate_black_before": 0.54,
+        "winrate_black_after": 0.48,
         "move_number": 1,
         "color": "B",
         "played_move": {"sgf": "pd", "display": "Q16"},
@@ -159,7 +167,7 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
     assert payload["game_summary"]["mistakes_reviewed"] == 0
     assert payload["key_points"]["plan_breaks"] == []
     assert payload["key_points"]["leave_main_battlefields"] == []
-    assert payload["current_position"] == {
+    expected_current = {
         "next_player": "B",
         "best_move": {"sgf": "pq", "display": "Q3"},
         "top_candidates": [
@@ -186,6 +194,13 @@ def test_current_position_recommendation_exists_even_without_selected_mistakes()
             "现在轮到黑棋。KataGo建议走Q3，目差预计为0.4，胜率约51%。"
         ),
     }
+    current = payload["current_position"]
+    assert current.pop("evidence") is None
+    for item in current["top_candidates"]:
+        assert item.pop("pv") == ()
+        for key in ("visits", "score_black", "winrate_black"):
+            assert item.pop(key) is None
+    assert current == expected_current
 
 
 def test_severity_label_uses_chinese_user_facing_values() -> None:

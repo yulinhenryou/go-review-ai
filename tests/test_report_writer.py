@@ -1,6 +1,7 @@
+from tests.mock_engine import MockEngineClient
 from src.analyzer import analyze_sgf_file
 from src.classifier import ClassifiedMistake, classify_selected_mistakes
-from src.katago_client import CandidateMove, MockEngineClient, PositionAnalysis, PositionInput
+from src.katago_client import CandidateMove, PositionAnalysis, PositionInput
 from src.main import build_structured_review_for_game, print_sample_report
 from src.mistake_selector import select_top_mistakes
 from src.report_writer import generate_review_report

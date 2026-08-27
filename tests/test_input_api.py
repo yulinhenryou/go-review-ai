@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from app.limits import BodyLimitMiddleware, MAX_REQUEST_BYTES
 from app.main import create_app
 from src.game import MAX_SGF_BYTES
-from src.katago_client import MockEngineClient
+from tests.mock_engine import MockEngineClient
 
 
 @pytest.fixture

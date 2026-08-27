@@ -1,5 +1,5 @@
 from src.analyzer import analyze_sgf_file
-from src.katago_client import MockEngineClient
+from tests.mock_engine import MockEngineClient
 from src.mistake_selector import (
     print_mistake_summary,
     select_mistakes_above_threshold,

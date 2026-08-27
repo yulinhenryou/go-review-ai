@@ -8,7 +8,7 @@ from src.game import (
     MAX_SGF_BYTES, GameInputError, GameMove, GameRecord,
     input_preview, validate_game, validate_review_options,
 )
-from src.katago_client import MockEngineClient
+from tests.mock_engine import MockEngineClient
 from src.sgf_parser import parse_sgf, parse_sgf_bytes, parse_sgf_file
 
 

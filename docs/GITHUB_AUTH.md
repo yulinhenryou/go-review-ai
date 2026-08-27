@@ -1,5 +1,9 @@
 # Restore GitHub Write Access
 
+Resolved on 2026-08-27: terminal login and actual pushes succeeded. M0/M1 and the
+archive tag are on GitHub. The guide below is retained for future renewal;
+the earlier failures described here are historical.
+
 Repository: `yulinhenryou/go-review-ai`. Do not make the repository more public,
 disable branch protection, or share passwords/tokens in chat to resolve login.
 

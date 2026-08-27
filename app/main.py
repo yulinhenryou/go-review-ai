@@ -14,7 +14,8 @@ from src.game import (
     validate_game, validate_review_options,
 )
 from src.katago_client import EngineClient
-from src.main import build_default_engine
+from src.engine_factory import build_default_engine
+from src.engine_types import IncompleteAnalysisError, KataGoUnavailableError
 from src.review_service import build_structured_review_for_game
 from src.sgf_parser import parse_sgf_bytes
 
@@ -55,10 +56,15 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
         )
 
     @app.exception_handler(RuntimeError)
-    async def analysis_error(_request, _exc: RuntimeError) -> JSONResponse:
+    async def analysis_error(_request, exc: RuntimeError) -> JSONResponse:
+        code = "analysis_failed"
         message = "Analysis failed; check the server's engine configuration"
+        if isinstance(exc, KataGoUnavailableError):
+            code, message = "engine_unavailable", "Real KataGo is unavailable; no simulated report was generated"
+        elif isinstance(exc, IncompleteAnalysisError):
+            code, message = "incomplete_analysis", "Engine evidence is incomplete; no complete report was generated"
         return JSONResponse(
-            {"detail": message, "error": {"code": "analysis_failed", "message": message,
+            {"detail": message, "error": {"code": code, "message": message,
              "field": None, "move_number": None}}, status_code=503,
         )
 
@@ -80,6 +86,13 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/ready")
+    def ready() -> dict:
+        engine = selected_engine_factory()
+        if not hasattr(engine, "readiness"):
+            raise KataGoUnavailableError("Real engine readiness is unavailable")
+        return engine.readiness()
 
     @app.post("/api/v1/parse-sgf")
     async def parse_upload(

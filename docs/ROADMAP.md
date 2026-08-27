@@ -1,9 +1,10 @@
 # V1 Development Path
 
-**Status: approved by the user on 2026-08-27; M1 implemented locally.**
+**Status: approved by the user on 2026-08-27; M0/M1 uploaded, M2 verified.**
 Prepared on 2026-08-27 after auditing prototype `7447f54`.
-M0 housekeeping and M1 input work are local; GitHub upload awaits authentication.
-M2-M5 are not implemented. See [M1 acceptance](M1_ACCEPTANCE.md).
+M1 was reverified and uploaded at d08fc47 after GitHub access recovery.
+M2 implementation and real-engine evidence are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
+M3-M5 are not implemented.
 
 ## Release Goal
 
@@ -83,7 +84,7 @@ Deliverables for this housekeeping pass:
 - Inventory the source and document known release blockers.
 - Archive the two unused generated report snapshots without changing their bytes.
 - Preserve the entire prototype through its existing GitHub baseline commit and
-  local tag `archive/prototype-2026-08-27`; tag upload awaits terminal authentication.
+  tag `archive/prototype-2026-08-27`, uploaded after authentication recovery.
 - Clarify the roles of active source, samples, tests, archived output and Pages.
 - Update README and AGENTS to distinguish the historical CLI phase from web v1.
 - Ignore local credentials, private uploads, model files and generated outputs.
@@ -92,8 +93,7 @@ Gate: same 54 regression tests pass, runtime source is unchanged, archive conten
 are preserved, documentation links resolve, and the changes are on GitHub.
 Runtime mock/heuristic isolation is deliberately deferred to M2/M3 because it
 changes behavior. The user has now approved functional development.
-Local verification is complete; the GitHub synchronization gate remains open
-until repository write authentication is restored. See [the status audit](PROJECT_STATUS.md).
+Verification and GitHub synchronization are complete. See [the status audit](PROJECT_STATUS.md).
 
 ## M1 - Normalize and Validate Inputs
 
@@ -128,6 +128,11 @@ input never reaches KataGo. Existing small SGF tests stay meaningful, not just g
 ## M2 - Make Real Analysis Trustworthy
 
 Dependencies: M1's validated model and rules semantics.
+
+Delivered: real-only factory, model readiness, one process per game, bounded
+turn batches, ID/turn matching, fixed-black evidence, actual-move search, genuine
+PVs, failure cleanup, recorded-response replay and live benchmarks. See
+[engine contract](ENGINE_CONTRACT.md) for the conservative missing-data boundary.
 
 Work:
 
@@ -273,7 +278,7 @@ Keep the prototype available while replacements are built, but remove retired
 runtime paths when their consumers migrate. Do not retain experiments as silent
 fallbacks in the final default flow.
 
-Next functional work: **M2's real-engine readiness, evaluation correctness and process lifecycle**.
+Next functional work: **M3's obvious-mistake policy and concise factual reporting**.
 M2 is the first real-analysis milestone, M4 is the local usable web milestone, and
 M5 is the first public usable release. No completion dates are committed before
 the real-engine and deployment benchmarks.

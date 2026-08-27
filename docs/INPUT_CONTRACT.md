@@ -69,8 +69,8 @@ Japanese encore/dispute phases.
 | --- | --- | --- |
 | `POST /api/v1/parse-sgf` | Multipart file; optional rules/komi query parameters | Validated input preview, no engine created |
 | `POST /api/v1/validate-moves` | Game JSON, metadata may be missing | Same preview shape, no engine created |
-| `POST /api/v1/analyze-sgf` | Same upload, plus loss_threshold/limit query parameters | Review schema 2.1 |
-| `POST /api/v1/analyze-moves` | Complete Game JSON, plus loss_threshold/limit fields | Review schema 2.1 |
+| `POST /api/v1/analyze-sgf` | Same upload, plus loss_threshold/limit query parameters | Review schema 2.2 |
+| `POST /api/v1/analyze-moves` | Complete Game JSON, plus loss_threshold/limit fields | Review schema 2.2 |
 
 Manual JSON is strict: no type coercion, NaN/infinity, extra fields, or omitted
 move coordinates. Missing metadata is allowed for preview, not analysis.
@@ -92,7 +92,8 @@ Domain errors return HTTP 400; size limits return 413; invalid request fields
 return 422. Responses contain an `error` object with `code`, `message`, `field`
 and optional `move_number`, plus a legacy `detail` string. Request validation
 also includes sanitized `issues`. Raw payloads and private engine paths are not
-echoed. Engine runtime errors return a generic 503 `analysis_failed` response.
+echoed. M2 engine errors use HTTP 503 with `engine_unavailable`,
+`incomplete_analysis`, or `analysis_failed`; see [engine contract](ENGINE_CONTRACT.md).
 
 Review schema 2.1 retains the 2.0 fields and adds `rules`, `record_status` and
 `input_warnings` to `game_summary`. The bundled frontend sends explicit manual
@@ -101,5 +102,6 @@ about ignored variations. Full preview/confirmation UX is still M4 work.
 
 The engine input now carries rules and `analysis_kind`. A null played move in
 `played_move` mode is a pass; `current_position` mode means no move is being
-evaluated. An unevaluated real-engine pass fails rather than inheriting the best
-candidate score. Other missing-candidate score/PV fixes remain M2 work.
+evaluated. M2 explicitly searches an absent played move/pass. Missing evidence
+stays unavailable rather than inheriting another candidate's value. Review schema
+2.2 adds engine evidence to the M1 schema 2.1 fields described above.

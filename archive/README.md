@@ -21,9 +21,8 @@ small, intentional, and stored with the tests that consume them.
 
 The [prototype baseline commit](https://github.com/yulinhenryou/go-review-ai/tree/7447f54688f45d3783e41b633663e760a8aa061e)
 preserves the full prototype, including its CLI, API, board, mock engine and
-teaching experiments. The local tag `archive/prototype-2026-08-27` also points to
-this commit; that tag has not been uploaded because terminal Git authentication
-failed. The commit link above is already available on GitHub.
+teaching experiments. Tag `archive/prototype-2026-08-27` also points to this commit
+and was uploaded after terminal authentication was restored on 2026-08-27.
 Inspect the local tag without modifying the working tree:
 
 ```bash
@@ -32,9 +31,8 @@ git show archive/prototype-2026-08-27:frontend/index.html
 ```
 
 No standalone unused Python module was identified in the current source inventory.
-The mock engine, classifier and key-point heuristics are still coupled to active
-code and tests. They are recorded as replacement work, not falsely labeled as
-already removed. M2 will isolate mock behavior; M3 will retire unsupported
+The M2 change moves mock behavior exclusively to test fixtures. Classifier and
+key-point heuristics remain coupled to the legacy report; M3 will retire unsupported
 teaching from the production report. See the [roadmap](../docs/ROADMAP.md).
 
 ## Archive Rules

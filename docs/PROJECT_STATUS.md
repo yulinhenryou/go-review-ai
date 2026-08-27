@@ -1,18 +1,31 @@
 # Project Status Audit
 
+## M2 Update
+
+GitHub terminal credentials were restored on 2026-08-27. M1 was rechecked (173
+tests), pushed to main and codex/m1-input-contract at d08fc47, and the prototype
+archive tag was uploaded. Remote ref checks confirmed both branches.
+
+M2 removes production mock fallback, reuses one loaded process per game, adds
+strict JSONL and score/PV mapping, explicit played-move search, provenance and
+model readiness. Regular/recorded tests and live KataGo tests pass; named-hardware
+short/235-move benchmarks are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
+Legacy teaching prose, partial-report UI, bounded API jobs and public hosting
+remain M3-M5 work. Pages is unchanged.
+
 ## M1 Update
 
 The user approved implementation on 2026-08-27. M1 now provides validated shared
 input records, sgfmill parsing/captures, explicit rules/komi confirmation, input
 size limits, pass/current-position separation and packaged installation.
 See [M1 acceptance](M1_ACCEPTANCE.md) and [the input contract](INPUT_CONTRACT.md).
-Real-engine evaluation correctness, mock isolation and report teaching remain
-M2/M3 work; public hosting remains M5 work.
+At M1 acceptance, real-engine evaluation correctness and mock isolation remained
+M2 work. Those are addressed above; report teaching remains M3 work.
 
 ## Historical M0 Audit
 
 Date: 2026-08-27. Baseline: `7447f54688f45d3783e41b633663e760a8aa061e`.
-The findings below describe that baseline, not the current M1 implementation.
+The findings below describe that baseline, not the current implementation.
 They are retained as historical evidence, not a v1 acceptance report.
 
 ## Verified in This Pass
@@ -67,7 +80,7 @@ and the local `archive/prototype-2026-08-27` tag. The active mock/heuristic code
 removed**: M2 and M3 must replace those paths and verify compatibility first.
 There is no newly introduced production path in this housekeeping change.
 
-## History and Deployment
+## Historical M0 Authentication and Deployment
 
 Terminal HTTPS push was rejected with an invalid username/token; no usable SSH
 agent identity was available. The connected GitHub account could read the repository,

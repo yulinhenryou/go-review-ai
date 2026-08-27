@@ -13,8 +13,8 @@ class MoveAnalysisResult:
     move_number: int
     color: str
     played_move: str | None
-    recommended_move: str
-    estimated_loss: float
+    recommended_move: str | None
+    estimated_loss: float | None
     position_input: PositionInput
     engine_analysis: PositionAnalysis
 
@@ -28,44 +28,12 @@ class GameAnalysis:
 
 def analyze_game(game: ParsedGame, engine: EngineClient) -> list[MoveAnalysisResult]:
     """Analyze each main-line move with a position-like input built before the move."""
-    validate_game(game)
-    history: list[tuple[str, str | None]] = []
-    results: list[MoveAnalysisResult] = []
-
-    for move_number, parsed_move in enumerate(game.moves, start=1):
-        if parsed_move.color not in {"B", "W"}:
-            raise ValueError(f"Unsupported move color: {parsed_move.color}")
-
-        position = PositionInput(
-            board_size=game.board_size,
-            komi=game.komi,
-            to_play=parsed_move.color,
-            moves=tuple(history),
-            played_move=parsed_move.point,
-            rules=game.rules,
-            analysis_kind="played_move",
-        )
-
-        analysis = engine.analyze_position(position)
-        results.append(
-            MoveAnalysisResult(
-                move_number=move_number,
-                color=parsed_move.color,
-                played_move=parsed_move.point,
-                recommended_move=analysis.best_move,
-                estimated_loss=analysis.estimated_loss,
-                position_input=position,
-                engine_analysis=analysis,
-            )
-        )
-
-        history.append((parsed_move.color, parsed_move.point))
-
-    return results
+    positions = _positions(game)
+    return _move_results(positions, _evaluate(engine, positions))
 
 
 def analyze_game_state(game: ParsedGame, engine: EngineClient) -> GameAnalysis:
-    results = analyze_game(game, engine)
+    positions = _positions(game)
     current_position_input = PositionInput(
         board_size=game.board_size,
         komi=game.komi,
@@ -75,12 +43,37 @@ def analyze_game_state(game: ParsedGame, engine: EngineClient) -> GameAnalysis:
         rules=game.rules,
         analysis_kind="current_position",
     )
-    current_position = engine.analyze_position(current_position_input)
+    evaluations = _evaluate(engine, positions + [current_position_input])
     return GameAnalysis(
-        move_results=results,
-        current_position=current_position,
+        move_results=_move_results(positions, evaluations[:-1]),
+        current_position=evaluations[-1],
         current_position_input=current_position_input,
     )
+
+
+def _positions(game: ParsedGame) -> list[PositionInput]:
+    validate_game(game)
+    history = tuple((move.color, move.point) for move in game.moves)
+    return [PositionInput(
+        board_size=game.board_size, komi=game.komi, rules=game.rules,
+        to_play=move.color, moves=history[:i], played_move=move.point,
+    ) for i, move in enumerate(game.moves)]
+
+
+def _evaluate(engine: EngineClient, positions: list[PositionInput]) -> list[PositionAnalysis]:
+    batch = getattr(engine, "analyze_positions", None)
+    analyses = batch(positions) if batch is not None else [engine.analyze_position(p) for p in positions]
+    if len(analyses) != len(positions):
+        raise RuntimeError("Engine did not return all requested positions")
+    return analyses
+
+
+def _move_results(positions, analyses) -> list[MoveAnalysisResult]:
+    return [MoveAnalysisResult(
+        move_number=i, color=position.to_play, played_move=position.played_move,
+        recommended_move=analysis.best_move, estimated_loss=analysis.estimated_loss,
+        position_input=position, engine_analysis=analysis,
+    ) for i, (position, analysis) in enumerate(zip(positions, analyses, strict=True), 1)]
 
 
 def analyze_sgf_file(path: str | Path, engine: EngineClient) -> list[MoveAnalysisResult]:
@@ -91,10 +84,11 @@ def analyze_sgf_file(path: str | Path, engine: EngineClient) -> list[MoveAnalysi
 def print_move_summaries(results: list[MoveAnalysisResult]) -> None:
     for result in results:
         played = result.played_move if result.played_move is not None else "pass"
+        loss = f"{result.estimated_loss:.2f}" if result.estimated_loss is not None else "unavailable"
         print(
             f"Move {result.move_number}: "
             f"played={played} recommended={result.recommended_move} "
-            f"loss={result.estimated_loss:.2f}"
+            f"loss={loss}"
         )
 
 

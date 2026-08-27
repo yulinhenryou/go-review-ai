@@ -4,10 +4,10 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: M1 input validation implemented locally, not a validated v1.**
-SGF and manual input now share a validated game model. Real-engine correctness,
-concise reporting and deployment remain M2-M5 work.
-See [M1 acceptance](docs/M1_ACCEPTANCE.md) and [Current Status](#current-status).
+**Current status: M2 real-engine integration verified, not a validated v1.**
+SGF/manual inputs share a validated model; real KataGo analysis now has explicit
+provenance and no mock fallback. Concise factual reporting and public deployment
+remain M3-M5 work. See [M2 acceptance](docs/M2_ACCEPTANCE.md).
 
 ## What It Does
 
@@ -32,10 +32,10 @@ claims about tactical causes are required for this release.
 | --- | --- |
 | Core | Python 3.11+, dataclasses, standard library |
 | Game input | sgfmill 1.1.1, immutable game records, shared replay validation and strict JSON models |
-| Analysis | External KataGo binary, model, and analysis config; JSON over subprocess stdin/stdout |
+| Analysis | External KataGo; one loaded process per game, bounded JSONL batches and evidence normalization |
 | API | FastAPI, Pydantic, Uvicorn, python-multipart |
 | Frontend | HTML, CSS, vanilla JavaScript, Canvas 2D |
-| Tests | pytest, HTTPX / FastAPI TestClient, mocked engine responses |
+| Tests | pytest, HTTPX, protocol subprocess fixtures, recorded real responses and opt-in live KataGo tests |
 | Static preview | GitHub Pages, published from `gh-pages` |
 
 KataGo models and executables are not bundled. There is no deployed Python backend
@@ -71,17 +71,20 @@ in the [archive](archive/README.md).
 | --- | --- |
 | `src/game.py` | Shared game records, limits, legality replay and input previews |
 | `src/sgf_parser.py` | Strict sgfmill adapter and metadata extraction |
-| `src/katago_client.py` | Engine protocol, real client, current mock implementation |
+| `src/katago_client.py` | Real-engine lifecycle, batched queries and played-move evaluation |
+| `src/katago_process.py`, `src/engine_protocol.py`, `src/engine_types.py` | Bounded JSONL transport, strict value mapping and evidence types |
+| `src/engine_factory.py` | Explicit real-engine configuration; no mock fallback |
 | `src/analyzer.py` | Position-by-position analysis orchestration |
 | `src/mistake_selector.py`, `src/mistake_severity.py` | Mistake ranking and severity |
 | `src/classifier.py`, `src/key_points.py` | Experimental heuristics, still called by the prototype |
 | `src/review_result.py` | Structured result contract and serialization |
 | `src/report_writer.py`, `src/chinese_explanations.py`, `src/user_facing_labels.py` | Report templates and labels |
 | `src/review_service.py` | Shared review orchestration |
-| `src/main.py` | Sample CLI, engine factory and legacy builder re-exports |
+| `src/main.py` | Sample CLI and legacy builder re-exports |
 | `app/` | FastAPI routes and request models |
 | `frontend/` | Current browser prototype and Pages publication source |
-| `tests/` | Active regression tests |
+| `tests/` | Regression tests, isolated mock fixtures and recorded real-engine evidence |
+| `config/analysis.cfg`, `scripts/benchmark_engine.py` | Local engine baseline and opt-in performance measurement |
 | `samples/` | Sample SGF inputs; see [sample notes](samples/README.md) |
 | `docs/` | Contracts, acceptance evidence, status audit and approved roadmap |
 | `archive/` | Historical output snapshots and prototype archive index; not runtime code |
@@ -104,16 +107,10 @@ Other Python/platform combinations are not yet an acceptance matrix.
 The wheel contains only Python packages, not archives, samples, tests or frontend
 files. Use the repository checkout for the sample CLI and browser UI.
 
-Run the sample CLI:
-
-```bash
-python -m src.main
-```
-
-**Demo-data warning:** without `KATAGO_MODEL_PATH` and `KATAGO_CONFIG_PATH`, the
-default engine factory falls back to deterministic mock data. The API does not
-currently identify that fallback in its result. Do not treat those reports as
-KataGo evaluations. V1 must fail clearly when the real engine is unavailable.
+**Real engine required:** the CLI/API fail explicitly without a usable KataGo,
+model and configuration. Mock output is now confined to test fixtures. The
+legacy report still contains heuristic teaching prose pending M3; do not treat
+those narratives as established tactical explanations.
 
 For the real engine, install KataGo and obtain a compatible model and analysis
 config following the [KataGo project](https://github.com/lightvector/KataGo).
@@ -122,12 +119,18 @@ Set the environment before starting the CLI or backend:
 ```bash
 export KATAGO_PATH="katago"
 export KATAGO_MODEL_PATH="/absolute/path/to/model.bin.gz"
-export KATAGO_CONFIG_PATH="/absolute/path/to/analysis.cfg"
+export KATAGO_CONFIG_PATH="$PWD/config/analysis.cfg"
 ```
 
-These placeholders must be replaced with real local files. Setting them alone
-does not validate the engine or its output. Runtime engine failures currently
-raise errors; the configuration fallback is not a general recovery mechanism.
+Replace the model placeholder with a real local file. Setting paths alone does
+not validate the engine. Run the opt-in integration checks and sample CLI:
+
+```bash
+RUN_KATAGO_INTEGRATION=1 python -m pytest tests/test_katago_integration.py -q
+python -m src.main
+```
+
+The tested transport supports macOS/Linux (POSIX); Windows is not verified.
 
 Run the backend:
 
@@ -153,6 +156,7 @@ fill missing metadata only; existing recorded values take precedence.
 | Endpoint | Input / behavior |
 | --- | --- |
 | `GET /health` | HTTP liveness only; does not check KataGo readiness |
+| `GET /ready` | Fresh real model-load/version check; expensive, not a frequent polling endpoint |
 | `POST /api/v1/parse-sgf` | Validated upload preview, no engine; identifies missing metadata |
 | `POST /api/v1/validate-moves` | Equivalent preview for manual game JSON, no engine |
 | `POST /api/v1/analyze-sgf` | Multipart `file`; `rules`, `komi`, `loss_threshold` and `limit` are query parameters |
@@ -168,29 +172,31 @@ curl --fail-with-body 'http://127.0.0.1:8000/api/v1/analyze-moves' \
   -d '{"board_size":19,"rules":"japanese","komi":6.5,"moves":[{"color":"B","sgf":"pd"},{"color":"W","sgf":"dd"}],"loss_threshold":3.0,"limit":5}'
 ```
 
-The API returns review schema `2.1`; that number is a data format version,
+The API returns review schema `2.2`; that number is a data format version,
 not a claim that product v2 or v1 is complete. A short sample may have no results
 above the example threshold. The proposed v1 threshold is not yet the default.
 Preview schema is `1.0`. See [the input contract](docs/INPUT_CONTRACT.md) for
 limits, supported SGF properties, error responses and pass semantics.
+See [the engine contract](docs/ENGINE_CONTRACT.md) for score perspectives,
+candidate PVs, provenance and missing-evidence behavior.
 
 ## Current Status
 
-Updated: **2026-08-27**. M1 branch: `codex/m1-input-contract`.
+Updated: **2026-08-27**. M2 branch: `codex/m2-engine-reliability`.
 
 | Area | Status and limitation |
 | --- | --- |
 | SGF input | Shared replay validation, strict limits, metadata confirmation and explicit variation warnings; unsupported setups/rules fail |
 | Manual entry | Shared server-side validation and explicit rules/komi; placement/undo/navigation retained; full pass/input UX remains M4 |
-| KataGo | Rules/pass context forwarded; other missing-candidate/PV values and score perspectives still need M2 correction |
-| Mistakes / report | Ranking and templates exist; heuristic labels and fallback values are not sufficient evidence of Go causes |
-| Web service | Pre-engine validation, bounded request bodies and preview endpoints; analysis jobs/readiness remain M4/M2 work |
-| Verification | **173 tests passed**; fresh install and desktop/mobile browser smoke checks with an explicit mock engine; no real-engine acceptance yet |
+| KataGo | Real model readiness, process reuse, strict JSONL matching, explicit played-move search, genuine PVs and fixed-black evidence |
+| Mistakes / report | Real numeric evidence; legacy heuristic teaching remains pending M3; incomplete evidence fails clearly instead of fabricating a full report |
+| Web service | Input validation and model readiness; bounded background jobs/cancellation still belong to M4 |
+| Verification | **225 regular tests passed + 3 opt-in real-engine tests passed**; recorded-response replay and real-model performance checks |
 | Deployment | Pages serves the frontend, not a complete online analysis service |
 
 The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
-older prototype. M0 verified its published HTML; M1 frontend changes are local
-and have not been published. It targets the visitor's loopback address, and the
+older prototype. M0 verified its published HTML; the M1/M2 changes have not been
+published to Pages. It targets the visitor's loopback address, and the
 Pages origin is absent from the backend's CORS allowlist. Starting a backend on the
 developer's computer does not make analysis available to other visitors.
 
@@ -202,18 +208,16 @@ See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitat
 
 | Milestone | Deliverable | Gate |
 | --- | --- | --- |
-| M0 | Repository inventory, archive index, README and v1 plan | Local work complete; GitHub upload awaits authentication |
-| M1 | Shared validated game model and supported input contract | Locally verified; SGF/manual equivalence and rejection tests pass |
-| M2 | Reliable, efficient real KataGo analysis | Every reported evaluation is traceable; no invented scores or variations |
+| M0 | Repository inventory, archive index, README and v1 plan | Complete; housekeeping and archive tag uploaded |
+| M1 | Shared validated game model and supported input contract | Complete; 173 tests reverified and main/branch uploaded at d08fc47 |
+| M2 | Reliable, efficient real KataGo analysis | Implemented and verified with real models; see acceptance evidence and remaining limits |
 | M3 | Obvious-mistake selection and concise factual report | Stable threshold/ranking tests and zero unsupported teaching claims |
 | M4 | Complete browser flow with bounded analysis jobs | Upload and manual-entry workflows pass browser acceptance tests |
 | M5 | Deployable web release and real-engine acceptance | A second device completes a real game review against the deployed backend |
 
-The user approved [the development path](docs/ROADMAP.md). M1 is implemented;
-the next functional milestone is M2, reliable real-engine analysis.
-
-GitHub writes remain pending. Follow [the access recovery guide](docs/GITHUB_AUTH.md)
-to renew terminal credentials; connected-app access is a separate authorization.
+The next functional milestone is M3: obvious-mistake selection and factual reports.
+GitHub terminal write access was restored and verified on 2026-08-27. Keep
+[the access recovery guide](docs/GITHUB_AUTH.md) for future credential renewal.
 
 ## Development and Archives
 

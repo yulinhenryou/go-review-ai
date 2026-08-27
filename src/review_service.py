@@ -6,6 +6,7 @@ from src.analyzer import analyze_game_state
 from src.classifier import classify_all_results, classify_selected_mistakes
 from src.game import validate_game, validate_review_options
 from src.katago_client import EngineClient
+from src.engine_types import IncompleteAnalysisError
 from src.mistake_selector import select_mistakes_above_threshold
 from src.report_writer import generate_review_report
 from src.review_result import ReviewResult, build_review_result
@@ -37,6 +38,16 @@ def build_review_outputs_for_game(
     validate_review_options(loss_threshold, limit)
     analysis = analyze_game_state(game, engine)
     results = analysis.move_results
+    # M3 will add partial reports. Until then fail closed, never invent missing data.
+    for result in results:
+        value = result.engine_analysis
+        if any(item is None for item in (
+            value.best_move, value.estimated_loss, value.score_estimate, value.winrate,
+            value.played_score_estimate, value.played_winrate,
+        )) or any(c.score_estimate is None for c in value.top_candidates):
+            raise IncompleteAnalysisError("A move lacks the evidence required by the report")
+    if analysis.current_position.score_estimate is None or analysis.current_position.winrate is None:
+        raise IncompleteAnalysisError("The final recorded position lacks a value")
     threshold_mistakes = select_mistakes_above_threshold(
         results,
         loss_threshold=loss_threshold,

@@ -66,10 +66,11 @@ Comprehensive navigation, cancellation and live-engine browser acceptance remain
 
 ## Remaining Boundaries
 
-M1 is locally implemented and verified. GitHub upload remains pending permission
-recovery; the existing Pages site has not changed.
+M1 was reverified (173 passed) and uploaded on 2026-08-27 after permission recovery.
+Remote main and codex/m1-input-contract both resolved to d08fc47; the archive tag
+was also uploaded. The existing Pages site has not changed.
 
-M2 must still remove default mock fallback, correct missing candidate/PV values
+At M1 acceptance, M2 still needed to remove default mock fallback, correct missing candidate/PV values
 and score perspective, reuse the engine process and run genuine model-backed
 tests/benchmarks. M3 must remove unsupported teaching claims. M4 owns complete
 manual pass/input UX, preview confirmation and bounded analysis jobs. M5 owns

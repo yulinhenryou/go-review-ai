@@ -1593,7 +1593,6 @@
         var selected = getSelectedCandidate(data);
         var activeCandidates = getActiveCandidates(data);
         var activeContext = getActiveContext(data);
-        var pvSummary = activeContext ? (activeContext.pvSummary || "") : "";
         var candidate;
         var rankLabel;
         var scoreText;
@@ -1614,10 +1613,12 @@
           ? String(Math.round(candidate.winrate * 100)) + "%"
           : "暂无胜率";
 
-        if (pvSummary) {
-          pvText = selected.rank === 1
-            ? pvSummary
-            : "当前只拿到主推荐主线：" + pvSummary;
+        if (Array.isArray(candidate.pv) && candidate.pv.length) {
+          pvText = candidate.pv.map(function (step) {
+            var point = fromSgf(step.move);
+            var coord = point ? DISPLAY_COLUMNS.charAt(point.x) + String(BOARD_SIZE - point.y) : step.move;
+            return (step.color === "B" ? "黑" : "白") + coord;
+          }).join(" -> ");
         } else {
           pvText = "暂无完整PV，只展示候选点本身的胜率与目差。";
         }
@@ -1654,7 +1655,7 @@
               "<span class=\"candidate-choice-rank\">" + escapeHtml(candidateRankLabel(rank)) + "</span>",
               "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
               "<span class=\"candidate-choice-meta\">" + escapeHtml(winrateLabel) + "约" +
-                escapeHtml(typeof candidate.winrate === "number" ? String(Math.round(candidate.winrate * 100)) : "0") +
+                escapeHtml(typeof candidate.winrate === "number" ? String(Math.round(candidate.winrate * 100)) : "暂无") +
                 "%，目差约" +
                 escapeHtml(typeof candidate.score_estimate === "number" ? String(Math.round(candidate.score_estimate * 10) / 10) : "暂无") +
                 "</span>",
@@ -1700,6 +1701,9 @@
       }
 
       function perspectiveWinrate(item, perspectiveColor) {
+        if (item && typeof item.winrate_black_after === "number") {
+          return perspectiveColor === "B" ? item.winrate_black_after : 1 - item.winrate_black_after;
+        }
         if (!item || typeof item.winrate_after !== "number") return null;
         if (item.color === perspectiveColor) return item.winrate_after;
         return 1 - item.winrate_after;
@@ -1758,8 +1762,8 @@
           parts.push(winrateLabelForColor(perspectiveColor) + "约 " + formatTrendValue("winrate", currentWinrate) + "。");
         }
 
-        if (typeof focused.score_after === "number") {
-          parts.push("目差约 " + formatTrendValue("score", focused.score_after) + "。");
+        if (typeof focused.score_black_after === "number") {
+          parts.push("黑棋目差约 " + formatTrendValue("score", focused.score_black_after) + "。");
         }
 
         return parts.join("");
@@ -1778,7 +1782,7 @@
         if (!container) return;
 
         var hasWinrate = hasTrendMetric(timeline, "winrate_after");
-        var hasScore = hasTrendMetric(timeline, "score_after");
+        var hasScore = hasTrendMetric(timeline, "score_black_after");
         var activeMetric = chartMetric;
         var series;
         var minValue;
@@ -1792,7 +1796,7 @@
         var firstPoint;
         var lastPoint;
         var selectedMoveNumber = getViewedMoveNumber();
-        var winratePerspectiveColor = inferWinratePerspectiveColor(analysisData);
+        var winratePerspectiveColor = "B";
         var winrateTitle = winrateLabelForColor(winratePerspectiveColor);
 
         if (!hasWinrate && !hasScore) {
@@ -1819,7 +1823,7 @@
                 };
               })
               .filter(Boolean)
-          : buildTrendSeries(timeline, "score_after");
+          : buildTrendSeries(timeline, "score_black_after");
         if (!series.length) {
           container.innerHTML = "<div>暂无可绘制的走势数据。</div>";
           return;
@@ -1908,7 +1912,7 @@
           "</svg>",
           "</div>",
           "<div class=\"chart-meta\">",
-          escapeHtml(activeMetric === "winrate" ? "显示每手实战后的" + winrateTitle + "走势。" : "显示每手实战后目差走势。"),
+          escapeHtml(activeMetric === "winrate" ? "显示每手实战后的" + winrateTitle + "走势。" : "每手实战后目差（正数为黑棋领先）。"),
           " 共 " + escapeHtml(String(series.length)) + " 个点。",
           typeof selectedMoveNumber === "number" ? " 当前选中第" + escapeHtml(String(selectedMoveNumber)) + "手。" : " 当前显示最新局面。",
           "</div>",

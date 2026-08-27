@@ -1,508 +1,253 @@
 from __future__ import annotations
 
-import json
+import hashlib
 import os
-import subprocess
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Protocol
+import re
+import shutil
+import time
+import uuid
 
-Color = Literal["B", "W"]
-Move = str
-
-
-@dataclass(frozen=True)
-class PositionInput:
-    board_size: int
-    komi: float | None
-    to_play: Color
-    moves: tuple[tuple[Color, Move | None], ...]
-    played_move: Move | None
-    rules: Literal["japanese", "chinese"] = "japanese"
-    analysis_kind: Literal["played_move", "current_position"] = "played_move"
-
-
-@dataclass(frozen=True)
-class CandidateMove:
-    move: Move
-    score_estimate: float
-    winrate: float
-
-
-@dataclass(frozen=True)
-class PositionAnalysis:
-    best_move: Move
-    played_move: Move | None
-    estimated_loss: float
-    score_estimate: float
-    winrate: float
-    played_score_estimate: float
-    played_winrate: float
-    top_candidates: tuple[CandidateMove, ...]
-    pv_summary: str
-
-
-class EngineClient(Protocol):
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        """Analyze one Go position and return structured results."""
-
-
-class KataGoUnavailableError(RuntimeError):
-    """Raised when the KataGo binary/config/model cannot be used."""
+from src.engine_protocol import candidates, candidate, optional_visits, sgf_to_gtp, validate_position
+from src.engine_types import (
+    AnalysisEvidence, CandidateMove, EngineClient, EngineProtocolError,
+    KataGoUnavailableError, PositionAnalysis, PositionInput,
+)
+from src.katago_process import JsonlProcess
 
 
 class KataGoClient:
-    """Subprocess-backed KataGo client using JSON analysis mode."""
+    """Real analysis only. One loaded process per game, bounded batches of turns."""
 
     def __init__(
-        self,
-        *,
-        model_path: str | Path,
-        config_path: str | Path,
-        katago_path: str = "katago",
-        candidate_count: int = 3,
-        max_visits: int = 200,
-        timeout_seconds: float = 20.0,
+        self, *, model_path: str | Path, config_path: str | Path,
+        katago_path: str = "katago", candidate_count: int = 3,
+        max_visits: int = 200, timeout_seconds: float = 60.0,
     ) -> None:
-        if candidate_count <= 0:
-            raise ValueError("candidate_count must be positive")
-        if max_visits <= 0:
-            raise ValueError("max_visits must be positive")
-        if timeout_seconds <= 0:
-            raise ValueError("timeout_seconds must be positive")
+        if type(candidate_count) is not int or not 1 <= candidate_count <= 20:
+            raise ValueError("candidate_count must be between 1 and 20")
+        if type(max_visits) is not int or not 1 <= max_visits <= 100000:
+            raise ValueError("max_visits must be between 1 and 100000")
+        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not 0 < timeout_seconds <= 3600:
+            raise ValueError("timeout_seconds must be finite and between 0 and 3600")
+        self._model_path = Path(model_path)
+        self._config_path = Path(config_path)
         self._katago_path = katago_path
-        self._model_path = str(model_path)
-        self._config_path = str(config_path)
         self._candidate_count = candidate_count
         self._max_visits = max_visits
         self._timeout_seconds = timeout_seconds
+        self._session = None
+        self._version = ""
+        self._model_id = ""
+        self._model_hash = ""
+        self._config_hash = ""
 
     @classmethod
-    def from_environment(
-        cls,
-        *,
-        katago_path: str = "katago",
-        candidate_count: int = 3,
-        max_visits: int = 200,
-        timeout_seconds: float = 20.0,
-    ) -> "KataGoClient":
-        model_path = os.environ.get("KATAGO_MODEL_PATH")
-        config_path = os.environ.get("KATAGO_CONFIG_PATH")
-        if not model_path or not config_path:
-            raise KataGoUnavailableError(
-                "Set KATAGO_MODEL_PATH and KATAGO_CONFIG_PATH to use KataGo."
+    def from_environment(cls, **options) -> "KataGoClient":
+        model = os.environ.get("KATAGO_MODEL_PATH")
+        config = os.environ.get("KATAGO_CONFIG_PATH")
+        if not model or not config:
+            raise KataGoUnavailableError("Set KATAGO_MODEL_PATH and KATAGO_CONFIG_PATH; no mock fallback is available")
+        options.setdefault("katago_path", os.environ.get("KATAGO_PATH", "katago"))
+        return cls(model_path=model, config_path=config, **options)
+
+    def __enter__(self):
+        if self._session is not None:
+            raise RuntimeError("Engine context is already open")
+        binary = shutil.which(self._katago_path)
+        if binary is None:
+            raise KataGoUnavailableError("Configured KataGo binary not found")
+        try:
+            for path in (self._model_path, self._config_path):
+                if not path.is_file() or path.stat().st_size == 0:
+                    raise KataGoUnavailableError("Configured model/config file is missing or empty")
+                with path.open("rb") as source:
+                    source.read(1)
+            with self._model_path.open("rb") as source:
+                self._model_hash = hashlib.file_digest(source, "sha256").hexdigest()
+            with self._config_path.open("rb") as source:
+                self._config_hash = hashlib.file_digest(source, "sha256").hexdigest()
+        except OSError as exc:
+            raise KataGoUnavailableError("Configured model/config is not readable") from exc
+        self._session = JsonlProcess([
+            binary, "analysis", "-model", str(self._model_path.resolve()),
+            "-config", str(self._config_path.resolve()), "-override-config",
+            "reportAnalysisWinratesAs=BLACK,logAllRequests=false,logAllResponses=false,"
+            "logErrorsAndWarnings=false,logToStderr=false",
+        ])
+        try:
+            version_id, models_id = self._new_id(), self._new_id()
+            responses, _ = self._session.exchange(
+                [{"id": version_id, "action": "query_version"},
+                 {"id": models_id, "action": "query_models"}],
+                {(version_id, None), (models_id, None)}, self._timeout_seconds,
             )
-        return cls(
-            model_path=model_path,
-            config_path=config_path,
-            katago_path=katago_path,
-            candidate_count=candidate_count,
-            max_visits=max_visits,
-            timeout_seconds=timeout_seconds,
-        )
+            version = responses[(version_id, None)].get("version")
+            models = responses[(models_id, None)].get("models")
+            if not isinstance(version, str) or not re.fullmatch(r"[0-9A-Za-z._+-]{1,80}", version):
+                raise EngineProtocolError("Engine did not report a valid version")
+            if not isinstance(models, list) or len(models) != 1 or not isinstance(models[0], dict):
+                raise EngineProtocolError("Expected one loaded analysis model")
+            model_id = models[0].get("internalName")
+            if not isinstance(model_id, str) or not re.fullmatch(r"[0-9A-Za-z._+-]{1,200}", model_id):
+                raise EngineProtocolError("Engine did not report a valid model identifier")
+            self._version, self._model_id = version, model_id
+            return self
+        except BaseException:
+            self.close()
+            raise
 
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        _validate_position(position)
-        query = self._build_query(position)
-        payload = self._run_query(query)
-        move_infos = payload.get("moveInfos")
+    def __exit__(self, *_exc) -> None:
+        self.close()
 
-        if not isinstance(move_infos, list) or not move_infos:
-            raise RuntimeError(_missing_move_infos_error(payload))
+    def close(self) -> None:
+        if self._session is not None:
+            self._session.close()
+            self._session = None
 
-        top_candidates = tuple(
-            _to_candidate(move_info, position.board_size) for move_info in move_infos[: self._candidate_count]
-        )
-        if not top_candidates:
-            raise RuntimeError("KataGo returned no candidate moves")
+    def readiness(self) -> dict:
+        with self:
+            return {"status": "ready", "engine": "KataGo", "version": self._version,
+                    "model_id": self._model_id, "model_sha256": self._model_hash}
 
-        best_move = top_candidates[0].move
-        played_move = position.played_move
-        played_candidate = _resolve_played_candidate(
-            move_infos=move_infos,
-            played_move=(played_move or "pass") if position.analysis_kind == "played_move" else None,
-            board_size=position.board_size,
-            fallback_candidates=top_candidates,
-        )
-        estimated_loss = round(
-            max(0.0, top_candidates[0].score_estimate - played_candidate.score_estimate),
-            2,
-        )
-        pv_summary = _pv_summary_from_katago(
-            to_play=position.to_play,
-            best_move_info=move_infos[0],
-            board_size=position.board_size,
-            fallback_candidates=top_candidates,
-        )
+    @staticmethod
+    def _new_id() -> str:
+        return uuid.uuid4().hex
 
-        return PositionAnalysis(
-            best_move=best_move,
-            played_move=played_move,
-            estimated_loss=estimated_loss,
-            score_estimate=top_candidates[0].score_estimate,
-            winrate=top_candidates[0].winrate,
-            played_score_estimate=played_candidate.score_estimate,
-            played_winrate=played_candidate.winrate,
-            top_candidates=top_candidates,
-            pv_summary=pv_summary,
-        )
-
-    def _build_query(self, position: PositionInput) -> dict[str, object]:
-        moves: list[list[str]] = []
-        for color, move in position.moves:
-            moves.append([color, _sgf_to_gtp(move, position.board_size)])
-
-        query: dict[str, object] = {
-            "id": "go-review-ai",
-            "boardXSize": position.board_size,
-            "boardYSize": position.board_size,
-            "rules": position.rules,
-            "maxVisits": self._max_visits,
-            "moves": moves,
-            "initialPlayer": _initial_player_for_query(position.to_play, len(moves)),
+    def _build_query(self, position: PositionInput) -> dict:
+        return {
+            "id": self._new_id(), "boardXSize": position.board_size,
+            "boardYSize": position.board_size, "rules": position.rules,
+            "komi": float(position.komi), "maxVisits": self._max_visits,
+            "moves": [[c, sgf_to_gtp(m, position.board_size)] for c, m in position.moves],
+            "initialPlayer": position.to_play if len(position.moves) % 2 == 0
+                else ("W" if position.to_play == "B" else "B"),
+            "analyzeTurns": [len(position.moves)], "analysisPVLen": 8,
+            "overrideSettings": {"playoutDoublingAdvantage": 0, "antiMirror": False},
         }
-        if position.komi is not None:
-            query["komi"] = float(position.komi)
-        return query
-
-    def _run_query(self, query: dict[str, object]) -> dict[str, object]:
-        command = [
-            self._katago_path,
-            "analysis",
-            "-model",
-            self._model_path,
-            "-config",
-            self._config_path,
-        ]
-
-        try:
-            completed = subprocess.run(
-                command,
-                input=json.dumps(query) + "\n",
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=self._timeout_seconds,
-            )
-        except FileNotFoundError as exc:
-            raise KataGoUnavailableError(
-                f"KataGo binary not found: {self._katago_path}"
-            ) from exc
-        except subprocess.TimeoutExpired as exc:
-            raise KataGoUnavailableError(
-                f"KataGo analysis timed out after {self._timeout_seconds:.1f}s"
-            ) from exc
-
-        if completed.returncode != 0:
-            stderr = (completed.stderr or "").strip()
-            detail = stderr if stderr else f"exit code {completed.returncode}"
-            raise KataGoUnavailableError(f"KataGo failed: {detail}")
-
-        lines = [line for line in (completed.stdout or "").splitlines() if line.strip()]
-        if not lines:
-            raise RuntimeError("KataGo returned empty output")
-
-        last_line = lines[-1]
-        try:
-            payload = json.loads(last_line)
-        except json.JSONDecodeError as exc:
-            raise RuntimeError("Failed to parse KataGo JSON response") from exc
-        if not isinstance(payload, dict):
-            raise RuntimeError("KataGo response was not a JSON object")
-        return payload
-
-
-class MockEngineClient:
-    """Deterministic mock for pipeline development before real KataGo wiring."""
-
-    def __init__(self, candidate_count: int = 3) -> None:
-        if candidate_count <= 0:
-            raise ValueError("candidate_count must be positive")
-        self._candidate_count = candidate_count
 
     def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        _validate_position(position)
+        return self.analyze_positions([position])[0]
 
-        top_candidates = _mock_candidates(position, self._candidate_count)
-        best_move = top_candidates[0].move
-        played_move = position.played_move
-        candidate_move = (played_move or "pass") if position.analysis_kind == "played_move" else None
-        played_candidate = _played_candidate_from_candidates(top_candidates, candidate_move)
-        estimated_loss = round(
-            max(0.0, top_candidates[0].score_estimate - played_candidate.score_estimate),
-            2,
+    def analyze_positions(self, positions: list[PositionInput]) -> list[PositionAnalysis]:
+        if not positions:
+            return []
+        for position in positions:
+            validate_position(position)
+        if self._session is None:
+            with self:
+                return self.analyze_positions(positions)
+        result = []
+        for start in range(0, len(positions), 16):
+            batch = positions[start:start + 16]
+            result.extend(self._analyze_batch(batch))
+        return result
+
+    def _analyze_batch(self, positions: list[PositionInput]) -> list[PositionAnalysis]:
+        started = time.monotonic()
+        reference = positions[-1]
+        for p in positions:
+            if (p.board_size, p.rules, p.komi) != (reference.board_size, reference.rules, reference.komi):
+                raise ValueError("Batch metadata differs")
+            if p.moves != reference.moves[:len(p.moves)]:
+                raise ValueError("Batch histories must be prefixes of the same game")
+            expected_player = reference.to_play if (len(reference.moves) - len(p.moves)) % 2 == 0 else (
+                "W" if reference.to_play == "B" else "B")
+            if p.to_play != expected_player:
+                raise ValueError("Batch player order differs")
+        query = self._build_query(reference)
+        turns = [len(p.moves) for p in positions]
+        if len(set(turns)) != len(turns):
+            raise ValueError("Duplicate turns in batch")
+        query["analyzeTurns"] = turns
+        responses, warnings = self._session.exchange(
+            [query], {(query["id"], turn) for turn in turns},
+            self._timeout_seconds * len(positions),
         )
-
-        pv_summary = _pv_summary(position.to_play, top_candidates)
-
-        return PositionAnalysis(
-            best_move=best_move,
-            played_move=played_move,
-            estimated_loss=estimated_loss,
-            score_estimate=top_candidates[0].score_estimate,
-            winrate=top_candidates[0].winrate,
-            played_score_estimate=played_candidate.score_estimate,
-            played_winrate=played_candidate.winrate,
-            top_candidates=top_candidates,
-            pv_summary=pv_summary,
-        )
-
-
-def _validate_position(position: PositionInput) -> None:
-    if position.board_size <= 0:
-        raise ValueError("board_size must be positive")
-    if position.to_play not in {"B", "W"}:
-        raise ValueError("to_play must be 'B' or 'W'")
-    if position.rules not in {"japanese", "chinese"}:
-        raise ValueError("Unsupported rules")
-    if position.analysis_kind not in {"played_move", "current_position"}:
-        raise ValueError("Unsupported analysis_kind")
-    if position.analysis_kind == "current_position" and position.played_move is not None:
-        raise ValueError("A current-position request cannot contain a played move")
-
-
-def _to_candidate(move_info: dict[str, object], board_size: int) -> CandidateMove:
-    raw_move = move_info.get("move")
-    if not isinstance(raw_move, str):
-        raise RuntimeError("KataGo moveInfo missing move")
-
-    score_raw = move_info.get("scoreLead")
-    if not isinstance(score_raw, (int, float)):
-        score_raw = move_info.get("utility")
-    if not isinstance(score_raw, (int, float)):
-        raise RuntimeError("KataGo moveInfo missing scoreLead/utility")
-
-    winrate_raw = move_info.get("winrate")
-    winrate = float(winrate_raw) if isinstance(winrate_raw, (int, float)) else 0.5
-
-    return CandidateMove(
-        move=_gtp_to_sgf(raw_move, board_size),
-        score_estimate=float(score_raw),
-        winrate=winrate,
-    )
-
-
-def _initial_player_for_query(to_play: Color, move_count: int) -> Color:
-    if move_count % 2 == 0:
-        return to_play
-    return "W" if to_play == "B" else "B"
-
-
-def _resolve_played_candidate(
-    *,
-    move_infos: list[object],
-    played_move: Move | None,
-    board_size: int,
-    fallback_candidates: tuple[CandidateMove, ...],
-) -> CandidateMove:
-    if played_move is None:
-        return fallback_candidates[0]
-
-    for move_info in move_infos:
-        if not isinstance(move_info, dict):
-            continue
-        raw_move = move_info.get("move")
-        score_raw = move_info.get("scoreLead")
-        if not isinstance(score_raw, (int, float)):
-            score_raw = move_info.get("utility")
-        if not isinstance(raw_move, str) or not isinstance(score_raw, (int, float)):
-            continue
-        if _gtp_to_sgf(raw_move, board_size) == played_move:
-            winrate_raw = move_info.get("winrate")
-            winrate = float(winrate_raw) if isinstance(winrate_raw, (int, float)) else 0.5
-            return CandidateMove(
-                move=played_move,
-                score_estimate=float(score_raw),
-                winrate=winrate,
+        parsed = [candidates(responses[(query["id"], turn)], p) for p, turn in zip(positions, turns)]
+        forced_queries, forced_by_turn = [], {}
+        for p, choices in zip(positions, parsed):
+            if p.analysis_kind != "played_move":
+                continue
+            actual = p.played_move or "pass"
+            found = next((c for c in choices if c.move == actual), None)
+            if found is None or found.score_estimate is None or found.visits in (None, 0):
+                forced = self._build_query(p)
+                forced["allowMoves"] = [{
+                    "player": p.to_play, "moves": [sgf_to_gtp(actual, p.board_size)], "untilDepth": 1,
+                }]
+                forced_queries.append(forced)
+                forced_by_turn[len(p.moves)] = forced["id"]
+        forced_responses = {}
+        if forced_queries:
+            forced_responses, forced_warnings = self._session.exchange(
+                forced_queries, {(q["id"], q["analyzeTurns"][0]) for q in forced_queries},
+                self._timeout_seconds * len(forced_queries),
             )
-
-    if played_move == "pass":
-        raise RuntimeError("KataGo did not evaluate the played pass; its loss is unavailable")
-    fallback = fallback_candidates[-1]
-    return CandidateMove(
-        move=played_move,
-        score_estimate=round(fallback.score_estimate - 0.3, 2),
-        winrate=max(0.0, round(fallback.winrate - 0.02, 2)),
-    )
-
-
-def _pv_summary_from_katago(
-    *,
-    to_play: Color,
-    best_move_info: dict[str, object],
-    board_size: int,
-    fallback_candidates: tuple[CandidateMove, ...],
-) -> str:
-    pv_raw = best_move_info.get("pv")
-    if isinstance(pv_raw, list):
-        pv_moves = [
-            _gtp_to_sgf(item, board_size)
-            for item in pv_raw
-            if isinstance(item, str)
-        ]
-        if pv_moves:
-            return _pv_summary_from_moves(to_play, pv_moves[:3])
-    return _pv_summary(
-        to_play=to_play,
-        candidates=fallback_candidates,
-    )
-
-
-def _pv_summary_from_moves(to_play: Color, moves: list[str]) -> str:
-    colors = ["B", "W", "B"] if to_play == "B" else ["W", "B", "W"]
-    padded = list(moves)
-    while len(padded) < 3:
-        padded.append("pass")
-    return " -> ".join(
-        f"{color} {move}" for color, move in zip(colors, padded[:3], strict=True)
-    )
-
-
-def _sgf_to_gtp(move: Move | None, board_size: int) -> str:
-    if move is None:
-        return "pass"
-    if len(move) != 2:
-        raise ValueError(f"Unsupported SGF move format: {move}")
-    x = ord(move[0]) - ord("a")
-    y_from_top = ord(move[1]) - ord("a")
-    if not (0 <= x < board_size and 0 <= y_from_top < board_size):
-        raise ValueError(f"Move out of board range: {move}")
-    return f"{_x_to_gtp_column(x)}{board_size - y_from_top}"
-
-
-def _gtp_to_sgf(move: str, board_size: int) -> str:
-    lowered = move.strip().lower()
-    if lowered == "pass":
-        return "pass"
-    if not lowered:
-        return move.lower()
-
-    split = 0
-    while split < len(move) and move[split].isalpha():
-        split += 1
-
-    letters = move[:split].upper()
-    digits = move[split:]
-    if not letters or not digits.isdigit():
-        return move.lower()
-
-    x = _gtp_column_to_x(letters)
-    y = int(digits)
-    if x is None or y < 1 or y > board_size:
-        return move.lower()
-
-    y_from_top = board_size - y
-    if y_from_top < 0 or y_from_top >= board_size:
-        return move.lower()
-
-    return f"{chr(ord('a') + x)}{chr(ord('a') + y_from_top)}"
-
-
-def _x_to_gtp_column(x: int) -> str:
-    column_code = ord("A") + x
-    if column_code >= ord("I"):
-        column_code += 1
-    return chr(column_code)
-
-
-def _gtp_column_to_x(column: str) -> int | None:
-    if len(column) != 1:
-        return None
-    letter = column.upper()
-    if not ("A" <= letter <= "Z") or letter == "I":
-        return None
-    x = ord(letter) - ord("A")
-    if letter > "I":
-        x -= 1
-    return x
-
-
-def _missing_move_infos_error(payload: dict[str, object]) -> str:
-    error = payload.get("error")
-    field = payload.get("field")
-    request_id = payload.get("id")
-
-    prefix = "KataGo response missing moveInfos"
-    details: list[str] = []
-
-    if isinstance(error, str) and error:
-        details.append(f"error={error}")
-    if isinstance(field, str) and field:
-        details.append(f"field={field}")
-    if isinstance(request_id, str) and request_id:
-        details.append(f"id={request_id}")
-
-    payload_preview = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-    if len(payload_preview) > 600:
-        payload_preview = payload_preview[:600] + "...(truncated)"
-
-    if details:
-        return f"{prefix} ({', '.join(details)}). raw_payload={payload_preview}"
-    return f"{prefix}. raw_payload={payload_preview}"
-
-
-def _mock_candidates(position: PositionInput, candidate_count: int) -> tuple[CandidateMove, ...]:
-    opening_book = {
-        "B": [
-            CandidateMove(move="qd", score_estimate=1.8, winrate=0.54),
-            CandidateMove(move="dp", score_estimate=1.2, winrate=0.52),
-            CandidateMove(move="pq", score_estimate=0.7, winrate=0.50),
-        ],
-        "W": [
-            CandidateMove(move="dq", score_estimate=-1.1, winrate=0.48),
-            CandidateMove(move="cp", score_estimate=-1.6, winrate=0.47),
-            CandidateMove(move="qq", score_estimate=-2.0, winrate=0.45),
-        ],
-    }
-
-    if len(position.moves) < 2:
-        return tuple(opening_book[position.to_play][:candidate_count])
-
-    # Slightly vary mock output by move-count bucket for deterministic diversity.
-    bucket = len(position.moves) % 3
-    if bucket == 0:
-        return tuple(opening_book[position.to_play][:candidate_count])
-    if bucket == 1:
-        return tuple(
-            [
-            CandidateMove(move="jj", score_estimate=0.9, winrate=0.53),
-            CandidateMove(move="kj", score_estimate=0.3, winrate=0.50),
-            CandidateMove(move="jk", score_estimate=-0.2, winrate=0.49),
-            ][:candidate_count]
-        )
-    return tuple(
-        [
-            CandidateMove(move="cn", score_estimate=2.1, winrate=0.57),
-            CandidateMove(move="co", score_estimate=1.3, winrate=0.54),
-            CandidateMove(move="bn", score_estimate=0.6, winrate=0.51),
-        ][:candidate_count]
-    )
-
-
-def _played_candidate_from_candidates(
-    candidates: tuple[CandidateMove, ...], played_move: Move | None
-) -> CandidateMove:
-    if not played_move:
-        return candidates[0]
-
-    for candidate in candidates:
-        if candidate.move == played_move:
-            return candidate
-
-    # If the played move is outside top candidates, assume at least a bit worse
-    # than the worst candidate we return.
-    fallback = candidates[-1]
-    return CandidateMove(
-        move=played_move,
-        score_estimate=round(fallback.score_estimate - 0.3, 2),
-        winrate=max(0.0, round(fallback.winrate - 0.02, 2)),
-    )
-
-
-def _pv_summary(to_play: Color, candidates: tuple[CandidateMove, ...]) -> str:
-    best = candidates[0].move
-    reply = candidates[1].move if len(candidates) > 1 else "pass"
-    follow_up = candidates[2].move if len(candidates) > 2 else "pass"
-    if to_play == "B":
-        return f"B {best} -> W {reply} -> B {follow_up}"
-    return f"W {best} -> B {reply} -> W {follow_up}"
+            warnings = tuple(sorted(set(warnings + forced_warnings)))
+        elapsed = time.monotonic() - started
+        analyses = []
+        for p, choices, turn in zip(positions, parsed, turns):
+            payload = responses[(query["id"], turn)]
+            played = None
+            played_id = None
+            source = "not_applicable"
+            flags = list(warnings)
+            if p.analysis_kind == "played_move":
+                actual = p.played_move or "pass"
+                played = next((c for c in choices if c.move == actual), None)
+                source, played_id = "candidate", query["id"]
+                if turn in forced_by_turn:
+                    played_id = forced_by_turn[turn]
+                    forced_choices = candidates(forced_responses[(played_id, turn)], p)
+                    played = next((c for c in forced_choices if c.move == actual), None)
+                    source = "forced_root"
+                    flags.append("separate_search")
+                if played is None or played.visits == 0:
+                    flags.append("played_evaluation_unavailable")
+                    played = None
+            best = choices[0] if choices else None
+            if best is None and p.analysis_kind == "played_move":
+                flags.append("recommendation_unavailable")
+            value = best
+            if value is None and p.analysis_kind == "current_position":
+                value = candidate({**payload["rootInfo"], "move": "pass"}, p)
+                flags.append("no_candidate_moves")
+            loss = None
+            if best and played and best.score_estimate is not None and played.score_estimate is not None:
+                loss = best.score_estimate - played.score_estimate
+                if loss < 0:
+                    flags.append("negative_difference_search_noise")
+            for choice in (best, played):
+                if choice is not None and (choice.visits is None or choice.visits < min(16, self._max_visits)):
+                    flags.append("low_visits")
+            if value is None or value.score_estimate is None or value.winrate is None:
+                flags.append("missing_value")
+            if p.analysis_kind == "played_move" and (played is None or played.score_estimate is None or played.winrate is None):
+                flags.append("missing_played_value")
+            analyses.append(PositionAnalysis(
+                best_move=best.move if best else None, played_move=p.played_move,
+                estimated_loss=max(0.0, loss) if loss is not None else None,
+                score_estimate=value.score_estimate if value else None,
+                winrate=value.winrate if value else None,
+                played_score_estimate=played.score_estimate if played else None,
+                played_winrate=played.winrate if played else None,
+                top_candidates=choices[:self._candidate_count],
+                pv_summary=" -> ".join(f"{s.color} {s.move}" for s in best.pv) if best else "",
+                raw_score_loss=loss,
+                score_black=value.score_black if value else None,
+                winrate_black=value.winrate_black if value else None,
+                played_score_black=played.score_black if played else None,
+                played_winrate_black=played.winrate_black if played else None,
+                played_candidate=played,
+                evidence=AnalysisEvidence(
+                    engine_version=self._version, model_sha256=self._model_hash, model_id=self._model_id,
+                    rules=p.rules, komi=p.komi, max_visits=self._max_visits,
+                    request_id=query["id"], turn_number=turn,
+                    root_visits=optional_visits(payload["rootInfo"].get("visits")),
+                    config_sha256=self._config_hash,
+                    elapsed_seconds=elapsed, played_source=source, played_request_id=played_id,
+                    warnings=tuple(sorted(set(flags))),
+                ),
+            ))
+        return analyses

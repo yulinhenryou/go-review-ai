@@ -25,6 +25,7 @@ from src.key_points import (
     phase_for_move,
 )
 from src.katago_client import CandidateMove, PositionAnalysis
+from src.engine_types import AnalysisEvidence, PVMove
 from src.mistake_severity import MistakeSeverity
 from src.sgf_parser import ParsedGame
 from src.user_facing_labels import (
@@ -44,8 +45,12 @@ class CoordinateView:
 @dataclass(frozen=True)
 class CandidateView:
     move: CoordinateView
-    score_estimate: float
-    winrate: float
+    score_estimate: float | None
+    winrate: float | None
+    pv: tuple[PVMove, ...]
+    visits: int | None
+    score_black: float | None
+    winrate_black: float | None
 
 
 @dataclass(frozen=True)
@@ -122,6 +127,7 @@ class CurrentPositionResult:
     score_estimate: float
     winrate: float
     short_explanation: str
+    evidence: AnalysisEvidence | None
 
 
 @dataclass(frozen=True)
@@ -143,6 +149,13 @@ class TimelineItemResult:
     is_mistake: bool
     teaching_label: str | None
     swing_direction: str
+    score_black_before: float
+    score_black_after: float
+    winrate_black_before: float
+    winrate_black_after: float
+    raw_score_loss: float | None
+    played_candidate: CandidateView | None
+    evidence: AnalysisEvidence | None
 
 
 @dataclass(frozen=True)
@@ -207,6 +220,7 @@ class ReviewSummaryResult:
 @dataclass(frozen=True)
 class ReviewResult:
     schema_version: str
+    engine_source: str
     game_summary: GameSummaryResult
     current_position: CurrentPositionResult
     key_points: KeyPointsResult
@@ -253,7 +267,8 @@ def build_review_result(
     }
 
     return ReviewResult(
-        schema_version="2.1",
+        schema_version="2.2",
+        engine_source="katago" if current_position_analysis.evidence is not None else "unverified_test_double",
         game_summary=GameSummaryResult(
             board_size=game.board_size,
             rules=game.rules,
@@ -314,7 +329,7 @@ def _current_position_view(
     next_player: str,
     analysis: PositionAnalysis,
 ) -> CurrentPositionResult:
-    best_move = _coord_view(analysis.best_move, board_size)
+    best_move = _coord_view(analysis.best_move, board_size) if analysis.best_move is not None else CoordinateView(None, "unavailable")
     return CurrentPositionResult(
         next_player=next_player,
         best_move=best_move,
@@ -330,7 +345,8 @@ def _current_position_view(
             best_move=best_move.display,
             score_estimate=analysis.score_estimate,
             winrate=analysis.winrate,
-        ),
+        ) if analysis.best_move is not None else "引擎未返回当前局面的推荐落点。",
+        evidence=analysis.evidence,
     )
 
 
@@ -379,6 +395,10 @@ def _candidate_view(candidate: CandidateMove, board_size: int) -> CandidateView:
         move=_coord_view(candidate.move, board_size),
         score_estimate=candidate.score_estimate,
         winrate=candidate.winrate,
+        pv=candidate.pv,
+        visits=candidate.visits,
+        score_black=candidate.score_black,
+        winrate_black=candidate.winrate_black,
     )
 
 
@@ -409,6 +429,13 @@ def _timeline_item(
         is_mistake=result.estimated_loss >= loss_threshold,
         teaching_label=_teaching_label_for_result(result),
         swing_direction=_swing_direction(result),
+        score_black_before=result.engine_analysis.score_estimate * (1 if result.color == "B" else -1),
+        score_black_after=result.engine_analysis.played_score_estimate * (1 if result.color == "B" else -1),
+        winrate_black_before=result.engine_analysis.winrate if result.color == "B" else 1 - result.engine_analysis.winrate,
+        winrate_black_after=result.engine_analysis.played_winrate if result.color == "B" else 1 - result.engine_analysis.played_winrate,
+        raw_score_loss=result.engine_analysis.raw_score_loss,
+        played_candidate=_candidate_view(result.engine_analysis.played_candidate, board_size) if result.engine_analysis.played_candidate else None,
+        evidence=result.engine_analysis.evidence,
     )
 
 
