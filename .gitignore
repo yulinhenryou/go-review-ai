@@ -6,3 +6,23 @@ __pycache__/
 .Rhistory
 .pytest_cache/
 analysis_logs/
+
+# Local configuration and private runtime data
+.env.*
+!.env.example
+/uploads/
+/reports/
+/models/
+*.bin.gz
+*.onnx
+*.katago.log
+
+# Python build, test and tooling output
+*.egg-info/
+/build/
+/dist/
+.coverage
+.coverage.*
+htmlcov/
+.ruff_cache/
+.mypy_cache/
