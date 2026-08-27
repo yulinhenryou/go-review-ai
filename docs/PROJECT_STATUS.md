@@ -1,7 +1,19 @@
 # Project Status Audit
 
+## M1 Update
+
+The user approved implementation on 2026-08-27. M1 now provides validated shared
+input records, sgfmill parsing/captures, explicit rules/komi confirmation, input
+size limits, pass/current-position separation and packaged installation.
+See [M1 acceptance](M1_ACCEPTANCE.md) and [the input contract](INPUT_CONTRACT.md).
+Real-engine evaluation correctness, mock isolation and report teaching remain
+M2/M3 work; public hosting remains M5 work.
+
+## Historical M0 Audit
+
 Date: 2026-08-27. Baseline: `7447f54688f45d3783e41b633663e760a8aa061e`.
-This is an audit of the existing prototype, not a v1 acceptance report.
+The findings below describe that baseline, not the current M1 implementation.
+They are retained as historical evidence, not a v1 acceptance report.
 
 ## Verified in This Pass
 

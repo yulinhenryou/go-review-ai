@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -76,6 +76,33 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .game-settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .game-settings label {
+      display: grid;
+      gap: 4px;
+      font-size: 13px;
+      min-width: 0;
+    }
+
+    .game-settings select, .game-settings input {
+      box-sizing: border-box;
+      width: 140px;
+      max-width: 100%;
+      height: 36px;
+      padding: 6px 8px;
+      border: 1px solid #999;
+      border-radius: 4px;
+      background: #fff;
+      color: #222;
+      font: inherit;
     }
 
     button {
@@ -477,6 +504,19 @@
         <canvas id="boardCanvas" aria-label="围棋棋盘"></canvas>
       </div>
 
+      <div class="game-settings">
+        <label for="rulesInput">规则
+          <select id="rulesInput">
+            <option value="">未指定</option>
+            <option value="chinese">中国规则</option>
+            <option value="japanese">日本规则</option>
+          </select>
+        </label>
+        <label for="komiInput">贴目
+          <input id="komiInput" type="number" min="-150" max="150" step="0.5" inputmode="decimal" />
+        </label>
+      </div>
+
       <div class="controls">
         <button id="undoBtn" type="button">悔棋</button>
         <button id="clearBtn" type="button">清空棋盘</button>
@@ -529,6 +569,8 @@
       var undoBtn = document.getElementById("undoBtn");
       var clearBtn = document.getElementById("clearBtn");
       var analyzeBtn = document.getElementById("analyzeBtn");
+      var rulesInput = document.getElementById("rulesInput");
+      var komiInput = document.getElementById("komiInput");
       var latestBtn = document.getElementById("latestBtn");
       var prevReviewBtn = document.getElementById("prevReviewBtn");
       var nextReviewBtn = document.getElementById("nextReviewBtn");
@@ -557,6 +599,24 @@
       function setUploadStatus(message, isError) {
         uploadStatus.textContent = message;
         uploadStatus.classList.toggle("error-message", Boolean(isError));
+      }
+
+      function readGameSettings(required) {
+        if (!komiInput.checkValidity()) throw new Error("贴目须为 -150 至 150 之间的整数或半目。");
+        var settings = {
+          rules: rulesInput.value || null,
+          komi: komiInput.value === "" ? null : Number(komiInput.value)
+        };
+        if (required && (settings.rules === null || settings.komi === null)) {
+          throw new Error("请先确认规则和贴目。");
+        }
+        return settings;
+      }
+
+      function inputErrorMessage(data) {
+        var error = data && data.error;
+        if (error && error.code === "missing_metadata") return "棋谱缺少规则或贴目，请补全后重新提交。";
+        return data && data.detail ? String(data.detail) : "分析失败，请检查棋谱与后端服务。";
       }
 
       function colorName(color) {
@@ -774,7 +834,7 @@
           reviewStatus.innerHTML = [
             "<span class=\"review-badge\">最新局面</span>",
             "<span>",
-            "当前显示终局后的推荐点与候选变化。",
+            "当前显示记录末尾的推荐点与候选变化。",
             "</span>"
           ].join("");
           latestBtn.disabled = true;
@@ -1131,6 +1191,10 @@
       }
 
       function applyAnalysisResult(data) {
+        if (data.game_summary) {
+          rulesInput.value = data.game_summary.rules || "";
+          komiInput.value = data.game_summary.komi === null ? "" : data.game_summary.komi;
+        }
         analysisData = data;
         reviewTargets = buildReviewTargets(data);
         reviewFocus = null;
@@ -1848,7 +1912,7 @@
           " 共 " + escapeHtml(String(series.length)) + " 个点。",
           typeof selectedMoveNumber === "number" ? " 当前选中第" + escapeHtml(String(selectedMoveNumber)) + "手。" : " 当前显示最新局面。",
           "</div>",
-          "<div class=\"chart-note\">点击图上的点，可直接跳到对应手数；点“回到最新局面”可返回当前终局位置。</div>"
+          "<div class=\"chart-note\">点击图上的点，可直接跳到对应手数；点“回到最新局面”可返回记录末尾位置。</div>"
         ].join("");
 
         Array.prototype.forEach.call(container.querySelectorAll("[data-chart-metric]"), function (button) {
@@ -1929,7 +1993,7 @@
           "<div>" + escapeHtml(activeExplanation) + "</div>",
           "<div class=\"section-note\">" + escapeHtml(
             activeContext && activeContext.kind === "current_position"
-              ? "当前模式展示终局后的推荐点与候选变化。"
+              ? "当前模式展示记录末尾的推荐点与候选变化。"
               : "当前模式展示所查看手数的实战落点与推荐变化。"
           ) + "</div>",
           "</div>",
@@ -2495,6 +2559,13 @@
       });
 
       analyzeBtn.addEventListener("click", async function () {
+        var settings;
+        try {
+          settings = readGameSettings(true);
+        } catch (err) {
+          renderErrorState(err.message);
+          return;
+        }
         setAnalyzeLoadingState(true);
 
         try {
@@ -2506,7 +2577,8 @@
 
           var payload = {
             board_size: BOARD_SIZE,
-            komi: 6.5,
+            rules: settings.rules,
+            komi: settings.komi,
             moves: moves.map(function (m) {
               return {
                 color: m.color,
@@ -2529,12 +2601,13 @@
           }
 
           if (!response.ok) {
+            var errorMessage = inputErrorMessage(data);
             data = {
               request: payload,
               error: data,
               status: response.status
             };
-            renderErrorState("分析失败，请展开原始数据查看详情。");
+            renderErrorState(errorMessage);
             renderRawJson(data);
             return;
           }
@@ -2558,6 +2631,18 @@
           return;
         }
 
+        if (file.size > 1024 * 1024) {
+          setUploadStatus("SGF 文件不能超过 1 MiB。", true);
+          return;
+        }
+        var settings;
+        try {
+          settings = readGameSettings(false);
+        } catch (err) {
+          setUploadStatus(err.message, true);
+          return;
+        }
+
         setUploadLoadingState(true);
 
         try {
@@ -2570,7 +2655,10 @@
           var formData = new FormData();
           formData.append("file", file);
 
-          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-sgf", {
+          var params = new URLSearchParams();
+          if (settings.rules !== null) params.set("rules", settings.rules);
+          if (settings.komi !== null) params.set("komi", String(settings.komi));
+          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-sgf?" + params.toString(), {
             method: "POST",
             body: formData
           });
@@ -2583,14 +2671,14 @@
           }
 
           if (!response.ok) {
-            renderErrorState("上传分析失败，请检查 SGF 文件格式或后端服务。");
+            renderErrorState(inputErrorMessage(data));
             renderRawJson({
               file_name: file.name,
               error: data,
               status: response.status
             });
             setUploadStatus(
-              "上传分析失败：" + (data && data.detail ? String(data.detail) : "请检查 SGF 文件格式或后端服务。"),
+              "上传分析失败：" + inputErrorMessage(data),
               true
             );
             return;
@@ -2598,7 +2686,11 @@
 
           rebuildBoardFromTimeline(data.timeline);
           applyAnalysisResult(data);
-          setUploadStatus("已完成 SGF 分析，并载入终局棋盘。", false);
+          var warnings = data.game_summary && data.game_summary.input_warnings || [];
+          var resultLabel = data.game_summary && data.game_summary.record_status === "result_recorded"
+            ? "棋谱带有结果记录。" : "棋谱未记录结果，可能尚未结束。";
+          setUploadStatus("已载入棋谱末尾局面。" + resultLabel +
+            (warnings.indexOf("first_variation_only") >= 0 ? "包含变化分支，本次仅分析第一条主线。" : ""), false);
         } catch (err) {
           clearAnalysisState();
           resetBoardState();

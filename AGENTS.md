@@ -12,9 +12,9 @@ Deliver a first web release that:
 
 The original CLI-only phase is the prototype baseline. Keep the CLI as a useful
 development entry point, but the next release includes the web workflow.
-See `docs/ROADMAP.md` for the proposed scope and milestone acceptance criteria.
-Until that plan is approved, limit work to documentation and repository hygiene
-unless the user explicitly requests functional changes.
+The user approved `docs/ROADMAP.md` on 2026-08-27. M1 implements the shared input
+contract; continue milestone by milestone with acceptance evidence.
+See `docs/INPUT_CONTRACT.md` before changing parser, API or engine input semantics.
 
 ## Rules
 

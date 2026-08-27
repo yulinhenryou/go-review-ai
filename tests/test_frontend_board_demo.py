@@ -10,8 +10,13 @@ def test_frontend_board_demo_contains_review_jump_controls() -> None:
     assert 'id="uploadStatus"' in html
     assert "function setUploadStatus(message, isError)" in html
     assert "function rebuildBoardFromTimeline(timeline)" in html
-    assert 'fetch("http://127.0.0.1:8000/api/v1/analyze-sgf"' in html
-    assert '已完成 SGF 分析，并载入终局棋盘。' in html
+    assert 'fetch("http://127.0.0.1:8000/api/v1/analyze-sgf?"' in html
+    assert '已载入棋谱末尾局面。' in html
+    assert 'id="rulesInput"' in html
+    assert 'id="komiInput"' in html
+    assert 'rules: settings.rules' in html
+    assert 'komi: settings.komi' in html
+    assert 'first_variation_only' in html
     assert '上传分析失败：' in html
     assert 'id="latestBtn"' in html
     assert 'id="reviewStatus"' in html
@@ -50,7 +55,7 @@ def test_frontend_board_demo_contains_review_jump_controls() -> None:
     assert "function inferWinratePerspectiveColor(data)" in html
     assert "黑棋胜率" in html
     assert "白棋胜率" in html
-    assert "当前显示终局后的推荐点与候选变化。" in html
+    assert "当前显示记录末尾的推荐点与候选变化。" in html
     assert 'data-chart-move=\\"' in html
     assert '当前选中第' in html
     assert '点击图上的点，可直接跳到对应手数' in html

@@ -15,7 +15,7 @@ def test_build_review_result_from_pipeline_data() -> None:
     )
     payload = review.to_dict()
 
-    assert review.schema_version == "2.0"
+    assert review.schema_version == "2.1"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["players"]["black"] == "Black Player"
     assert payload["game_summary"]["moves_analyzed"] == 4
@@ -124,7 +124,7 @@ def test_structured_review_builder_in_main_and_text_report_still_works() -> None
 
 
 def test_build_review_result_formats_pass_coordinate() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[])")
     review = build_structured_review_for_game(
         game,
         engine=_PassPositionEngine(),
@@ -145,7 +145,7 @@ def test_build_review_result_formats_pass_coordinate() -> None:
 
 
 def test_current_position_recommendation_exists_even_without_selected_mistakes() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd];W[dd])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd];W[dd])")
 
     review = build_structured_review_for_game(
         game,
@@ -196,7 +196,7 @@ def test_severity_label_uses_chinese_user_facing_values() -> None:
 
 
 def test_plan_break_user_facing_text_uses_new_chinese_phrase() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[oq])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[oq])")
     review = build_structured_review_for_game(
         game,
         engine=_PlanBreakEngine(),
@@ -221,7 +221,7 @@ def test_plan_break_user_facing_text_uses_new_chinese_phrase() -> None:
 
 
 def test_leave_main_battlefield_user_facing_text_uses_specific_label() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
     review = build_structured_review_for_game(
         game,
         engine=_LeaveMainBattlefieldEngine(),
@@ -242,7 +242,7 @@ def test_leave_main_battlefield_user_facing_text_uses_specific_label() -> None:
 
 
 def test_positive_move_uses_positive_teaching_label_and_human_pv_summary() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd])")
     review = build_structured_review_for_game(
         game,
         engine=_PositiveMoveEngine(),

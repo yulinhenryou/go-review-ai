@@ -22,7 +22,7 @@ def test_analyze_sgf_upload_returns_structured_review() -> None:
     assert response.status_code == 200
     payload = response.json()
 
-    assert payload["schema_version"] == "2.0"
+    assert payload["schema_version"] == "2.1"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["moves_analyzed"] == 4
     assert len(payload["selected_mistakes"]) == 3
@@ -70,6 +70,7 @@ def test_analyze_moves_returns_structured_review() -> None:
         "/api/v1/analyze-moves",
         json={
             "board_size": 19,
+            "rules": "japanese",
             "komi": 6.5,
             "players": {"black": "Lee Sedol", "white": "AlphaGo"},
             "moves": [
@@ -86,7 +87,7 @@ def test_analyze_moves_returns_structured_review() -> None:
     assert response.status_code == 200
     payload = response.json()
 
-    assert payload["schema_version"] == "2.0"
+    assert payload["schema_version"] == "2.1"
     assert payload["game_summary"]["board_size"] == 19
     assert payload["game_summary"]["komi"] == 6.5
     assert payload["game_summary"]["players"] == {
@@ -110,16 +111,17 @@ def test_analyze_moves_rejects_out_of_range_coordinate() -> None:
     response = client.post(
         "/api/v1/analyze-moves",
         json={
-            "board_size": 9,
+            "board_size": 19,
+            "rules": "japanese",
             "komi": 6.5,
             "moves": [
-                {"color": "B", "sgf": "jj"},
+                {"color": "B", "sgf": "tt"},
             ],
         },
     )
 
     assert response.status_code == 400
-    assert "Move out of board range" in response.json()["detail"]
+    assert response.json()["error"]["code"] == "invalid_coordinate"
 
 
 def test_analyze_moves_allows_cors_from_localhost_3000() -> None:

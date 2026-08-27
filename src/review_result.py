@@ -51,6 +51,9 @@ class CandidateView:
 @dataclass(frozen=True)
 class GameSummaryResult:
     board_size: int
+    rules: str
+    record_status: str
+    input_warnings: tuple[str, ...]
     komi: float | None
     players: dict[str, str]
     result: str
@@ -250,9 +253,12 @@ def build_review_result(
     }
 
     return ReviewResult(
-        schema_version="2.0",
+        schema_version="2.1",
         game_summary=GameSummaryResult(
             board_size=game.board_size,
+            rules=game.rules,
+            record_status=game.record_status,
+            input_warnings=game.warnings,
             komi=game.komi,
             players={
                 "black": game.black_player or "Unknown Black",

@@ -1,20 +1,28 @@
+[build-system]
+requires = ["setuptools==82.0.1"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "go-review-ai"
 version = "0.1.0"
-description = "CLI MVP for analyzing Go SGF files with KataGo and generating review reports."
+description = "Go review prototype with validated SGF and manual game input."
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["sgfmill==1.1.1"]
 
 [project.optional-dependencies]
 api = [
-    "fastapi",
-    "python-multipart",
-    "uvicorn",
+    "fastapi==0.135.1",
+    "pydantic==2.12.5",
+    "python-multipart==0.0.22",
+    "uvicorn==0.41.0",
 ]
 dev = [
-    "httpx",
-    "pytest",
+    "httpx==0.28.1",
+    "pytest==9.0.2",
 ]
+
+[tool.setuptools]
+packages = ["src", "app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

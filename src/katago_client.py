@@ -18,6 +18,8 @@ class PositionInput:
     to_play: Color
     moves: tuple[tuple[Color, Move | None], ...]
     played_move: Move | None
+    rules: Literal["japanese", "chinese"] = "japanese"
+    analysis_kind: Literal["played_move", "current_position"] = "played_move"
 
 
 @dataclass(frozen=True)
@@ -118,7 +120,7 @@ class KataGoClient:
         played_move = position.played_move
         played_candidate = _resolve_played_candidate(
             move_infos=move_infos,
-            played_move=played_move,
+            played_move=(played_move or "pass") if position.analysis_kind == "played_move" else None,
             board_size=position.board_size,
             fallback_candidates=top_candidates,
         )
@@ -154,7 +156,7 @@ class KataGoClient:
             "id": "go-review-ai",
             "boardXSize": position.board_size,
             "boardYSize": position.board_size,
-            "rules": "japanese",
+            "rules": position.rules,
             "maxVisits": self._max_visits,
             "moves": moves,
             "initialPlayer": _initial_player_for_query(position.to_play, len(moves)),
@@ -224,7 +226,8 @@ class MockEngineClient:
         top_candidates = _mock_candidates(position, self._candidate_count)
         best_move = top_candidates[0].move
         played_move = position.played_move
-        played_candidate = _played_candidate_from_candidates(top_candidates, played_move)
+        candidate_move = (played_move or "pass") if position.analysis_kind == "played_move" else None
+        played_candidate = _played_candidate_from_candidates(top_candidates, candidate_move)
         estimated_loss = round(
             max(0.0, top_candidates[0].score_estimate - played_candidate.score_estimate),
             2,
@@ -250,6 +253,12 @@ def _validate_position(position: PositionInput) -> None:
         raise ValueError("board_size must be positive")
     if position.to_play not in {"B", "W"}:
         raise ValueError("to_play must be 'B' or 'W'")
+    if position.rules not in {"japanese", "chinese"}:
+        raise ValueError("Unsupported rules")
+    if position.analysis_kind not in {"played_move", "current_position"}:
+        raise ValueError("Unsupported analysis_kind")
+    if position.analysis_kind == "current_position" and position.played_move is not None:
+        raise ValueError("A current-position request cannot contain a played move")
 
 
 def _to_candidate(move_info: dict[str, object], board_size: int) -> CandidateMove:
@@ -307,6 +316,8 @@ def _resolve_played_candidate(
                 winrate=winrate,
             )
 
+    if played_move == "pass":
+        raise RuntimeError("KataGo did not evaluate the played pass; its loss is unavailable")
     fallback = fallback_candidates[-1]
     return CandidateMove(
         move=played_move,

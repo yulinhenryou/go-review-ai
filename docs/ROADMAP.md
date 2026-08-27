@@ -1,8 +1,9 @@
 # V1 Development Path
 
-**Status: proposed, awaiting user approval before M1.**
+**Status: approved by the user on 2026-08-27; M1 implemented locally.**
 Prepared on 2026-08-27 after auditing prototype `7447f54`.
-M0 is repository housekeeping; M1-M5 below have not been implemented by this pass.
+M0 housekeeping and M1 input work are local; GitHub upload awaits authentication.
+M2-M5 are not implemented. See [M1 acceptance](M1_ACCEPTANCE.md).
 
 ## Release Goal
 
@@ -90,7 +91,7 @@ Deliverables for this housekeeping pass:
 Gate: same 54 regression tests pass, runtime source is unchanged, archive contents
 are preserved, documentation links resolve, and the changes are on GitHub.
 Runtime mock/heuristic isolation is deliberately deferred to M2/M3 because it
-changes behavior. Approval of the functional plan is the next decision.
+changes behavior. The user has now approved functional development.
 Local verification is complete; the GitHub synchronization gate remains open
 until repository write authentication is restored. See [the status audit](PROJECT_STATUS.md).
 
@@ -98,14 +99,20 @@ until repository write authentication is restored. See [the status audit](PROJEC
 
 Dependencies: M0 and approval of this plan.
 
+Delivered: shared immutable records, sgfmill adapters and replay validation,
+preview endpoints, strict pre-engine input boundaries, explicit pass context,
+rule propagation, versioned result metadata and verified packaging.
+Details: [input contract](INPUT_CONTRACT.md) and [acceptance evidence](M1_ACCEPTANCE.md).
+
 Work:
 
 - Define `GameRecord` and review-contract semantics: board size, rules, komi, players, main-line
   moves, pass representation and game result. Distinguish an actual pass from
   "no played move" in current-position analysis requests.
-- Evaluate a proven SGF parser under a small adapter; [sgfmill](https://github.com/mattheww/sgfmill) is the first candidate,
-  not an installed dependency. Check a proven rules library against capture,
-  suicide and ko fixtures; do not treat an SGF parser as a complete legality engine.
+- Use [sgfmill](https://github.com/mattheww/sgfmill) 1.1.1 under a small adapter.
+  Its Board handles captures; the application enforces turn order, no suicide,
+  simple ko and the supported input boundary with fixtures. This is not a full
+  tournament adjudication/scoring implementation.
 - Route SGF and manual moves through one server-side legality validator.
 - Handle root-node moves, empty/pass moves, first variation, invalid syntax,
   out-of-range coordinates, unsupported properties and input-size limits.
@@ -266,7 +273,7 @@ Keep the prototype available while replacements are built, but remove retired
 runtime paths when their consumers migrate. Do not retain experiments as silent
 fallbacks in the final default flow.
 
-Next work after approval: **M1's shared game/input contract and acceptance fixtures**.
+Next functional work: **M2's real-engine readiness, evaluation correctness and process lifecycle**.
 M2 is the first real-analysis milestone, M4 is the local usable web milestone, and
 M5 is the first public usable release. No completion dates are committed before
 the real-engine and deployment benchmarks.

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.katago_client import EngineClient, PositionAnalysis, PositionInput
+from src.game import validate_game
 from src.sgf_parser import ParsedGame, parse_sgf_file
 
 
@@ -27,6 +28,7 @@ class GameAnalysis:
 
 def analyze_game(game: ParsedGame, engine: EngineClient) -> list[MoveAnalysisResult]:
     """Analyze each main-line move with a position-like input built before the move."""
+    validate_game(game)
     history: list[tuple[str, str | None]] = []
     results: list[MoveAnalysisResult] = []
 
@@ -40,6 +42,8 @@ def analyze_game(game: ParsedGame, engine: EngineClient) -> list[MoveAnalysisRes
             to_play=parsed_move.color,
             moves=tuple(history),
             played_move=parsed_move.point,
+            rules=game.rules,
+            analysis_kind="played_move",
         )
 
         analysis = engine.analyze_position(position)
@@ -68,6 +72,8 @@ def analyze_game_state(game: ParsedGame, engine: EngineClient) -> GameAnalysis:
         to_play=_next_player(game.moves),
         moves=tuple((move.color, move.point) for move in game.moves),
         played_move=None,
+        rules=game.rules,
+        analysis_kind="current_position",
     )
     current_position = engine.analyze_position(current_position_input)
     return GameAnalysis(

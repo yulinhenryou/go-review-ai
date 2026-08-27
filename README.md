@@ -4,9 +4,10 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: early prototype, not a validated v1 release.** The existing UI
-and API demonstrate the flow, but engine correctness, input validation, and
-end-to-end deployment still need work. See [Current Status](#current-status).
+**Current status: M1 input validation implemented locally, not a validated v1.**
+SGF and manual input now share a validated game model. Real-engine correctness,
+concise reporting and deployment remain M2-M5 work.
+See [M1 acceptance](docs/M1_ACCEPTANCE.md) and [Current Status](#current-status).
 
 ## What It Does
 
@@ -30,7 +31,7 @@ claims about tactical causes are required for this release.
 | Layer | Current implementation |
 | --- | --- |
 | Core | Python 3.11+, dataclasses, standard library |
-| Game input | Custom SGF parser and JSON move models |
+| Game input | sgfmill 1.1.1, immutable game records, shared replay validation and strict JSON models |
 | Analysis | External KataGo binary, model, and analysis config; JSON over subprocess stdin/stdout |
 | API | FastAPI, Pydantic, Uvicorn, python-multipart |
 | Frontend | HTML, CSS, vanilla JavaScript, Canvas 2D |
@@ -38,15 +39,15 @@ claims about tactical causes are required for this release.
 | Static preview | GitHub Pages, published from `gh-pages` |
 
 KataGo models and executables are not bundled. There is no deployed Python backend
-in this repository's Pages site. Mature SGF/rules libraries will be evaluated in
-the input milestone; they are not current dependencies.
+in this repository's Pages site. sgfmill supplies parsing and captures; the app
+enforces the supported turn, suicide and simple-ko policy.
 
 ## How It Works
 
 ```text
 SGF upload -----------------> SGF parser ----+
                                             |
-Manual board -> JSON moves -> API models ----+-> ParsedGame
+Manual board -> JSON moves -> API models ----+-> GameRecord + shared validation
                                                  |
                                            analysis pipeline
                                                  |
@@ -59,7 +60,7 @@ Manual board -> JSON moves -> API models ----+-> ParsedGame
                                           API JSON -> browser
 ```
 
-The CLI and API share the review functions in `src/main.py`. The current pipeline
+The CLI and API share review functions in `src/review_service.py`. The current pipeline
 also runs experimental classification and teaching heuristics. V1 will remove
 unsupported teaching claims from the default report, preserving the old prototype
 in the [archive](archive/README.md).
@@ -68,19 +69,21 @@ in the [archive](archive/README.md).
 
 | Path | Responsibility |
 | --- | --- |
-| `src/sgf_parser.py` | SGF parsing and parsed game records |
+| `src/game.py` | Shared game records, limits, legality replay and input previews |
+| `src/sgf_parser.py` | Strict sgfmill adapter and metadata extraction |
 | `src/katago_client.py` | Engine protocol, real client, current mock implementation |
 | `src/analyzer.py` | Position-by-position analysis orchestration |
 | `src/mistake_selector.py`, `src/mistake_severity.py` | Mistake ranking and severity |
 | `src/classifier.py`, `src/key_points.py` | Experimental heuristics, still called by the prototype |
 | `src/review_result.py` | Structured result contract and serialization |
 | `src/report_writer.py`, `src/chinese_explanations.py`, `src/user_facing_labels.py` | Report templates and labels |
-| `src/main.py` | Shared review pipeline and sample CLI entry |
+| `src/review_service.py` | Shared review orchestration |
+| `src/main.py` | Sample CLI, engine factory and legacy builder re-exports |
 | `app/` | FastAPI routes and request models |
 | `frontend/` | Current browser prototype and Pages publication source |
 | `tests/` | Active regression tests |
 | `samples/` | Sample SGF inputs; see [sample notes](samples/README.md) |
-| `docs/` | Status audit and proposed v1 development path |
+| `docs/` | Contracts, acceptance evidence, status audit and approved roadmap |
 | `archive/` | Historical output snapshots and prototype archive index; not runtime code |
 
 ### Run the Current Prototype
@@ -90,13 +93,16 @@ Run commands from the repository root. For a fresh environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install fastapi uvicorn python-multipart httpx pytest
+python -m pip install -c constraints.txt -e '.[api,dev]'
 python -m pytest -q -ra
 ```
 
-These are the current direct dependency installation steps. Reproducible package
-installation and dependency locking are part of milestone M1; an isolated clean
-installation has not been verified in this audit.
+Direct dependencies and build tooling are pinned in `pyproject.toml`;
+`constraints.txt` records tested transitive versions. Editable and regular wheel
+installation were verified in a fresh environment on macOS arm64 / Python 3.14.4.
+Other Python/platform combinations are not yet an acceptance matrix.
+The wheel contains only Python packages, not archives, samples, tests or frontend
+files. Use the repository checkout for the sample CLI and browser UI.
 
 Run the sample CLI:
 
@@ -139,14 +145,18 @@ Open [http://localhost:3000](http://localhost:3000). Use that exact browser orig
 the current backend CORS allowlist only contains `http://localhost:3000`.
 The frontend calls `http://127.0.0.1:8000`; opening it as `file://`, at another
 port, or from Pages is not the supported local API configuration.
+Choose rules and komi before manual analysis. For SGF uploads, these controls
+fill missing metadata only; existing recorded values take precedence.
 
 ### Current API
 
 | Endpoint | Input / behavior |
 | --- | --- |
 | `GET /health` | HTTP liveness only; does not check KataGo readiness |
-| `POST /api/v1/analyze-sgf` | Multipart `file`; `loss_threshold` and `limit` are query parameters |
-| `POST /api/v1/analyze-moves` | JSON game metadata and a list of `{color, sgf}` moves; `null` represents pass |
+| `POST /api/v1/parse-sgf` | Validated upload preview, no engine; identifies missing metadata |
+| `POST /api/v1/validate-moves` | Equivalent preview for manual game JSON, no engine |
+| `POST /api/v1/analyze-sgf` | Multipart `file`; `rules`, `komi`, `loss_threshold` and `limit` are query parameters |
+| `POST /api/v1/analyze-moves` | Explicit rules/komi and `{color, sgf}` moves; explicit `null` represents pass |
 
 ```bash
 curl --fail-with-body \
@@ -155,50 +165,55 @@ curl --fail-with-body \
 
 curl --fail-with-body 'http://127.0.0.1:8000/api/v1/analyze-moves' \
   -H 'Content-Type: application/json' \
-  -d '{"board_size":19,"komi":6.5,"moves":[{"color":"B","sgf":"pd"},{"color":"W","sgf":"dd"}],"loss_threshold":3.0,"limit":5}'
+  -d '{"board_size":19,"rules":"japanese","komi":6.5,"moves":[{"color":"B","sgf":"pd"},{"color":"W","sgf":"dd"}],"loss_threshold":3.0,"limit":5}'
 ```
 
-The existing API returns review schema `2.0`; that number is a data format version,
+The API returns review schema `2.1`; that number is a data format version,
 not a claim that product v2 or v1 is complete. A short sample may have no results
 above the example threshold. The proposed v1 threshold is not yet the default.
+Preview schema is `1.0`. See [the input contract](docs/INPUT_CONTRACT.md) for
+limits, supported SGF properties, error responses and pass semantics.
 
 ## Current Status
 
-Audit date: **2026-08-27**, prototype baseline: `7447f54`.
+Updated: **2026-08-27**. M1 branch: `codex/m1-input-contract`.
 
 | Area | Status and limitation |
 | --- | --- |
-| SGF input | Main-line parser exists; rules/setup properties and legality are not adequately handled |
-| Manual entry | 19x19 placement, captures, undo and navigation exist; rule coverage, pass control and metadata editing remain incomplete |
-| KataGo | Adapter exists; missing played-move values and missing PVs can be fabricated; score perspective is not enforced |
+| SGF input | Shared replay validation, strict limits, metadata confirmation and explicit variation warnings; unsupported setups/rules fail |
+| Manual entry | Shared server-side validation and explicit rules/komi; placement/undo/navigation retained; full pass/input UX remains M4 |
+| KataGo | Rules/pass context forwarded; other missing-candidate/PV values and score perspectives still need M2 correction |
 | Mistakes / report | Ranking and templates exist; heuristic labels and fallback values are not sufficient evidence of Go causes |
-| Web service | Upload and JSON endpoints exist; work blocks requests and there are no bounded analysis jobs or readiness checks |
-| Verification | Existing local suite: **54 passed**, including API tests; no real-engine or browser interaction acceptance run in this audit |
+| Web service | Pre-engine validation, bounded request bodies and preview endpoints; analysis jobs/readiness remain M4/M2 work |
+| Verification | **173 tests passed**; fresh install and desktop/mobile browser smoke checks with an explicit mock engine; no real-engine acceptance yet |
 | Deployment | Pages serves the frontend, not a complete online analysis service |
 
-The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) was checked against
-the local HTML during this audit and matched byte-for-byte. This checks publication,
-not browser behavior. It still targets the visitor's loopback address, and the
+The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
+older prototype. M0 verified its published HTML; M1 frontend changes are local
+and have not been published. It targets the visitor's loopback address, and the
 Pages origin is absent from the backend's CORS allowlist. Starting a backend on the
 developer's computer does not make analysis available to other visitors.
 
 `gh-pages` is a separate publication branch and is **not automatically updated**
-by pushing `main`. This housekeeping pass leaves the deployed prototype unchanged.
+by pushing `main`. M1 leaves the deployed prototype unchanged.
 See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitations.
 
 ## Roadmap
 
 | Milestone | Deliverable | Gate |
 | --- | --- | --- |
-| M0 | Repository inventory, archive index, README and v1 plan | This housekeeping pass; functional plan awaits approval |
-| M1 | Shared validated game model and supported input contract | SGF and equivalent manual moves produce the same legal game |
+| M0 | Repository inventory, archive index, README and v1 plan | Local work complete; GitHub upload awaits authentication |
+| M1 | Shared validated game model and supported input contract | Locally verified; SGF/manual equivalence and rejection tests pass |
 | M2 | Reliable, efficient real KataGo analysis | Every reported evaluation is traceable; no invented scores or variations |
 | M3 | Obvious-mistake selection and concise factual report | Stable threshold/ranking tests and zero unsupported teaching claims |
 | M4 | Complete browser flow with bounded analysis jobs | Upload and manual-entry workflows pass browser acceptance tests |
 | M5 | Deployable web release and real-engine acceptance | A second device completes a real game review against the deployed backend |
 
-Read [the v1 development path and acceptance criteria](docs/ROADMAP.md) before
-starting M1. Functional development has not begun in this housekeeping pass.
+The user approved [the development path](docs/ROADMAP.md). M1 is implemented;
+the next functional milestone is M2, reliable real-engine analysis.
+
+GitHub writes remain pending. Follow [the access recovery guide](docs/GITHUB_AUTH.md)
+to renew terminal credentials; connected-app access is a separate authorization.
 
 ## Development and Archives
 

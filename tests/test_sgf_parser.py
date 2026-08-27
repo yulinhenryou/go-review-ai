@@ -22,9 +22,11 @@ def test_parse_sgf_file_extracts_metadata_and_main_line_moves() -> None:
 
 
 def test_parse_sgf_supports_missing_optional_properties() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[13];B[aa];W[];B[cc])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19];B[aa];W[];B[cc])")
 
-    assert game.board_size == 13
+    assert game.board_size == 19
+    assert game.rules is None
+    assert game.missing_fields == ("rules", "komi")
     assert game.komi is None
     assert game.black_player is None
     assert game.white_player is None

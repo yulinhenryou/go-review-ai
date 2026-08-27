@@ -31,7 +31,7 @@ def test_generate_review_report_from_pipeline_data() -> None:
 
 
 def test_generate_review_report_unclear_classification_is_explicit() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd])")
     mistakes = [
         ClassifiedMistake(
             move_number=1,
@@ -60,7 +60,7 @@ def test_print_sample_report_for_sample_pipeline(capsys) -> None:
 
 
 def test_generate_review_report_formats_pass_move() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[])")
     mistakes = [
         ClassifiedMistake(
             move_number=1,
@@ -78,7 +78,7 @@ def test_generate_review_report_formats_pass_move() -> None:
 
 
 def test_generate_review_report_mentions_leave_main_battlefield() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
     review = build_structured_review_for_game(
         game,
         engine=_LeaveMainBattlefieldEngine(),
@@ -106,7 +106,7 @@ def test_generate_review_report_mentions_leave_main_battlefield() -> None:
 
 
 def test_generate_review_report_includes_positive_highlight_labels() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]KM[6.5]PB[A]PW[B];B[pd])")
+    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd])")
     review = build_structured_review_for_game(
         game,
         engine=_PositiveMoveEngine(),

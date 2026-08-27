@@ -1,4 +1,5 @@
 import subprocess
+import json
 
 import pytest
 
@@ -209,3 +210,40 @@ def test_katago_client_from_environment_requires_paths(
 
     with pytest.raises(KataGoUnavailableError):
         KataGoClient.from_environment()
+
+
+def test_rules_komi_and_pass_context_reach_engine(monkeypatch):
+    client = KataGoClient(model_path="model", config_path="config")
+
+    def fake_run(*args, **kwargs):
+        query = json.loads(kwargs["input"])
+        assert query["rules"] == "chinese"
+        assert query["komi"] == 0
+        assert query["moves"] == [["B", "pass"], ["W", "T1"]]
+        return subprocess.CompletedProcess(
+            args=[], returncode=0, stderr="", stdout=json.dumps({"moveInfos": [
+                {"move": "D4", "scoreLead": 3.0, "winrate": .6},
+                {"move": "pass", "scoreLead": -1.0, "winrate": .4},
+            ]}),
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    base = dict(board_size=19, komi=0, rules="chinese", to_play="B",
+                moves=(("B", None), ("W", "ss")), played_move=None)
+    played = client.analyze_position(PositionInput(**base, analysis_kind="played_move"))
+    current = client.analyze_position(PositionInput(**base, analysis_kind="current_position"))
+    assert played.estimated_loss == 4.0
+    assert played.played_score_estimate == -1.0
+    assert current.estimated_loss == 0
+
+
+def test_missing_played_pass_is_not_substituted_with_best_move(monkeypatch):
+    client = KataGoClient(model_path="model", config_path="config")
+    monkeypatch.setattr(client, "_run_query", lambda _query: {"moveInfos": [
+        {"move": "D4", "scoreLead": 2, "winrate": .6},
+    ]})
+    with pytest.raises(RuntimeError, match="played pass"):
+        client.analyze_position(PositionInput(
+            board_size=19, komi=6.5, to_play="B", moves=(), played_move=None,
+            analysis_kind="played_move",
+        ))
