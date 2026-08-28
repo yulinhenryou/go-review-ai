@@ -15,10 +15,6 @@ class EngineProtocolError(RuntimeError):
     """Engine output is invalid or cannot be matched to a request."""
 
 
-class IncompleteAnalysisError(RuntimeError):
-    """Evidence is missing; the legacy report must not fill it in."""
-
-
 @dataclass(frozen=True)
 class PositionInput:
     board_size: int

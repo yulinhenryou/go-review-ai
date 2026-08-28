@@ -1,5 +1,7 @@
 """Opt in with RUN_KATAGO_INTEGRATION=1 and the documented engine paths."""
 import os
+import json
+from pathlib import Path
 
 import pytest
 
@@ -36,3 +38,25 @@ def test_real_passes_and_end_of_record(rules):
     assert result.move_results[-1].engine_analysis.played_candidate.move == "pass"
     assert result.move_results[-1].estimated_loss is not None
     assert result.current_position.evidence.played_source == "not_applicable"
+
+
+@pytest.mark.parametrize("rerun", [1, 2])
+def test_real_obvious_mistakes_have_traceable_factual_reports_with_tolerance(rerun):
+    reference = json.loads(Path("docs/evidence/m3-report.json").read_text())
+    game = parse_sgf_file(reference["sample"])
+    review = build_structured_review_for_game(game, KataGoClient.from_environment(max_visits=reference["max_visits"]))
+    assert review.status == "complete"
+    assert review.coverage.moves_evaluated == 6
+    assert {item.move_number for item in review.selected_mistakes} == {1, 3, 5}
+    evidence = review.current_position.evidence
+    same_context = evidence.model_sha256 == reference["model_sha256"] and evidence.config_sha256 == reference["config_sha256"]
+    expected = {item["move_number"]: item["score_loss"] for item in reference["selected_mistakes"]}
+    for item in review.selected_mistakes:
+        assert item.score_loss >= 3
+        if same_context:
+            assert item.score_loss == pytest.approx(expected[item.move_number], abs=4)
+        assert item.pv and item.pv[0].move == item.recommended_move.sgf
+        assert item.pv[0].color == item.color
+        assert item.played_candidate.move.sgf == item.played_move.sgf
+        assert f"估计损失 {item.score_loss:.2f} 目" in item.summary
+    assert "主战场" not in json.dumps(review.to_dict(), ensure_ascii=False)

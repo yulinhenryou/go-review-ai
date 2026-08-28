@@ -28,8 +28,10 @@ def test_incomplete_evidence_cannot_be_presented_as_a_complete_report():
     response = client.post("/api/v1/analyze-moves", json={
         "board_size": 19, "komi": 6.5, "rules": "japanese", "moves": [{"color": "B", "sgf": "pd"}],
     })
-    assert response.status_code == 503
-    assert response.json()["error"]["code"] == "incomplete_analysis"
+    assert response.status_code == 200
+    assert response.json()["status"] == "partial"
+    assert response.json()["coverage"]["missing_winrate_move_numbers"] == [1]
+    assert response.json()["timeline"][0]["winrate_delta_pp"] is None
 
 
 def test_timeline_has_fixed_black_perspective():

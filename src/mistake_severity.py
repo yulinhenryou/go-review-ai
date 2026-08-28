@@ -1,65 +1,22 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Literal
 
-
-MistakeSeverity = Literal[
-    "inaccuracy",
-    "mistake",
-    "major_mistake",
-    "blunder",
-]
-
-
-@dataclass(frozen=True)
-class SeverityThresholds:
-    inaccuracy: float = 0.7
-    mistake: float = 1.5
-    major_mistake: float = 3.0
-    blunder: float = 5.0
-
-
-DEFAULT_SEVERITY_THRESHOLDS = SeverityThresholds()
+MistakeSeverity = Literal["mistake", "severe"]
+DEFAULT_LOSS_THRESHOLD = 3.0
+DEFAULT_SEVERE_THRESHOLD = 5.0
+MAX_REVIEW_MISTAKES = 5
 
 
 def severity_from_loss(
-    score_loss: float,
-    thresholds: SeverityThresholds = DEFAULT_SEVERITY_THRESHOLDS,
-    *,
-    winrate_delta: float = 0.0,
-    winrate_before: float | None = None,
-    winrate_after: float | None = None,
-) -> MistakeSeverity:
-    abs_winrate_delta = abs(winrate_delta)
-
-    if (
-        score_loss >= thresholds.blunder
-        or abs_winrate_delta >= 0.30
-        or _is_nearly_losing_transition(winrate_before, winrate_after, minimum_drop=0.25)
-    ):
-        return "blunder"
-    if (
-        score_loss >= thresholds.major_mistake
-        or abs_winrate_delta >= 0.18
-        or _is_nearly_losing_transition(winrate_before, winrate_after, minimum_drop=0.18)
-    ):
-        return "major_mistake"
-    if score_loss >= thresholds.mistake or abs_winrate_delta >= 0.10:
-        return "mistake"
-    return "inaccuracy"
+    score_loss: float | None,
+    loss_threshold: float = DEFAULT_LOSS_THRESHOLD,
+    severe_threshold: float = DEFAULT_SEVERE_THRESHOLD,
+) -> MistakeSeverity | None:
+    if score_loss is None or score_loss <= 0 or score_loss < loss_threshold:
+        return None
+    return "severe" if score_loss >= severe_threshold else "mistake"
 
 
-def _is_nearly_losing_transition(
-    winrate_before: float | None,
-    winrate_after: float | None,
-    *,
-    minimum_drop: float,
-) -> bool:
-    if winrate_before is None or winrate_after is None:
-        return False
-    return (
-        winrate_before >= 0.45
-        and winrate_after <= 0.20
-        and (winrate_before - winrate_after) >= minimum_drop
-    )
+def severity_label(severity: MistakeSeverity | None) -> str | None:
+    return {"mistake": "明显失误", "severe": "严重失误"}.get(severity)

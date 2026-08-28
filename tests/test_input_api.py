@@ -77,7 +77,8 @@ def test_invalid_sgf_never_creates_engine(api, data):
     ({"rules": None}, 400), ({"komi": None}, 400), ({"rules": "aga"}, 422),
     ({"board_size": 13}, 400), ({"board_size": True}, 422), ({"board_size": "19"}, 422),
     ({"komi": True}, 422), ({"komi": "6.5"}, 422), ({"komi": .25}, 400),
-    ({"limit": 0}, 422), ({"limit": 501}, 422), ({"loss_threshold": -1}, 422),
+    ({"limit": 0}, 422), ({"limit": 6}, 422), ({"limit": 501}, 422), ({"loss_threshold": -1}, 422),
+    ({"severe_threshold": 2}, 400), ({"severe_threshold": -1}, 422),
     ({"moves": []}, 422), ({"moves": [{"color": "B"}]}, 422),
     ({"moves": [{"color": "B", "sgf": ""}]}, 400),
     ({"moves": [{"color": "B", "sgf": "aa"}, {"color": "W", "sgf": "aa"}]}, 400),
@@ -92,7 +93,7 @@ def test_invalid_manual_input_never_creates_engine(api, change, status):
     assert calls == []
 
 
-@pytest.mark.parametrize("name", ["komi", "loss_threshold"])
+@pytest.mark.parametrize("name", ["komi", "loss_threshold", "severe_threshold"])
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
 def test_nonfinite_json_errors_are_serializable(api, name, value):
     client, calls = api
@@ -105,7 +106,8 @@ def test_nonfinite_json_errors_are_serializable(api, name, value):
 
 @pytest.mark.parametrize("params", [
     {"loss_threshold": "nan"}, {"loss_threshold": "inf"}, {"loss_threshold": -1},
-    {"limit": 0}, {"limit": 501}, {"komi": "nan"}, {"rules": "aga"},
+    {"limit": 0}, {"limit": 6}, {"limit": 501}, {"komi": "nan"}, {"rules": "aga"},
+    {"severe_threshold": 2}, {"severe_threshold": "nan"}, {"severe_threshold": "inf"},
 ])
 def test_invalid_sgf_options_never_create_engine(api, params):
     client, calls = api

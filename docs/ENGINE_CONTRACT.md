@@ -58,7 +58,7 @@ and caching/readiness orchestration remain outside M2.
 - Each candidate owns its actual ordered PV as `{color, move}` entries. Missing
   PV is empty. No padding, alternative-candidate stitching or borrowed PVs.
 
-## Review Schema 2.2
+## Historical Review Schema 2.2
 
 The existing report fields remain for compatibility. Added fields include:
 
@@ -75,15 +75,17 @@ The frontend charts now use fixed-black data; candidate details display that
 candidate's own PV. Existing moving-player fields retain their prior semantics.
 Winrate fields are fractions, not percentage points.
 
-The old report pipeline cannot safely render partial evidence. Until M3 adds
-partial-result presentation, a missing essential value aborts the report with
-HTTP 503 `incomplete_analysis`. Unavailable engine returns `engine_unavailable`;
+M2's old report rejected incomplete evidence with HTTP 503 `incomplete_analysis`.
+M3 supersedes that boundary: successfully received responses with missing numeric
+evidence produce schema 3.0 partial reports and explicit coverage. Missing PVs are
+flagged rather than fabricated. Unavailable engine still returns `engine_unavailable`;
 other engine/protocol failures return `analysis_failed`. No raw error/path is
-returned to the browser. This conservative boundary is intentional.
+returned to the browser. See [report contract](REPORT_CONTRACT.md) for the current
+fields, units and missing-evidence semantics.
 
 ## Still Not a Release
 
-M3 owns factual templates, obvious-mistake thresholds, quality/coverage presentation
-and retirement of unsupported teaching heuristics. M4 owns bounded jobs and full
+M3 now provides factual templates, obvious-mistake thresholds, quality/coverage
+presentation and retirement of unsupported teaching heuristics. M4 owns bounded jobs and full
 input/report UI. The API is still a loopback development service, not suitable for
 public expensive-analysis traffic. Pages still hosts only the older static preview.

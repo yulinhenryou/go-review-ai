@@ -1,39 +1,14 @@
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from src.analyzer import MoveAnalysisResult
-from src.chinese_explanations import (
-    current_position_explanation_cn,
-    explanation_summary_cn,
-    explanation_title_cn,
-    explanation_why_cn,
-)
-from src.classifier import ClassifiedMistake, MistakeCategory
-from src.key_points import (
-    KeyPointAnalysis,
-    LeaveMainBattlefield,
-    MainIssue,
-    PlanBreak,
-    ReviewSummary,
-    TurningPoint,
-    build_key_point_analysis,
-    parse_pv_summary,
-    phase_label,
-    phase_for_move,
-)
-from src.katago_client import CandidateMove, PositionAnalysis
-from src.engine_types import AnalysisEvidence, PVMove
-from src.mistake_severity import MistakeSeverity
+from src.analyzer import GameAnalysis, MoveAnalysisResult
+from src.engine_types import AnalysisEvidence, CandidateMove, PositionAnalysis, PVMove
+from src.mistake_selector import assess_move, select_top_mistakes
+from src.mistake_severity import MistakeSeverity, severity_from_loss, severity_label
+from src.report_writer import current_summary, move_summary, quality_notes, review_summary
 from src.sgf_parser import ParsedGame
-from src.user_facing_labels import (
-    category_label,
-    category_training_suggestion,
-    ordered_categories,
-    severity_label,
-)
 
 
 @dataclass(frozen=True)
@@ -59,629 +34,209 @@ class GameSummaryResult:
     rules: str
     record_status: str
     input_warnings: tuple[str, ...]
-    komi: float | None
+    komi: float
     players: dict[str, str]
-    result: str
+    result: str | None
     moves_analyzed: int
     mistakes_reviewed: int
 
 
 @dataclass(frozen=True)
-class SelectedMistakeResult:
+class CoverageResult:
+    moves_total: int
+    moves_evaluated: int
+    missing_move_numbers: tuple[int, ...]
+    moves_with_winrate: int
+    missing_winrate_move_numbers: tuple[int, ...]
+    current_position_evaluated: bool
+
+
+@dataclass(frozen=True)
+class ReviewMethod:
+    loss_threshold: float
+    severe_threshold: float
+    top_limit: int
+    score_unit: str = "points"
+    loss_perspective: str = "moving_player"
+    winrate_delta_unit: str = "percentage_points"
+    winrate_delta_definition: str = "played_minus_recommended"
+    chart_perspective: str = "BLACK"
+    ranking: str = "unrounded_loss_desc_then_move_number"
+    note: str = "阈值是可调整的产品设置，尚待校准；分析数值为搜索估计，不代表确定结论。"
+
+
+@dataclass(frozen=True)
+class MoveReviewResult:
     move_number: int
     color: str
     played_move: CoordinateView
-    recommended_move: CoordinateView
-    score_loss: float
-    estimated_loss: float
-    winrate_delta: float
-    category: MistakeCategory
-    category_label: str
-    severity: MistakeSeverity
-    severity_label: str
+    recommended_move: CoordinateView | None
+    score_loss: float | None
+    raw_score_loss: float | None
+    winrate_delta_pp: float | None
+    score_before: float | None
+    score_after: float | None
+    winrate_before: float | None
+    winrate_after: float | None
+    score_black_before: float | None
+    score_black_after: float | None
+    winrate_black_before: float | None
+    winrate_black_after: float | None
+    severity: MistakeSeverity | None
+    severity_label: str | None
+    is_mistake: bool | None
+    status: str
+    pv: tuple[PVMove, ...]
     pv_summary: str
     top_candidates: list[CandidateView]
-
-
-@dataclass(frozen=True)
-class ClassificationTotal:
-    category: MistakeCategory
-    label: str
-    count: int
-
-
-@dataclass(frozen=True)
-class ClassificationResult:
-    move_number: int
-    category: MistakeCategory
-    label: str
-
-
-@dataclass(frozen=True)
-class ClassificationsSummary:
-    by_move: list[ClassificationResult]
-    totals: list[ClassificationTotal]
-
-
-@dataclass(frozen=True)
-class ExplanationResult:
-    move_number: int
-    category: MistakeCategory
-    title: str
+    played_candidate: CandidateView | None
+    evidence: AnalysisEvidence | None
+    warnings: tuple[str, ...]
+    quality_notes: tuple[str, ...]
     summary: str
-    why_this_matters: str
-
-
-@dataclass(frozen=True)
-class TrainingSuggestion:
-    category: MistakeCategory | None
-    suggestion: str
 
 
 @dataclass(frozen=True)
 class CurrentPositionResult:
     next_player: str
-    best_move: CoordinateView
+    best_move: CoordinateView | None
     top_candidates: list[CandidateView]
     pv_summary: str
-    score_estimate: float
-    winrate: float
+    score_estimate: float | None
+    winrate: float | None
     short_explanation: str
     evidence: AnalysisEvidence | None
-
-
-@dataclass(frozen=True)
-class TimelineItemResult:
-    move_number: int
-    color: str
-    played_move: CoordinateView
-    best_move: CoordinateView
-    score_loss: float
-    winrate_delta: float
-    score_before: float
-    score_after: float
-    winrate_before: float
-    winrate_after: float
-    category: MistakeCategory
-    category_label: str
-    severity: MistakeSeverity
-    severity_label: str
-    is_mistake: bool
-    teaching_label: str | None
-    swing_direction: str
-    score_black_before: float
-    score_black_after: float
-    winrate_black_before: float
-    winrate_black_after: float
-    raw_score_loss: float | None
-    played_candidate: CandidateView | None
-    evidence: AnalysisEvidence | None
+    warnings: tuple[str, ...]
+    quality_notes: tuple[str, ...]
 
 
 @dataclass(frozen=True)
 class ReviewSectionResult:
-    mistakes_above_threshold: list[SelectedMistakeResult]
-    classification_totals: list[ClassificationTotal]
-    training_suggestions: list[TrainingSuggestion]
-
-
-@dataclass(frozen=True)
-class TurningPointResult:
-    move_number: int
-    color: str
-    score_loss: float
-    winrate_delta: float
-    severity: MistakeSeverity
-    severity_label: str
-    phase: str
-    summary: str
-
-
-@dataclass(frozen=True)
-class PlanBreakResult:
-    anchor_move_number: int
-    break_move_number: int
-    color: str
-    expected_follow_up: CoordinateView
-    played_move: CoordinateView
-    score_loss: float
-    summary: str
-
-
-@dataclass(frozen=True)
-class PhaseSummaryResult:
-    opening_loss: float
-    middle_game_loss: float
-    endgame_loss: float
-    biggest_problem_phase: str
-    main_issue: MainIssue
-    summary: str
-
-
-@dataclass(frozen=True)
-class KeyPointsResult:
-    turning_points: list[TurningPointResult]
-    plan_breaks: list[PlanBreakResult]
-    leave_main_battlefields: list[PlanBreakResult]
-    phase_summary: PhaseSummaryResult
-    review_summary: "ReviewSummaryResult"
-
-
-@dataclass(frozen=True)
-class ReviewSummaryResult:
-    opening: str
-    middle_game: str
-    endgame: str
-    main_turning_points: list[str]
-    loss_cause: MainIssue
-    summary: str
+    # All qualifying moves in chronology, independent of the top-five ranking.
+    mistakes_above_threshold: list[MoveReviewResult]
 
 
 @dataclass(frozen=True)
 class ReviewResult:
     schema_version: str
     engine_source: str
+    status: str
+    summary: str
     game_summary: GameSummaryResult
+    coverage: CoverageResult
+    method: ReviewMethod
     current_position: CurrentPositionResult
-    key_points: KeyPointsResult
-    timeline: list[TimelineItemResult]
+    timeline: list[MoveReviewResult]
     review: ReviewSectionResult
-    selected_mistakes: list[SelectedMistakeResult]
-    classifications: ClassificationsSummary
-    explanations: list[ExplanationResult]
-    training_suggestions: list[TrainingSuggestion]
+    selected_mistakes: list[MoveReviewResult]
+    warnings: tuple[str, ...]
+    quality_notes: tuple[str, ...]
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 def build_review_result(
-    game: ParsedGame,
-    selected_mistakes: list[ClassifiedMistake],
-    threshold_mistakes: list[ClassifiedMistake],
-    all_classified: list[ClassifiedMistake],
-    results: list[MoveAnalysisResult],
-    current_position_analysis: PositionAnalysis,
-    next_player: str,
-    loss_threshold: float,
+    game: ParsedGame, analysis: GameAnalysis, loss_threshold: float,
+    severe_threshold: float, limit: int,
 ) -> ReviewResult:
-    by_move = {result.move_number: result for result in results}
-    key_point_analysis = build_key_point_analysis(results, all_classified)
-
-    selected_views = [
-        _selected_mistake_view(game.board_size, mistake, by_move[mistake.move_number])
-        for mistake in selected_mistakes
-    ]
-    threshold_views = [
-        _selected_mistake_view(game.board_size, mistake, by_move[mistake.move_number])
-        for mistake in threshold_mistakes
-    ]
-    selected_classifications = _classifications_summary(selected_mistakes)
-    threshold_totals = _classification_totals(threshold_mistakes)
-    selected_training = _training_suggestions(selected_mistakes)
-    threshold_training = _training_suggestions(threshold_mistakes)
-    turning_point_moves = {item.move_number for item in key_point_analysis.turning_points}
-    plan_break_moves = {item.break_move_number for item in key_point_analysis.plan_breaks}
-    leave_main_battlefield_moves = {
-        item.break_move_number for item in key_point_analysis.leave_main_battlefields
-    }
-
+    timeline = [_move_view(game.board_size, item, loss_threshold, severe_threshold) for item in analysis.move_results]
+    by_move = {item.move_number: item for item in timeline}
+    selected = [by_move[item.move_number] for item in select_top_mistakes(
+        analysis.move_results, loss_threshold, limit, severe_threshold,
+    )]
+    all_mistakes = [item for item in timeline if item.is_mistake]
+    current = _current_view(game.board_size, analysis.current_position, analysis.current_position_input.to_play)
+    missing = tuple(item.move_number for item in timeline if item.score_loss is None)
+    missing_winrate = tuple(item.move_number for item in timeline if item.winrate_delta_pp is None)
+    current_evaluated = current.score_estimate is not None and current.winrate is not None
+    coverage = CoverageResult(len(timeline), len(timeline) - len(missing), missing,
+                              len(timeline) - len(missing_winrate), missing_winrate, current_evaluated)
+    status = "partial" if missing or missing_winrate or not current_evaluated else "complete"
+    warnings = tuple(sorted({warning for item in timeline for warning in item.warnings} | set(current.warnings)))
     return ReviewResult(
-        schema_version="2.2",
-        engine_source="katago" if current_position_analysis.evidence is not None else "unverified_test_double",
+        schema_version="3.0",
+        engine_source="katago" if all(item.evidence is not None for item in [*timeline, current]) else "unverified_test_double",
+        status=status,
+        summary=review_summary(coverage, len(all_mistakes), status),
         game_summary=GameSummaryResult(
-            board_size=game.board_size,
-            rules=game.rules,
-            record_status=game.record_status,
-            input_warnings=game.warnings,
-            komi=game.komi,
-            players={
-                "black": game.black_player or "Unknown Black",
-                "white": game.white_player or "Unknown White",
-            },
-            result=game.result or "unknown",
-            moves_analyzed=len(game.moves),
-            mistakes_reviewed=len(selected_mistakes),
+            game.board_size, game.rules, game.record_status, game.warnings, game.komi,
+            {"black": game.black_player or "未知", "white": game.white_player or "未知"},
+            game.result, len(timeline), len(selected),
         ),
-        current_position=_current_position_view(
-            board_size=game.board_size,
-            next_player=next_player,
-            analysis=current_position_analysis,
-        ),
-        key_points=_key_points_view(game.board_size, key_point_analysis),
-        timeline=[
-            _timeline_item(
-                board_size=game.board_size,
-                result=result,
-                classified=all_classified[result.move_number - 1],
-                loss_threshold=loss_threshold,
-            )
-            for result in results
-        ],
-        review=ReviewSectionResult(
-            mistakes_above_threshold=threshold_views,
-            classification_totals=threshold_totals,
-            training_suggestions=threshold_training,
-        ),
-        selected_mistakes=selected_views,
-        classifications=selected_classifications,
-        explanations=[
-            _explanation(
-                game.board_size,
-                item,
-                total_moves=len(results),
-                turning_point_moves=turning_point_moves,
-                plan_break_moves=plan_break_moves,
-                leave_main_battlefield_moves=leave_main_battlefield_moves,
-            )
-            for item in selected_views
-        ],
-        training_suggestions=selected_training,
+        coverage=coverage, method=ReviewMethod(loss_threshold, severe_threshold, limit),
+        current_position=current, timeline=timeline, review=ReviewSectionResult(all_mistakes),
+        selected_mistakes=selected, warnings=warnings, quality_notes=quality_notes(warnings),
     )
 
 
-def review_result_to_dict(review: ReviewResult) -> dict[str, Any]:
-    return review.to_dict()
+def _move_view(board_size: int, result: MoveAnalysisResult, threshold: float, severe: float) -> MoveReviewResult:
+    value = result.engine_analysis
+    assessment = assess_move(result)
+    severity = severity_from_loss(assessment.score_loss, threshold, severe)
+    played = _coord_view(result.played_move, board_size)
+    recommended = _coord_view(value.best_move, board_size) if value.best_move is not None else None
+    pv = _recommendation_pv(value)
+    warnings = tuple(sorted(set(assessment.warnings) | ({"missing_pv"} if not pv else set())))
+    sign = 1 if result.color == "B" else -1
+    return MoveReviewResult(
+        move_number=result.move_number, color=result.color, played_move=played, recommended_move=recommended,
+        score_loss=assessment.score_loss, raw_score_loss=assessment.raw_score_loss,
+        winrate_delta_pp=assessment.winrate_delta_pp,
+        score_before=value.score_estimate, score_after=value.played_score_estimate,
+        winrate_before=value.winrate, winrate_after=value.played_winrate,
+        score_black_before=value.score_estimate * sign if value.score_estimate is not None else None,
+        score_black_after=value.played_score_estimate * sign if value.played_score_estimate is not None else None,
+        winrate_black_before=_black_winrate(value.winrate, result.color),
+        winrate_black_after=_black_winrate(value.played_winrate, result.color),
+        severity=severity, severity_label=severity_label(severity),
+        is_mistake=severity is not None if assessment.score_loss is not None else None,
+        status="unavailable" if assessment.score_loss is None else "evaluated",
+        pv=pv, pv_summary=_pv_summary(pv, board_size),
+        top_candidates=[_candidate_view(c, board_size) for c in value.top_candidates],
+        played_candidate=_candidate_view(value.played_candidate, board_size) if value.played_candidate else None,
+        evidence=value.evidence, warnings=warnings, quality_notes=quality_notes(warnings),
+        summary=move_summary(result.move_number, result.color, played.display,
+                             recommended.display if recommended else None,
+                             assessment.score_loss, assessment.winrate_delta_pp),
+    )
 
 
-def _current_position_view(
-    board_size: int,
-    next_player: str,
-    analysis: PositionAnalysis,
-) -> CurrentPositionResult:
-    best_move = _coord_view(analysis.best_move, board_size) if analysis.best_move is not None else CoordinateView(None, "unavailable")
+def _current_view(board_size: int, value: PositionAnalysis, next_player: str) -> CurrentPositionResult:
+    best = _coord_view(value.best_move, board_size) if value.best_move is not None else None
+    warnings = set(value.evidence.warnings) if value.evidence else {"unverified_engine"}
+    if value.score_estimate is None or value.winrate is None:
+        warnings.add("missing_current_value")
+    pv = _recommendation_pv(value)
+    if not pv:
+        warnings.add("missing_pv")
     return CurrentPositionResult(
-        next_player=next_player,
-        best_move=best_move,
-        top_candidates=[
-            _candidate_view(candidate, board_size)
-            for candidate in analysis.top_candidates
-        ],
-        pv_summary=_pv_summary_view(board_size, analysis.pv_summary),
-        score_estimate=analysis.score_estimate,
-        winrate=analysis.winrate,
-        short_explanation=_current_position_explanation(
-            next_player=next_player,
-            best_move=best_move.display,
-            score_estimate=analysis.score_estimate,
-            winrate=analysis.winrate,
-        ) if analysis.best_move is not None else "引擎未返回当前局面的推荐落点。",
-        evidence=analysis.evidence,
+        next_player, best, [_candidate_view(c, board_size) for c in value.top_candidates],
+        _pv_summary(pv, board_size), value.score_estimate, value.winrate,
+        current_summary(next_player, best.display if best else None, value.score_estimate, value.winrate),
+        value.evidence, tuple(sorted(warnings)), quality_notes(warnings),
     )
 
 
-def _current_position_explanation(
-    *,
-    next_player: str,
-    best_move: str,
-    score_estimate: float,
-    winrate: float,
-) -> str:
-    return current_position_explanation_cn(
-        next_player=next_player,
-        best_move=best_move,
-        score_estimate=score_estimate,
-        winrate=winrate,
-    )
-
-
-def _selected_mistake_view(
-    board_size: int,
-    mistake: ClassifiedMistake,
-    result: MoveAnalysisResult,
-) -> SelectedMistakeResult:
-    return SelectedMistakeResult(
-        move_number=mistake.move_number,
-        color=result.color,
-        played_move=_coord_view(mistake.played_move, board_size),
-        recommended_move=_coord_view(mistake.recommended_move, board_size),
-        score_loss=mistake.score_loss,
-        estimated_loss=mistake.estimated_loss,
-        winrate_delta=mistake.winrate_delta,
-        category=mistake.category,
-        category_label=category_label(mistake.category),
-        severity=mistake.severity,
-        severity_label=severity_label(mistake.severity),
-        pv_summary=_pv_summary_view(board_size, result.engine_analysis.pv_summary),
-        top_candidates=[
-            _candidate_view(candidate, board_size)
-            for candidate in result.engine_analysis.top_candidates
-        ],
-    )
+def _recommendation_pv(value: PositionAnalysis) -> tuple[PVMove, ...]:
+    return next((candidate.pv for candidate in value.top_candidates if candidate.move == value.best_move), ())
 
 
 def _candidate_view(candidate: CandidateMove, board_size: int) -> CandidateView:
-    return CandidateView(
-        move=_coord_view(candidate.move, board_size),
-        score_estimate=candidate.score_estimate,
-        winrate=candidate.winrate,
-        pv=candidate.pv,
-        visits=candidate.visits,
-        score_black=candidate.score_black,
-        winrate_black=candidate.winrate_black,
-    )
+    return CandidateView(_coord_view(candidate.move, board_size), candidate.score_estimate,
+                         candidate.winrate, candidate.pv, candidate.visits, candidate.score_black, candidate.winrate_black)
 
 
-def _timeline_item(
-    board_size: int,
-    result: MoveAnalysisResult,
-    classified: ClassifiedMistake,
-    loss_threshold: float,
-) -> TimelineItemResult:
-    return TimelineItemResult(
-        move_number=result.move_number,
-        color=result.color,
-        played_move=_coord_view(result.played_move, board_size),
-        best_move=_coord_view(result.recommended_move, board_size),
-        score_loss=result.estimated_loss,
-        winrate_delta=round(
-            result.engine_analysis.played_winrate - result.engine_analysis.winrate,
-            2,
-        ),
-        score_before=result.engine_analysis.score_estimate,
-        score_after=result.engine_analysis.played_score_estimate,
-        winrate_before=result.engine_analysis.winrate,
-        winrate_after=result.engine_analysis.played_winrate,
-        category=classified.category,
-        category_label=category_label(classified.category),
-        severity=classified.severity,
-        severity_label=severity_label(classified.severity),
-        is_mistake=result.estimated_loss >= loss_threshold,
-        teaching_label=_teaching_label_for_result(result),
-        swing_direction=_swing_direction(result),
-        score_black_before=result.engine_analysis.score_estimate * (1 if result.color == "B" else -1),
-        score_black_after=result.engine_analysis.played_score_estimate * (1 if result.color == "B" else -1),
-        winrate_black_before=result.engine_analysis.winrate if result.color == "B" else 1 - result.engine_analysis.winrate,
-        winrate_black_after=result.engine_analysis.played_winrate if result.color == "B" else 1 - result.engine_analysis.played_winrate,
-        raw_score_loss=result.engine_analysis.raw_score_loss,
-        played_candidate=_candidate_view(result.engine_analysis.played_candidate, board_size) if result.engine_analysis.played_candidate else None,
-        evidence=result.engine_analysis.evidence,
-    )
+def _black_winrate(value: float | None, color: str) -> float | None:
+    return None if value is None else value if color == "B" else 1 - value
 
 
-def _key_points_view(board_size: int, analysis: KeyPointAnalysis) -> KeyPointsResult:
-    return KeyPointsResult(
-        turning_points=[_turning_point_result(item) for item in analysis.turning_points],
-        plan_breaks=[_plan_break_result(board_size, item) for item in analysis.plan_breaks],
-        leave_main_battlefields=[
-            _leave_main_battlefield_result(board_size, item)
-            for item in analysis.leave_main_battlefields
-        ],
-        phase_summary=_phase_summary_result(analysis),
-        review_summary=_review_summary_result(analysis.review_summary),
-    )
-
-
-def _turning_point_result(item: TurningPoint) -> TurningPointResult:
-    return TurningPointResult(
-        move_number=item.move_number,
-        color=item.color,
-        score_loss=item.score_loss,
-        winrate_delta=item.winrate_delta,
-        severity=item.severity,
-        severity_label=severity_label(item.severity),
-        phase=phase_label(item.phase),
-        summary=item.summary,
-    )
-
-
-def _plan_break_result(board_size: int, item: PlanBreak) -> PlanBreakResult:
-    return PlanBreakResult(
-        anchor_move_number=item.anchor_move_number,
-        break_move_number=item.break_move_number,
-        color=item.color,
-        expected_follow_up=_coord_view(item.expected_follow_up, board_size),
-        played_move=_coord_view(item.played_move, board_size),
-        score_loss=item.score_loss,
-        summary=item.summary,
-    )
-
-
-def _leave_main_battlefield_result(
-    board_size: int,
-    item: LeaveMainBattlefield,
-) -> PlanBreakResult:
-    return PlanBreakResult(
-        anchor_move_number=item.anchor_move_number,
-        break_move_number=item.break_move_number,
-        color=item.color,
-        expected_follow_up=_coord_view(item.expected_follow_up, board_size),
-        played_move=_coord_view(item.played_move, board_size),
-        score_loss=item.score_loss,
-        summary=item.summary,
-    )
-
-
-def _phase_summary_result(analysis: KeyPointAnalysis) -> PhaseSummaryResult:
-    phase_summary = analysis.phase_summary
-    return PhaseSummaryResult(
-        opening_loss=phase_summary.opening_loss,
-        middle_game_loss=phase_summary.middle_game_loss,
-        endgame_loss=phase_summary.endgame_loss,
-        biggest_problem_phase=phase_label(phase_summary.biggest_problem_phase),
-        main_issue=phase_summary.main_issue,
-        summary=phase_summary.summary,
-    )
-
-
-def _classifications_summary(mistakes: list[ClassifiedMistake]) -> ClassificationsSummary:
-    return ClassificationsSummary(
-        by_move=[
-            ClassificationResult(
-                move_number=item.move_number,
-                category=item.category,
-                label=category_label(item.category),
-            )
-            for item in mistakes
-        ],
-        totals=_classification_totals(mistakes),
-    )
-
-
-def _classification_totals(mistakes: list[ClassifiedMistake]) -> list[ClassificationTotal]:
-    counts = Counter(mistake.category for mistake in mistakes)
-    return [
-        ClassificationTotal(
-            category=category,
-            label=category_label(category),
-            count=counts[category],
-        )
-        for category in ordered_categories()
-        if counts[category] > 0
-    ]
-
-
-def _review_summary_result(summary: ReviewSummary) -> ReviewSummaryResult:
-    return ReviewSummaryResult(
-        opening=summary.opening,
-        middle_game=summary.middle_game,
-        endgame=summary.endgame,
-        main_turning_points=summary.main_turning_points,
-        loss_cause=summary.loss_cause,
-        summary=summary.summary,
-    )
-
-
-def _explanation(
-    board_size: int,
-    mistake: SelectedMistakeResult,
-    total_moves: int | None = None,
-    turning_point_moves: set[int] | None = None,
-    plan_break_moves: set[int] | None = None,
-    leave_main_battlefield_moves: set[int] | None = None,
-) -> ExplanationResult:
-    played = mistake.played_move.display
-    recommended = mistake.recommended_move.display
-    label = category_label(mistake.category)
-    phase = phase_for_move(mistake.move_number, total_moves or mistake.move_number)
-    is_turning_point = mistake.move_number in (turning_point_moves or set())
-    is_plan_break = mistake.move_number in (plan_break_moves or set())
-    is_leave_main_battlefield = mistake.move_number in (leave_main_battlefield_moves or set())
-    return ExplanationResult(
-        move_number=mistake.move_number,
-        category=mistake.category,
-        title=explanation_title_cn(mistake.move_number, mistake.color, label),
-        summary=explanation_summary_cn(
-            move_number=mistake.move_number,
-            color=mistake.color,
-            phase=phase,
-            played_move=played,
-            recommended_move=recommended,
-            score_loss=mistake.estimated_loss,
-            winrate_delta=mistake.winrate_delta,
-            severity_label=mistake.severity_label,
-            is_turning_point=is_turning_point,
-        ),
-        why_this_matters=explanation_why_cn(
-            move_number=mistake.move_number,
-            category=mistake.category,
-            phase=phase,
-            plan_break_note=is_plan_break and not is_leave_main_battlefield,
-            leave_main_battlefield_note=is_leave_main_battlefield,
-        ),
-    )
-
-
-def _score_delta(result: MoveAnalysisResult) -> float:
-    return round(
-        result.engine_analysis.played_score_estimate - result.engine_analysis.score_estimate,
-        2,
-    )
-
-
-def _winrate_delta(result: MoveAnalysisResult) -> float:
-    return round(
-        result.engine_analysis.played_winrate - result.engine_analysis.winrate,
-        2,
-    )
-
-
-def _swing_direction(result: MoveAnalysisResult) -> str:
-    score_delta = _score_delta(result)
-    winrate_delta = _winrate_delta(result)
-    if score_delta >= 0.1 or winrate_delta >= 0.01:
-        return "positive"
-    if score_delta <= -0.1 or winrate_delta <= -0.01:
-        return "negative"
-    return "neutral"
-
-
-def _teaching_label_for_result(result: MoveAnalysisResult) -> str | None:
-    score_delta = _score_delta(result)
-    winrate_delta = _winrate_delta(result)
-    if score_delta >= 3.0 or winrate_delta >= 0.18:
-        return "胜负手"
-    if score_delta >= 1.5 or winrate_delta >= 0.10:
-        return "关键好手"
-    if score_delta >= 0.7 or winrate_delta >= 0.04:
-        return "好手"
-    return None
-
-
-def _pv_summary_view(board_size: int, pv_summary: str) -> str:
-    steps = parse_pv_summary(pv_summary)
-    if not steps:
-        return pv_summary
-
-    parts = []
-    for color, move in steps:
-        color_label = "黑" if color == "B" else "白"
-        parts.append(f"{color_label}{_coord_view(move, board_size).display}")
-    return " -> ".join(parts)
-
-
-def _training_suggestions(mistakes: list[ClassifiedMistake]) -> list[TrainingSuggestion]:
-    if not mistakes:
-        return [
-            TrainingSuggestion(
-                category=None,
-                suggestion="Keep playing and collect more reviewed games.",
-            )
-        ]
-
-    counts = Counter(item.category for item in mistakes)
-    suggestions = [
-        TrainingSuggestion(
-            category=category,
-            suggestion=category_training_suggestion(category),
-        )
-        for category, _count in counts.most_common(2)
-    ]
-    suggestions.append(
-        TrainingSuggestion(
-            category=None,
-            suggestion="In your next review, compare your move with the best move before reading comments.",
-        )
-    )
-    return suggestions
+def _pv_summary(pv: tuple[PVMove, ...], board_size: int) -> str:
+    return " -> ".join(f"{'黑' if step.color == 'B' else '白'}{_coord_view(step.move, board_size).display}" for step in pv)
 
 
 def _coord_view(move: str | None, board_size: int) -> CoordinateView:
     if move is None or move == "pass":
-        return CoordinateView(sgf=None if move is None else move, display="pass")
-
-    human = _sgf_to_human_coord(move, board_size)
-    if human is None:
-        return CoordinateView(sgf=move, display=move)
-    return CoordinateView(sgf=move, display=human)
-
-
-def _sgf_to_human_coord(move: str, board_size: int) -> str | None:
-    if len(move) != 2 or board_size <= 0:
-        return None
-
-    x = ord(move[0]) - ord("a")
-    y = ord(move[1]) - ord("a")
-    if x < 0 or y < 0 or x >= board_size or y >= board_size:
-        return None
-
-    column = _go_column_label(x)
-    row = board_size - y
-    return f"{column}{row}"
-
-
-def _go_column_label(index: int) -> str:
-    label_index = index
-    if index >= 8:
-        label_index += 1
-    return chr(ord("A") + label_index)
+        return CoordinateView(move, "停一手")
+    x, y = ord(move[0]) - ord("a"), ord(move[1]) - ord("a")
+    return CoordinateView(move, f"{'ABCDEFGHJKLMNOPQRST'[x]}{board_size - y}")

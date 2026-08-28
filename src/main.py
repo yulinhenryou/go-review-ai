@@ -22,8 +22,6 @@ def print_sample_report(
     report = build_review_report_for_sgf(
         sgf_path=sgf_path,
         engine=selected_engine,
-        loss_threshold=1.0,
-        limit=3,
     )
     print(report)
 

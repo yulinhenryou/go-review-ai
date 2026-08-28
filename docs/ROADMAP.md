@@ -1,10 +1,10 @@
 # V1 Development Path
 
-**Status: approved by the user on 2026-08-27; M0/M1 uploaded, M2 verified.**
+**Status: approved on 2026-08-27; M1-M3 implemented and reverified on 2026-08-28.**
 Prepared on 2026-08-27 after auditing prototype `7447f54`.
 M1 was reverified and uploaded at d08fc47 after GitHub access recovery.
 M2 implementation and real-engine evidence are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
-M3-M5 are not implemented.
+M3 evidence is recorded in [M3 acceptance](M3_ACCEPTANCE.md). M4/M5 are not implemented.
 
 ## Release Goal
 
@@ -168,11 +168,18 @@ Do not promise a fixed response time before these measurements.
 
 Dependencies: M2's evaluated move evidence.
 
-Proposed selection policy:
+Delivered: schema 3.0 factual Chinese templates, coverage-aware partial reports,
+point-only severity, ranked top-five summary, all chronological mistake markers,
+candidate-owned PVs, visible provenance/warnings, and retired heuristic modules.
+CLI/API/frontend consumers are migrated together. See [report contract](REPORT_CONTRACT.md)
+and [M3 acceptance](M3_ACCEPTANCE.md). The [M1-M3 regression record](M1_M3_REGRESSION.md)
+covers this source update. Public deployment remains M5 work.
+
+Implemented initial selection policy (still requires calibration):
 
 - Start with estimated point loss >= 3.0 as an obvious mistake and >= 5.0 as a
   severe mistake. These are configurable product defaults to calibrate, not
-  established universal Go rules; the current prototype defaults differ.
+  established universal Go rules. M3 replaces the older 1.0/3-entry defaults.
 - Compute `loss = max(0, recommended_score - played_score)` only after scores have
   the same moving-player perspective and comparable search context.
 - Preserve raw differences and quality warnings. A negative difference can reflect
@@ -278,7 +285,7 @@ Keep the prototype available while replacements are built, but remove retired
 runtime paths when their consumers migrate. Do not retain experiments as silent
 fallbacks in the final default flow.
 
-Next functional work: **M3's obvious-mistake policy and concise factual reporting**.
+Next functional work: **M4's bounded analysis jobs and complete browser workflow**.
 M2 is the first real-analysis milestone, M4 is the local usable web milestone, and
 M5 is the first public usable release. No completion dates are committed before
 the real-engine and deployment benchmarks.

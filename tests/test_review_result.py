@@ -1,508 +1,117 @@
-from tests.mock_engine import MockEngineClient
+from dataclasses import replace
 import json
 
-from src.katago_client import CandidateMove, PositionAnalysis, PositionInput
-from src.main import build_review_report_for_sgf, build_structured_review_for_game, build_structured_review_for_sgf
+import pytest
+
+from src.review_service import build_structured_review_for_game
 from src.sgf_parser import parse_sgf
-from src.user_facing_labels import severity_label
+from tests.report_fixtures import FixedEvidenceEngine, game_with_moves
 
 
-def test_build_review_result_from_pipeline_data() -> None:
-    review = build_structured_review_for_sgf(
-        "samples/sample_game.sgf",
-        engine=MockEngineClient(candidate_count=3),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert review.schema_version == "2.2"
-    assert payload["game_summary"]["board_size"] == 19
-    assert payload["game_summary"]["players"]["black"] == "Black Player"
-    assert payload["game_summary"]["moves_analyzed"] == 4
-    assert payload["game_summary"]["mistakes_reviewed"] == 3
-
-    assert payload["current_position"]["next_player"] == "B"
-    assert payload["current_position"]["best_move"] == {"sgf": "jj", "display": "K10"}
-    assert payload["current_position"]["score_estimate"] == 0.9
-    assert payload["current_position"]["winrate"] == 0.53
-    assert payload["current_position"]["short_explanation"] == (
-        "现在轮到黑棋。KataGo建议走K10，目差预计为0.9，胜率约53%。"
-    )
-    assert payload["key_points"]["turning_points"] == []
-    assert payload["key_points"]["plan_breaks"] == []
-    assert payload["key_points"]["leave_main_battlefields"] == []
-    assert payload["key_points"]["phase_summary"] == {
-        "opening_loss": 5.6,
-        "middle_game_loss": 0.0,
-        "endgame_loss": 0.0,
-        "biggest_problem_phase": "布局",
-        "main_issue": "balance",
-        "summary": "全局看，损失主要集中在布局，主因是形势判断。",
-    }
-    assert payload["key_points"]["review_summary"] == {
-        "opening": "布局阶段问题比较集中，累计损失约5.60目。",
-        "middle_game": "中盘阶段整体平稳，基本没有明显损失。",
-        "endgame": "官子阶段整体平稳，基本没有明显损失。",
-        "main_turning_points": [],
-        "loss_cause": "balance",
-        "summary": "这盘棋的胜负手主要出现在布局，核心问题是形势判断。全局最值得回看的关键点共有0处。",
-    }
-
-    assert len(payload["timeline"]) == 4
-    assert payload["timeline"][0] == {
-        "evidence": None,
-        "played_candidate": None,
-        "raw_score_loss": None,
-        "score_black_before": 1.8,
-        "score_black_after": 0.4,
-        "winrate_black_before": 0.54,
-        "winrate_black_after": 0.48,
-        "move_number": 1,
-        "color": "B",
-        "played_move": {"sgf": "pd", "display": "Q16"},
-        "best_move": {"sgf": "qd", "display": "R16"},
-        "score_loss": 1.4,
-        "winrate_delta": -0.06,
-        "score_before": 1.8,
-        "score_after": 0.4,
-        "winrate_before": 0.54,
-        "winrate_after": 0.48,
-        "category": "local_overplay",
-        "category_label": "局部用力过猛",
-        "severity": "inaccuracy",
-        "severity_label": "可商榷",
-        "is_mistake": True,
-        "teaching_label": None,
-        "swing_direction": "negative",
-    }
-
-    assert [item["move_number"] for item in payload["selected_mistakes"]] == [3, 1, 2]
-    assert payload["selected_mistakes"][0]["recommended_move"] == {
-        "sgf": "cn",
-        "display": "C6",
-    }
-    assert payload["selected_mistakes"][0]["score_loss"] == 1.8
-    assert payload["selected_mistakes"][0]["estimated_loss"] == 1.8
-    assert payload["selected_mistakes"][0]["winrate_delta"] == -0.08
-    assert payload["selected_mistakes"][0]["category_label"] == "暂难归类"
-    assert payload["selected_mistakes"][0]["severity_label"] == "问题手"
-
-    assert payload["classifications"]["totals"] == [
-        {"category": "local_overplay", "label": "局部用力过猛", "count": 1},
-        {"category": "unclear", "label": "暂难归类", "count": 2},
-    ]
-    assert payload["review"]["mistakes_above_threshold"][0]["move_number"] == 3
-    assert [item["move_number"] for item in payload["review"]["mistakes_above_threshold"]] == [3, 1, 2, 4]
-    assert payload["review"]["classification_totals"] == [
-        {"category": "local_overplay", "label": "局部用力过猛", "count": 1},
-        {"category": "unclear", "label": "暂难归类", "count": 3},
-    ]
-    assert payload["review"]["training_suggestions"][0]["category"] == "unclear"
-
-    assert payload["explanations"][0]["title"] == "黑第3手（暂难归类）"
-    assert "这一手值得重点复盘。布局阶段的黑第3手" in payload["explanations"][0]["summary"]
-    assert payload["training_suggestions"][0]["suggestion"] == (
-        "这类棋形先不要急着下结论，复盘时把实战和推荐变化摆一遍再判断。"
-    )
-
-    json.dumps(payload)
+def review(losses, overrides=None, **options):
+    return build_structured_review_for_game(game_with_moves(len(losses)), FixedEvidenceEngine(losses, overrides), **options)
 
 
-def test_structured_review_builder_in_main_and_text_report_still_works() -> None:
-    review = build_structured_review_for_sgf(
-        "samples/sample_game.sgf",
-        engine=MockEngineClient(candidate_count=3),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    report = build_review_report_for_sgf(
-        "samples/sample_game.sgf",
-        engine=MockEngineClient(candidate_count=3),
-        loss_threshold=1.0,
-        limit=3,
-    )
-
-    assert review.game_summary.moves_analyzed == 4
-    assert len(review.selected_mistakes) == 3
-    assert len(review.key_points.turning_points) == 0
-    assert len(review.timeline) == 4
-    assert "整局总结" in report
-    assert "黑第3手：实战R4，推荐C6，损失1.80目，暂难归类" in report
+def test_schema_three_separates_chronology_from_ranked_summary():
+    result = review([3, 7, 6, 5, 4, 8])
+    assert result.schema_version == "3.0"
+    assert result.status == "complete"
+    assert [item.move_number for item in result.selected_mistakes] == [6, 2, 3, 4, 5]
+    assert [item.move_number for item in result.review.mistakes_above_threshold] == [1, 2, 3, 4, 5, 6]
+    assert len(result.timeline) == 6
+    assert result.method.loss_threshold == 3
+    assert result.method.severe_threshold == 5
+    assert result.method.top_limit == 5
+    payload = result.to_dict()
+    assert not {"key_points", "classifications", "explanations", "training_suggestions"} & payload.keys()
+    assert not {"category", "teaching_label", "swing_direction", "winrate_delta"} & payload["timeline"][0].keys()
+    json.dumps(payload, allow_nan=False)
 
 
-def test_build_review_result_formats_pass_coordinate() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[])")
-    review = build_structured_review_for_game(
-        game,
-        engine=_PassPositionEngine(),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert payload["selected_mistakes"] == []
-    assert payload["timeline"][0]["played_move"] == {"sgf": None, "display": "pass"}
-    assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
-    assert payload["current_position"]["best_move"] == {"sgf": "qd", "display": "R16"}
-    assert payload["key_points"]["turning_points"] == []
-    assert payload["key_points"]["leave_main_battlefields"] == []
-    assert payload["current_position"]["short_explanation"] == (
-        "现在轮到白棋。KataGo建议走R16，目差预计为1.6，胜率约54%。"
-    )
+def test_missing_score_is_partial_not_clean_and_current_values_can_still_be_used():
+    result = review([None, 0])
+    assert result.status == "partial"
+    assert result.coverage.moves_evaluated == 1
+    assert result.coverage.missing_move_numbers == (1,)
+    assert result.timeline[0].is_mistake is None
+    assert result.timeline[0].severity is None
+    assert "报告不完整" in result.summary
+    assert "未发现明显失误" not in result.summary
+    assert result.current_position.best_move.display == "Q16"
 
 
-def test_current_position_recommendation_exists_even_without_selected_mistakes() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd];W[dd])")
-
-    review = build_structured_review_for_game(
-        game,
-        engine=_OpeningNoMistakesEngine(),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert payload["selected_mistakes"] == []
-    assert payload["game_summary"]["mistakes_reviewed"] == 0
-    assert payload["key_points"]["plan_breaks"] == []
-    assert payload["key_points"]["leave_main_battlefields"] == []
-    expected_current = {
-        "next_player": "B",
-        "best_move": {"sgf": "pq", "display": "Q3"},
-        "top_candidates": [
-            {
-                "move": {"sgf": "pq", "display": "Q3"},
-                "score_estimate": 0.4,
-                "winrate": 0.51,
-            },
-            {
-                "move": {"sgf": "dp", "display": "D4"},
-                "score_estimate": 0.3,
-                "winrate": 0.5,
-            },
-            {
-                "move": {"sgf": "cq", "display": "C3"},
-                "score_estimate": 0.2,
-                "winrate": 0.49,
-            },
-        ],
-        "pv_summary": "黑Q3 -> 白D4 -> 黑C3",
-        "score_estimate": 0.4,
-        "winrate": 0.51,
-        "short_explanation": (
-            "现在轮到黑棋。KataGo建议走Q3，目差预计为0.4，胜率约51%。"
-        ),
-    }
-    current = payload["current_position"]
-    assert current.pop("evidence") is None
-    for item in current["top_candidates"]:
-        assert item.pop("pv") == ()
-        for key in ("visits", "score_black", "winrate_black"):
-            assert item.pop(key) is None
-    assert current == expected_current
+def test_missing_winrate_keeps_point_loss_and_severity_without_fabricated_rate():
+    result = review([6], {0: {"played_winrate": None}})
+    assert result.status == "partial"
+    assert result.coverage.moves_evaluated == 1
+    assert result.coverage.moves_with_winrate == 0
+    assert result.coverage.missing_winrate_move_numbers == (1,)
+    item = result.selected_mistakes[0]
+    assert item.score_loss == 6
+    assert item.severity == "severe"
+    assert item.winrate_delta_pp is None
+    assert item.winrate_black_after is None
+    assert "胜率变化不可用" in item.summary
 
 
-def test_severity_label_uses_chinese_user_facing_values() -> None:
-    assert severity_label("inaccuracy") == "可商榷"
-    assert severity_label("mistake") == "问题手"
-    assert severity_label("major_mistake") == "明显失误"
-    assert severity_label("blunder") == "大失误"
+def test_missing_current_evaluation_makes_report_partial():
+    result = review([3], {1: {"score_estimate": None, "winrate": None, "best_move": None, "top_candidates": ()}})
+    assert not result.coverage.current_position_evaluated
+    assert result.status == "partial"
+    assert result.current_position.best_move is None
+    assert "不可用" in result.current_position.short_explanation
 
 
-def test_plan_break_user_facing_text_uses_new_chinese_phrase() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[oq])")
-    review = build_structured_review_for_game(
-        game,
-        engine=_PlanBreakEngine(),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert "没有接上前面的思路" in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert "黑第3手" in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert "Q3" in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert "P3" in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert "pq" not in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert "oq" not in payload["key_points"]["plan_breaks"][0]["summary"]
-    assert payload["key_points"]["leave_main_battlefields"] == []
-    assert (
-        "没有接上" in payload["explanations"][0]["why_this_matters"]
-        or "处理思路" in payload["explanations"][0]["why_this_matters"]
-        or "局部" in payload["explanations"][0]["why_this_matters"]
-    )
-    assert "主战场" not in payload["explanations"][0]["why_this_matters"]
+def test_terminal_root_values_without_candidates_do_not_invent_a_pass_recommendation():
+    result = review([0], {1: {"best_move": None, "top_candidates": ()}})
+    assert result.status == "complete"
+    assert result.current_position.best_move is None
+    assert result.current_position.pv_summary == ""
+    assert "停一手" not in result.current_position.short_explanation
 
 
-def test_leave_main_battlefield_user_facing_text_uses_specific_label() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[qd];W[dp];B[cc])")
-    review = build_structured_review_for_game(
-        game,
-        engine=_LeaveMainBattlefieldEngine(),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert payload["key_points"]["plan_breaks"] == []
-    assert "主战场" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "黑第3手" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "Q3" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "C17" in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "pq" not in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "cc" not in payload["key_points"]["leave_main_battlefields"][0]["summary"]
-    assert "主战场" in payload["explanations"][0]["why_this_matters"]
-    assert "没有接上前面的思路" not in payload["explanations"][0]["why_this_matters"]
+def test_pv_comes_only_from_its_recommendation_not_legacy_prose_or_other_candidates():
+    result = review([3, 4])
+    for item in result.selected_mistakes:
+        assert item.pv[0].color == item.color
+        assert item.pv[0].move == item.recommended_move.sgf
+        assert "untrusted" not in item.pv_summary
+        assert "A19" not in item.pv_summary
+    no_pv = review([3], {0: {"top_candidates": ()}})
+    assert no_pv.selected_mistakes[0].pv == ()
+    assert no_pv.selected_mistakes[0].pv_summary == ""
+    assert "missing_pv" in no_pv.warnings
 
 
-def test_positive_move_uses_positive_teaching_label_and_human_pv_summary() -> None:
-    game = parse_sgf("(;FF[4]GM[1]SZ[19]RU[Japanese]KM[6.5]PB[A]PW[B];B[pd])")
-    review = build_structured_review_for_game(
-        game,
-        engine=_PositiveMoveEngine(),
-        loss_threshold=1.0,
-        limit=3,
-    )
-    payload = review.to_dict()
-
-    assert payload["timeline"][0]["teaching_label"] == "关键好手"
-    assert payload["timeline"][0]["swing_direction"] == "positive"
-    assert payload["timeline"][0]["best_move"] == {"sgf": "qd", "display": "R16"}
-    assert payload["selected_mistakes"] == []
-    assert payload["current_position"]["pv_summary"] == "白D16 -> 黑Q3 -> 白C3"
+def test_fixed_black_chart_and_moving_player_loss_agree_for_both_colors():
+    for item in review([3, 4]).timeline:
+        sign = 1 if item.color == "B" else -1
+        assert item.score_black_before - item.score_black_after == pytest.approx(item.raw_score_loss * sign)
+        assert item.winrate_delta_pp == pytest.approx(-20)
+        assert item.winrate_black_after == (.4 if sign == 1 else .6)
+        assert ("黑棋胜率" if sign == 1 else "白棋胜率") in item.summary
 
 
-class _PassPositionEngine:
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        return PositionAnalysis(
-            best_move="qd",
-            played_move=position.played_move,
-            estimated_loss=0.0,
-            score_estimate=1.6,
-            winrate=0.54,
-            played_score_estimate=1.6,
-            played_winrate=0.54,
-            top_candidates=(
-                CandidateMove("qd", score_estimate=1.6, winrate=0.54),
-                CandidateMove("dp", score_estimate=1.3, winrate=0.52),
-                CandidateMove("pq", score_estimate=0.9, winrate=0.51),
-            ),
-            pv_summary="B qd -> W dp -> B pq",
-        )
+def test_pass_is_not_a_missing_move_and_result_metadata_is_not_inferred():
+    game = parse_sgf("(;SZ[19]RU[Chinese]KM[7.5];B[])")
+    result = build_structured_review_for_game(game, FixedEvidenceEngine([3]))
+    assert result.selected_mistakes[0].played_move.sgf is None
+    assert result.selected_mistakes[0].played_move.display == "停一手"
+    assert result.game_summary.record_status == "unfinished_or_unknown"
+    assert result.game_summary.result is None
 
 
-class _PlanBreakEngine:
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        move_count = len(position.moves)
-
-        if move_count == 0:
-            return PositionAnalysis(
-                best_move="qd",
-                played_move=position.played_move,
-                estimated_loss=0.0,
-                score_estimate=2.0,
-                winrate=0.56,
-                played_score_estimate=2.0,
-                played_winrate=0.56,
-                top_candidates=(
-                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
-                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
-                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
-                ),
-                pv_summary="B qd -> W dp -> B pq",
-            )
-
-        if move_count == 1:
-            return PositionAnalysis(
-                best_move="dp",
-                played_move=position.played_move,
-                estimated_loss=0.0,
-                score_estimate=1.5,
-                winrate=0.54,
-                played_score_estimate=1.5,
-                played_winrate=0.54,
-                top_candidates=(
-                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
-                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
-                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
-                ),
-                pv_summary="W dp -> B pq -> W cq",
-            )
-
-        if move_count == 2 and position.played_move is not None:
-            return PositionAnalysis(
-                best_move="pq",
-                played_move=position.played_move,
-                estimated_loss=1.4,
-                score_estimate=1.6,
-                winrate=0.55,
-                played_score_estimate=0.2,
-                played_winrate=0.49,
-                top_candidates=(
-                    CandidateMove("pq", score_estimate=1.6, winrate=0.55),
-                    CandidateMove("cq", score_estimate=1.3, winrate=0.53),
-                    CandidateMove("cp", score_estimate=1.1, winrate=0.52),
-                ),
-                pv_summary="B pq -> W cq -> B cp",
-            )
-
-        return PositionAnalysis(
-            best_move="dd",
-            played_move=position.played_move,
-            estimated_loss=0.0,
-            score_estimate=0.8,
-            winrate=0.52,
-            played_score_estimate=0.8,
-            played_winrate=0.52,
-            top_candidates=(
-                CandidateMove("dd", score_estimate=0.8, winrate=0.52),
-                CandidateMove("pq", score_estimate=0.6, winrate=0.51),
-                CandidateMove("pp", score_estimate=0.5, winrate=0.5),
-            ),
-            pv_summary="W dd -> B pq -> W pp",
-        )
-
-
-class _LeaveMainBattlefieldEngine:
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        move_count = len(position.moves)
-
-        if move_count == 0:
-            return PositionAnalysis(
-                best_move="qd",
-                played_move=position.played_move,
-                estimated_loss=0.0,
-                score_estimate=2.0,
-                winrate=0.56,
-                played_score_estimate=2.0,
-                played_winrate=0.56,
-                top_candidates=(
-                    CandidateMove("qd", score_estimate=2.0, winrate=0.56),
-                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
-                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
-                ),
-                pv_summary="B qd -> W dp -> B pq",
-            )
-
-        if move_count == 1:
-            return PositionAnalysis(
-                best_move="dp",
-                played_move=position.played_move,
-                estimated_loss=0.0,
-                score_estimate=1.5,
-                winrate=0.54,
-                played_score_estimate=1.5,
-                played_winrate=0.54,
-                top_candidates=(
-                    CandidateMove("dp", score_estimate=1.5, winrate=0.54),
-                    CandidateMove("pq", score_estimate=1.3, winrate=0.53),
-                    CandidateMove("cq", score_estimate=1.1, winrate=0.52),
-                ),
-                pv_summary="W dp -> B pq -> W cq",
-            )
-
-        if move_count == 2 and position.played_move is not None:
-            return PositionAnalysis(
-                best_move="pq",
-                played_move=position.played_move,
-                estimated_loss=1.8,
-                score_estimate=1.8,
-                winrate=0.57,
-                played_score_estimate=0.0,
-                played_winrate=0.48,
-                top_candidates=(
-                    CandidateMove("pq", score_estimate=1.8, winrate=0.57),
-                    CandidateMove("oq", score_estimate=1.5, winrate=0.54),
-                    CandidateMove("pp", score_estimate=1.3, winrate=0.53),
-                ),
-                pv_summary="B pq -> W oq -> B pp",
-            )
-
-        return PositionAnalysis(
-            best_move="dd",
-            played_move=position.played_move,
-            estimated_loss=0.0,
-            score_estimate=0.8,
-            winrate=0.52,
-            played_score_estimate=0.8,
-            played_winrate=0.52,
-            top_candidates=(
-                CandidateMove("dd", score_estimate=0.8, winrate=0.52),
-                CandidateMove("pq", score_estimate=0.6, winrate=0.51),
-                CandidateMove("pp", score_estimate=0.5, winrate=0.5),
-            ),
-            pv_summary="W dd -> B pq -> W pp",
-        )
-
-
-class _OpeningNoMistakesEngine:
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        if len(position.moves) == 2 and position.played_move is None:
-            return PositionAnalysis(
-                best_move="pq",
-                played_move=None,
-                estimated_loss=0.0,
-                score_estimate=0.4,
-                winrate=0.51,
-                played_score_estimate=0.4,
-                played_winrate=0.51,
-                top_candidates=(
-                    CandidateMove("pq", score_estimate=0.4, winrate=0.51),
-                    CandidateMove("dp", score_estimate=0.3, winrate=0.5),
-                    CandidateMove("cq", score_estimate=0.2, winrate=0.49),
-                ),
-                pv_summary="B pq -> W dp -> B cq",
-            )
-
-        return PositionAnalysis(
-            best_move=position.played_move or "pq",
-            played_move=position.played_move,
-            estimated_loss=0.0,
-            score_estimate=0.1,
-            winrate=0.5,
-            played_score_estimate=0.1,
-            played_winrate=0.5,
-            top_candidates=(
-                CandidateMove(position.played_move or "pq", score_estimate=0.1, winrate=0.5),
-                CandidateMove("dp", score_estimate=0.0, winrate=0.49),
-                CandidateMove("cq", score_estimate=-0.1, winrate=0.48),
-            ),
-            pv_summary="B pq -> W dp -> B cq",
-        )
-
-
-class _PositiveMoveEngine:
-    def analyze_position(self, position: PositionInput) -> PositionAnalysis:
-        if len(position.moves) == 0 and position.played_move is not None:
-            return PositionAnalysis(
-                best_move="qd",
-                played_move=position.played_move,
-                estimated_loss=0.0,
-                score_estimate=0.4,
-                winrate=0.49,
-                played_score_estimate=2.1,
-                played_winrate=0.61,
-                top_candidates=(
-                    CandidateMove("qd", score_estimate=0.4, winrate=0.49),
-                    CandidateMove("dp", score_estimate=0.2, winrate=0.48),
-                    CandidateMove("cq", score_estimate=0.1, winrate=0.47),
-                ),
-                pv_summary="B qd -> W dp -> B cq",
-            )
-
-        return PositionAnalysis(
-            best_move="dd",
-            played_move=position.played_move,
-            estimated_loss=0.0,
-            score_estimate=1.2,
-            winrate=0.55,
-            played_score_estimate=1.2,
-            played_winrate=0.55,
-            top_candidates=(
-                CandidateMove("dd", score_estimate=1.2, winrate=0.55),
-                CandidateMove("pq", score_estimate=1.0, winrate=0.53),
-                CandidateMove("cp", score_estimate=0.8, winrate=0.52),
-            ),
-            pv_summary="W dd -> B pq -> W cq",
-        )
+def test_warning_provenance_and_negative_difference_survive_serialization():
+    engine = FixedEvidenceEngine([-1])
+    game = game_with_moves(1)
+    from src.analyzer import analyze_game_state
+    from src.review_result import build_review_result
+    analysis = analyze_game_state(game, engine)
+    first = analysis.move_results[0]
+    evidence = replace(first.engine_analysis.evidence, warnings=("low_visits", "separate_search"))
+    analysis.move_results[0] = replace(first, engine_analysis=replace(first.engine_analysis, evidence=evidence))
+    result = build_review_result(game, analysis, 3, 5, 5)
+    assert {"low_visits", "separate_search", "negative_difference_search_noise"} <= set(result.warnings)
+    assert result.timeline[0].raw_score_loss == -1
+    assert result.timeline[0].score_loss == 0
+    assert result.timeline[0].evidence.model_sha256 == "a" * 64

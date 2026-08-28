@@ -3,6 +3,7 @@
 | File | Purpose | Limitations |
 | --- | --- | --- |
 | `sample_game.sgf` | Small regression input used by the CLI and tests; four moves on the first variation | Synthetic example, not a benchmark or proof of KataGo accuracy; M1 explicitly sets Japanese rules |
+| `m3_mistake.sgf` | Six-move synthetic game created for M3, with intentionally costly black edge moves | Public test input, not a human game or strength benchmark; real engine observations in `docs/evidence/m3-report.json` |
 | `test_game_kejie.sgf` | Existing optional manual SGF with variations and Chinese rules metadata | Not used by the test suite; source/provenance not recorded here, some metadata appears misdecoded, not a release acceptance fixture |
 | `benchmark_pro_game.sgf` | 235-move public game for M2 performance measurement | Metadata normalized as described below; not a ground-truth mistake-label dataset |
 

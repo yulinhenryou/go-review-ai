@@ -1,5 +1,42 @@
 # Project Status Audit
 
+## Local Workspace Follow-up
+
+On 2026-08-28, the refused localhost connection was reproduced with no listeners
+on 3000/8000. The checkout now has a single-origin `app.local:app` entry point,
+on-demand macOS start/stop launchers, collision-aware port selection and
+no-store frontend responses. The service outlives the terminal/conversation
+without installing login startup. Blocking SGF review runs in a thread pool,
+so page/health requests remain responsive during engine work.
+
+The workspace UI uses separate, high-contrast mistake/recommendation/candidate
+markers, one marker per intersection, board coordinates, optional move numbers,
+automatic top-mistake focus and explicit return to manual entry. See
+[local workspace acceptance](LOCAL_WORKSPACE_ACCEPTANCE.md).
+This is a local reliability/UI follow-up, not completion of M4 jobs or M5 hosting.
+
+## M3 Update
+
+On 2026-08-28, branch `codex/m3-factual-report` replaces heuristic teaching with
+schema 3.0 factual reports. Defaults are 3/5-point obvious/severe thresholds and
+at most five ranked entries, with separate full chronological markers. Missing
+numeric evidence produces explicit partial coverage, not an invented clean game.
+Negative differences and search-quality warnings remain visible. Black/white
+winrate changes are percentage points in the moving player's perspective.
+
+Retired classifier/key-point/teaching modules and their obsolete tests are removed
+from runtime and wheel packaging; their source remains in Git history. Prior
+rule/komi-control changes are retained. Browser upload and manual analysis use real
+KataGo; desktop/mobile report and move-location smoke checks were performed.
+See [M3 acceptance](M3_ACCEPTANCE.md) and [report contract](REPORT_CONTRACT.md).
+
+M3, the preceding rule-control fix and the local workspace follow-up form the
+current source update. The [combined regression](M1_M3_REGRESSION.md) records
+276 passing Python tests, 23 frontend tests and fresh installation/real API checks.
+Pages is unchanged. M4 bounded jobs/full input UX and M5 public hosting remain
+release blockers. Historical audit sections below describe
+their respective milestone snapshots, not the current report implementation.
+
 ## M2 Update
 
 GitHub terminal credentials were restored on 2026-08-27. M1 was rechecked (173

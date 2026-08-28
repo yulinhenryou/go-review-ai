@@ -3,565 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>围棋复盘 MVP 演示</title>
-  <style>
-    :root {
-      --page-gutter: 20px;
-      --surface: rgba(255, 251, 244, 0.96);
-      --surface-border: #d8cfbf;
-      --shadow-soft: 0 18px 40px rgba(84, 67, 39, 0.08);
-    }
-
-    html {
-      min-height: 100%;
-      background: linear-gradient(180deg, #f4efe6 0%, #fbf8f2 100%);
-    }
-
-    body {
-      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      margin: 0;
-      padding: var(--page-gutter);
-      max-width: 1440px;
-      min-height: 100vh;
-      box-sizing: border-box;
-      line-height: 1.4;
-      color: #2f2920;
-    }
-
-    h1 {
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 22px;
-      font-weight: 600;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(360px, 420px);
-      gap: 20px;
-      align-items: start;
-    }
-
-    .board-column {
-      display: grid;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    #board {
-      width: min(100%, 640px);
-      aspect-ratio: 1 / 1;
-      border: 1px solid #b79254;
-      border-radius: 18px;
-      box-sizing: border-box;
-      background: linear-gradient(135deg, #e7c98b, #d7ad63);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 20px 36px rgba(115, 81, 28, 0.18);
-    }
-
-    #board canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .review-nav {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .game-settings {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: end;
-    }
-
-    .game-settings label {
-      display: grid;
-      gap: 4px;
-      font-size: 13px;
-      min-width: 0;
-    }
-
-    .game-settings select, .game-settings input {
-      box-sizing: border-box;
-      width: 140px;
-      max-width: 100%;
-      height: 36px;
-      padding: 6px 8px;
-      border: 1px solid #999;
-      border-radius: 4px;
-      background: #fff;
-      color: #222;
-      font: inherit;
-    }
-
-    button {
-      padding: 6px 10px;
-      border: 1px solid #999;
-      border-radius: 10px;
-      background: #f7f3ea;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #ececec;
-    }
-
-    button:disabled {
-      cursor: default;
-      opacity: 0.7;
-    }
-
-    .panel {
-      border: 1px solid var(--surface-border);
-      border-radius: 18px;
-      padding: 14px 16px;
-      min-height: 200px;
-      min-width: 0;
-      background: var(--surface);
-      box-shadow: var(--shadow-soft);
-      box-sizing: border-box;
-      position: sticky;
-      top: var(--page-gutter);
-    }
-
-    .upload-controls {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .upload-controls input[type="file"] {
-      max-width: 100%;
-    }
-
-    .meta {
-      font-size: 13px;
-      color: #333;
-    }
-
-    .board-meta {
-      display: grid;
-      gap: 8px;
-      padding: 14px 16px;
-      border: 1px solid var(--surface-border);
-      border-radius: 18px;
-      background: var(--surface);
-      box-shadow: var(--shadow-soft);
-    }
-
-    .review-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .review-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #efe4c6;
-      color: #6b4c1c;
-      font-size: 12px;
-    }
-
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 12px;
-    }
-
-    .analysis-section {
-      margin-top: 12px;
-    }
-
-    .analysis-section strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .analysis-section ul {
-      margin: 4px 0 0 18px;
-      padding: 0;
-    }
-
-    .analysis-section li {
-      margin: 2px 0;
-    }
-
-    .view-switch {
-      display: flex;
-      gap: 8px;
-      margin: 10px 0 12px;
-      flex-wrap: wrap;
-    }
-
-    .view-switch button {
-      border-radius: 999px;
-      background: #f2efe6;
-    }
-
-    .view-switch button.active {
-      border-color: #8f5f1e;
-      background: #ead19e;
-      color: #5c3d12;
-    }
-
-    .section-note {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #666;
-    }
-
-    .review-item-button {
-      display: block;
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #d7c49b;
-      border-radius: 8px;
-      background: #fff9ec;
-      text-align: left;
-      line-height: 1.45;
-    }
-
-    .review-item-button:hover {
-      background: #f7edd5;
-    }
-
-    .review-item-button.active {
-      border-color: #8f5f1e;
-      background: #f2dfb5;
-    }
-
-    .review-item-meta {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: #6d5a39;
-    }
-
-    .candidate-choice-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .candidate-choice-button {
-      display: block;
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #cfd8c7;
-      border-radius: 8px;
-      background: #f6faf4;
-      text-align: left;
-      line-height: 1.4;
-    }
-
-    .candidate-choice-button:hover {
-      background: #eef6ea;
-    }
-
-    .candidate-choice-button.active {
-      border-color: #1f7a3d;
-      background: #e2f0e5;
-      box-shadow: inset 0 0 0 1px rgba(31, 122, 61, 0.2);
-    }
-
-    .candidate-choice-rank {
-      display: inline-block;
-      margin-bottom: 3px;
-      padding: 1px 8px;
-      border-radius: 999px;
-      background: #ddebdc;
-      color: #245a2f;
-      font-size: 12px;
-    }
-
-    .candidate-choice-button.active .candidate-choice-rank {
-      background: #1f7a3d;
-      color: #fff;
-    }
-
-    .candidate-choice-meta {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: #52624f;
-    }
-
-    .candidate-detail-panel {
-      margin-top: 8px;
-      padding: 10px;
-      border: 1px solid #d7e3d5;
-      border-radius: 10px;
-      background: #f8fcf7;
-    }
-
-    .candidate-detail-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 6px;
-    }
-
-    .candidate-detail-title strong {
-      margin: 0;
-    }
-
-    .candidate-rank-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #1f7a3d;
-      color: #fff;
-      font-size: 12px;
-    }
-
-    .candidate-detail-panel p {
-      margin: 6px 0 0;
-    }
-
-    .chart-controls {
-      display: flex;
-      gap: 8px;
-      margin: 6px 0 8px;
-      flex-wrap: wrap;
-    }
-
-    .chart-controls button {
-      padding: 4px 8px;
-      font-size: 12px;
-    }
-
-    .chart-controls button.active {
-      background: #ddd;
-    }
-
-    .trend-chart {
-      border: 1px solid #ccc;
-      background: #fff;
-      padding: 6px;
-    }
-
-    .trend-chart svg {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .chart-meta {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #555;
-    }
-
-    .chart-note {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #666;
-    }
-
-    .section-title-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 4px;
-    }
-
-    .section-title-row strong {
-      margin: 0;
-    }
-
-    .winrate-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid #d5ccbc;
-      background: #fbf7ef;
-      color: #4c4030;
-      font-size: 12px;
-    }
-
-    .winrate-indicator-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      border: 1px solid rgba(47, 41, 32, 0.35);
-      box-sizing: border-box;
-      flex: 0 0 auto;
-    }
-
-    .winrate-indicator-dot.black {
-      background: #111;
-      border-color: #111;
-    }
-
-    .winrate-indicator-dot.white {
-      background: #fff;
-    }
-
-    .loading-state {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 0;
-      color: #333;
-    }
-
-    .loading-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #d9d9d9;
-      border-top-color: #666;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex: 0 0 auto;
-    }
-
-    .loading-text {
-      font-size: 14px;
-    }
-
-    .error-message {
-      color: #b00020;
-    }
-
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    details {
-      margin-top: 12px;
-    }
-
-    summary {
-      cursor: pointer;
-    }
-
-    @media (min-width: 901px) {
-      .panel {
-        max-height: calc(100vh - (var(--page-gutter) * 2));
-        overflow: auto;
-      }
-    }
-
-    @media (max-width: 900px) {
-      body {
-        padding: 16px;
-      }
-
-      .layout {
-        grid-template-columns: 1fr;
-      }
-
-      #board {
-        width: min(100%, 560px);
-      }
-    }
-  </style>
+  <title>围棋复盘 · 本地工作台</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <!--
-    How to run:
-    1) Start your FastAPI backend so /api/v1/analyze-moves is available.
-       Example (from backend project root): uvicorn app.main:app --reload
-    2) Open this file in a browser.
-       If direct file:// requests are blocked by your browser for API calls,
-       serve this folder with a tiny static server instead, e.g.:
-       python3 -m http.server 8080
-       then open http://localhost:8080
-  -->
+  <header class="app-header">
+    <div class="brand"><span class="brand-stones" aria-hidden="true"></span><h1>围棋复盘</h1></div>
+    <span class="workspace-label">本地工作台 <span class="version">M3</span></span>
+  </header>
 
-  <h1>围棋复盘 MVP - 棋盘演示</h1>
+  <section class="input-bar" aria-label="棋谱输入">
+    <div class="upload-controls">
+      <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
+      <button id="uploadAnalyzeBtn" type="button"><img src="./icons/upload.svg" alt="" /><span>上传并分析</span></button>
+    </div>
+    <div class="game-settings">
+      <label for="rulesInput">规则
+        <select id="rulesInput">
+          <option value="custom">自定义</option>
+          <option value="chinese">中国规则</option>
+          <option value="japanese">日韩规则</option>
+        </select>
+      </label>
+      <label for="komiInput">贴目
+        <input id="komiInput" type="number" min="-150" max="150" step="0.5" inputmode="decimal" />
+      </label>
+      <label id="customRulesLabel" for="customRulesInput">计分方式
+        <select id="customRulesInput">
+          <option value="chinese">中国数子</option>
+          <option value="japanese">日韩数目</option>
+        </select>
+      </label>
+    </div>
+  </section>
+  <div class="meta upload-status" id="uploadStatus" role="status"></div>
 
-  <div class="layout">
-    <div class="board-column">
+  <main class="layout">
+    <section class="board-column" aria-label="棋盘工作区">
+      <div class="board-toolbar">
+        <span class="meta" id="status">下一手：黑棋 | 手数：0</span>
+        <div class="display-options">
+          <label><input id="showCandidates" type="checkbox" checked />候选点</label>
+          <label><input id="showMoveNumbers" type="checkbox" />手数</label>
+        </div>
+      </div>
+      <div class="board-meta">
+        <div class="review-meta" id="reviewStatus" aria-live="polite"></div>
+        <div class="board-legend" aria-label="棋盘标记图例">
+          <span><i class="legend-actual" aria-hidden="true"></i>实战</span>
+          <span><i class="legend-played" aria-hidden="true">!</i>失误</span>
+          <span><i class="legend-best" aria-hidden="true"></i>推荐</span>
+          <span><i class="legend-candidate" aria-hidden="true">2</i>候选</span>
+        </div>
+      </div>
       <div id="board">
         <canvas id="boardCanvas" aria-label="围棋棋盘"></canvas>
       </div>
-
-      <div class="game-settings">
-        <label for="rulesInput">规则
-          <select id="rulesInput">
-            <option value="">未指定</option>
-            <option value="chinese">中国规则</option>
-            <option value="japanese">日本规则</option>
-          </select>
-        </label>
-        <label for="komiInput">贴目
-          <input id="komiInput" type="number" min="-150" max="150" step="0.5" inputmode="decimal" />
-        </label>
-      </div>
-
-      <div class="controls">
-        <button id="undoBtn" type="button">悔棋</button>
-        <button id="clearBtn" type="button">清空棋盘</button>
-        <button id="analyzeBtn" type="button">开始分析</button>
-        <button id="latestBtn" type="button" disabled>回到最新局面</button>
-      </div>
-
-      <div class="review-nav" aria-label="复盘导航">
-        <button id="prevReviewBtn" type="button" disabled>上一步</button>
-        <button id="nextReviewBtn" type="button" disabled>下一步</button>
-      </div>
-
-      <div class="upload-controls">
-        <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
-        <button id="uploadAnalyzeBtn" type="button">上传并分析</button>
-      </div>
-      <div class="board-meta">
-        <div class="meta" id="uploadStatus">也可以直接上传 SGF 文件进行分析。</div>
-        <div class="meta" id="status">下一手：黑棋 | 手数：0</div>
-        <div class="meta review-meta" id="reviewStatus">
-          <span class="review-badge">最新局面</span>
-          <span>当前未查看具体复盘手数。</span>
+      <div id="boardPointSummary" class="point-summary" aria-live="polite"></div>
+      <div class="board-footer">
+        <div class="controls">
+          <button id="undoBtn" type="button" class="icon-button" aria-label="悔棋" title="悔棋"><img src="./icons/undo-2.svg" alt="" /></button>
+          <button id="clearBtn" type="button" class="icon-button" aria-label="清空棋盘" title="清空棋盘"><img src="./icons/trash-2.svg" alt="" /></button>
+          <button id="editBtn" type="button" class="icon-button" aria-label="继续录入" title="继续录入" hidden><img src="./icons/pencil.svg" alt="" /></button>
+          <button id="analyzeBtn" type="button" class="primary"><img src="./icons/scan-line.svg" alt="" /><span>开始分析</span></button>
+        </div>
+        <div class="review-nav" aria-label="复盘导航">
+          <button id="prevReviewBtn" type="button" class="icon-button" aria-label="上一步" title="上一步" disabled><img src="./icons/chevron-left.svg" alt="" /></button>
+          <span id="moveCounter" class="move-counter">0 / 0</span>
+          <button id="nextReviewBtn" type="button" class="icon-button" aria-label="下一步" title="下一步" disabled><img src="./icons/chevron-right.svg" alt="" /></button>
+          <button id="latestBtn" type="button" class="icon-button" aria-label="回到最新局面" title="回到最新局面" disabled><img src="./icons/skip-forward.svg" alt="" /></button>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="panel">
-      <strong>分析结果</strong>
+    <aside class="panel" aria-label="复盘报告">
+      <div class="panel-heading"><h2>复盘报告</h2><span class="engine-label">KataGo</span></div>
       <div class="view-switch" id="analysisViewSwitch" aria-label="分析视图切换">
         <button id="currentViewBtn" type="button" class="active" data-analysis-view="current">当前局面</button>
         <button id="reviewViewBtn" type="button" data-analysis-view="review">整盘复盘</button>
       </div>
-      <div id="analysisSummary">暂无分析结果。</div>
-      <details>
-        <summary>6. 原始分析数据</summary>
+      <div id="analysisSummary"><div class="empty-state">暂无分析结果</div></div>
+      <details class="raw-data">
+        <summary>原始分析数据</summary>
         <pre id="analysisOutput">暂无分析数据。</pre>
       </details>
-    </div>
-  </div>
+    </aside>
+  </main>
 
-  <script>
+  <script type="module">
+    import { createGameSettings } from "./game-settings.mjs";
+    import { renderReportOverview, renderMistakeMarkers, renderQualityNotes, trendPath } from "./report-view.mjs";
+    import { buildBoardMarkers, markerDescription } from "./board-markers.mjs";
+
     (function () {
       var boardElement = document.getElementById("board");
       var canvas = document.getElementById("boardCanvas");
       var context = canvas.getContext("2d");
+      var showCandidates = document.getElementById("showCandidates");
+      var showMoveNumbers = document.getElementById("showMoveNumbers");
+      var pointSummary = document.getElementById("boardPointSummary");
+      var editBtn = document.getElementById("editBtn");
+      var visibleMarkers = [];
+      var isBusy = false;
       var summary = document.getElementById("analysisSummary");
       var output = document.getElementById("analysisOutput");
       var status = document.getElementById("status");
@@ -571,6 +114,12 @@
       var analyzeBtn = document.getElementById("analyzeBtn");
       var rulesInput = document.getElementById("rulesInput");
       var komiInput = document.getElementById("komiInput");
+      var gameSettings = createGameSettings({
+        rulesInput: rulesInput,
+        komiInput: komiInput,
+        customRulesInput: document.getElementById("customRulesInput"),
+        customRulesLabel: document.getElementById("customRulesLabel")
+      });
       var latestBtn = document.getElementById("latestBtn");
       var prevReviewBtn = document.getElementById("prevReviewBtn");
       var nextReviewBtn = document.getElementById("nextReviewBtn");
@@ -588,7 +137,6 @@
       var boardMetrics = null;
       var candidateMarkers = [];
       var chartMetric = "winrate";
-      var defaultAnalyzeButtonText = "开始分析";
       var analysisData = null;
       var reviewFocus = null;
       var viewedMoveNumber = null;
@@ -602,15 +150,7 @@
       }
 
       function readGameSettings(required) {
-        if (!komiInput.checkValidity()) throw new Error("贴目须为 -150 至 150 之间的整数或半目。");
-        var settings = {
-          rules: rulesInput.value || null,
-          komi: komiInput.value === "" ? null : Number(komiInput.value)
-        };
-        if (required && (settings.rules === null || settings.komi === null)) {
-          throw new Error("请先确认规则和贴目。");
-        }
-        return settings;
+        return gameSettings.read(required);
       }
 
       function inputErrorMessage(data) {
@@ -815,40 +355,38 @@
       }
 
       function updateStatus() {
-        status.textContent = "下一手：" + colorName(currentColor) + " | 手数：" + moves.length;
+        updateReviewStatus();
       }
 
       function updateReviewStatus() {
-        var activeContext = getActiveContext(analysisData);
-
-        if (!analysisData || !activeContext) {
-          reviewStatus.innerHTML = [
-            "<span class=\"review-badge\">最新局面</span>",
-            "<span>当前未查看具体复盘手数。</span>"
-          ].join("");
+        var active = getActiveContext(analysisData);
+        var reviewing = active && active.kind !== "current_position";
+        var detail = reviewing ? findTimelineItem(analysisData, active.moveNumber) : null;
+        editBtn.hidden = !analysisData;
+        document.getElementById("moveCounter").textContent =
+          (reviewing ? active.moveNumber : moves.length) + " / " + moves.length;
+        status.textContent = analysisData ? "复盘 · " + moves.length + " 手" :
+          "下一手：" + colorName(currentColor) + " | 手数：" + moves.length;
+        if (!analysisData || !active) {
+          reviewStatus.innerHTML = '<span class="review-badge">手动录入</span><span class="meta">19 路棋盘</span>';
           latestBtn.disabled = true;
           return;
         }
-
-        if (activeContext.kind === "current_position") {
-          reviewStatus.innerHTML = [
-            "<span class=\"review-badge\">最新局面</span>",
-            "<span>",
-            "当前显示记录末尾的推荐点与候选变化。",
-            "</span>"
-          ].join("");
+        if (!reviewing) {
+          reviewStatus.innerHTML = '<span class="review-badge">记录末尾</span><span>下一手 ' +
+            escapeHtml(colorName(active.nextPlayer)) + ' · 推荐 ' +
+            escapeHtml(formatCoord(active.recommendedMove)) + '</span>';
           latestBtn.disabled = true;
           return;
         }
-
-        reviewStatus.innerHTML = [
-          "<span class=\"review-badge\">复盘" + escapeHtml(moveRefLabel(activeContext.color, activeContext.moveNumber)) + "</span>",
-          "<span>",
-          "实战：" + escapeHtml(formatCoord(activeContext.playedMove)) +
-          " | 推荐：" + escapeHtml(formatCoord(activeContext.recommendedMove)) +
-          (activeContext.label ? " | " + escapeHtml(activeContext.label) : ""),
-          "</span>"
-        ].join("");
+        var loss = detail && typeof detail.score_loss === "number"
+          ? detail.score_loss.toFixed(2) + " 目" : "未评估";
+        reviewStatus.innerHTML = '<span class="review-badge">' +
+          escapeHtml(moveRefLabel(active.color, active.moveNumber)) + ' · 落子前</span>' +
+          '<span class="' + (detail && detail.is_mistake ? "focus-loss" : "meta") + '">' +
+          escapeHtml(detail && detail.severity_label || "目损") + ' ' + escapeHtml(loss) + '</span>' +
+          '<span>实战 ' + escapeHtml(formatCoord(active.playedMove)) + ' / 推荐 ' +
+          escapeHtml(formatCoord(active.recommendedMove)) + '</span>';
         latestBtn.disabled = false;
       }
 
@@ -868,6 +406,12 @@
       }
 
       function updateReviewNavigationControls() {
+        if (isBusy) {
+          prevReviewBtn.disabled = true;
+          nextReviewBtn.disabled = true;
+          latestBtn.disabled = true;
+          return;
+        }
         var bounds = getTimelineMoveBounds();
         var currentMoveNumber = getViewedMoveNumber();
         var canNavigate = Boolean(bounds && typeof currentMoveNumber === "number");
@@ -904,25 +448,7 @@
       }
 
       function getCurrentCandidateMarkers(data) {
-        if (!data || typeof data !== "object") return [];
-
-        var current = data.current_position || {};
-        var candidates = Array.isArray(current.top_candidates) ? current.top_candidates.slice(0, 3) : [];
-
-        return candidates
-          .map(function (candidate, index) {
-            var point = extractCoordPoint(candidate && candidate.move);
-
-            if (!point) return null;
-
-            return {
-              x: point.x,
-              y: point.y,
-              rank: index + 1,
-              move: candidate.move
-            };
-          })
-          .filter(Boolean);
+        return getCandidateMarkersFromCandidates(getActiveCandidates(data));
       }
 
       function latestTimelineMoveNumber() {
@@ -976,12 +502,12 @@
         if (!data || typeof data !== "object") return null;
 
         currentMoveNumber = getViewedMoveNumber();
-        if (isViewingLatestMove()) {
-          return buildLatestPositionContext(data);
-        }
-
         if (reviewFocus && reviewFocus.moveNumber === currentMoveNumber) {
           return reviewFocus;
+        }
+
+        if (isViewingLatestMove()) {
+          return buildLatestPositionContext(data);
         }
 
         return buildTimelineReviewTarget(data, currentMoveNumber);
@@ -1066,58 +592,31 @@
         return shortColor + "第" + String(moveNumber) + "手";
       }
 
-      function inferPhase(gameSummary) {
-        var moveCount = gameSummary && gameSummary.moves_analyzed;
 
-        if (typeof moveCount !== "number") {
-          return {
-            label: "暂无判断",
-            note: "缺少手数信息，暂时无法判断当前阶段。"
-          };
-        }
-
-        if (moveCount < 40) {
-          return {
-            label: "布局",
-            note: "按当前手数粗略看，仍在布局阶段，重点通常是角边拆挂与全局方向。"
-          };
-        }
-
-        if (moveCount < 180) {
-          return {
-            label: "中盘",
-            note: "按当前手数粗略看，已进入中盘阶段，重点通常是攻防转换与厚薄处理。"
-          };
-        }
-
-        return {
-          label: "官子",
-          note: "按当前手数粗略看，已进入官子阶段，重点通常是收束效率与目数判断。"
-        };
-      }
-
-      function renderList(items, emptyText, formatter) {
-        if (!items || !items.length) {
-          return "<div>" + escapeHtml(emptyText) + "</div>";
-        }
-
-        return "<ul>" + items.map(function (item, index) {
-          return "<li>" + formatter(item, index) + "</li>";
-        }).join("") + "</ul>";
-      }
 
       function renderRawJson(data) {
         output.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
       }
 
       function setAnalyzeLoadingState(isLoading) {
-        analyzeBtn.disabled = isLoading;
-        analyzeBtn.textContent = isLoading ? "分析中…" : defaultAnalyzeButtonText;
+        setBusy(isLoading);
+        analyzeBtn.querySelector("span").textContent = isLoading ? "分析中…" : "开始分析";
       }
 
       function setUploadLoadingState(isLoading) {
-        uploadAnalyzeBtn.disabled = isLoading;
-        uploadAnalyzeBtn.textContent = isLoading ? "上传分析中…" : "上传并分析";
+        setBusy(isLoading);
+        uploadAnalyzeBtn.querySelector("span").textContent = isLoading ? "分析中…" : "上传并分析";
+      }
+
+      function setBusy(value) {
+        isBusy = value;
+        [analyzeBtn, uploadAnalyzeBtn, undoBtn, clearBtn, editBtn, sgfFileInput,
+          document.getElementById("rulesInput"), document.getElementById("komiInput"),
+          document.getElementById("customRulesInput")].forEach(function (control) {
+            control.disabled = value;
+          });
+        summary.setAttribute("aria-busy", String(value));
+        updateReviewNavigationControls();
       }
 
       function renderLoadingState() {
@@ -1143,7 +642,7 @@
         chartMetric = "winrate";
         summary.textContent = "暂无分析结果。";
         output.textContent = "暂无分析数据。";
-        setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
+        setUploadStatus("", false);
         updateReviewStatus();
         updateReviewNavigationControls();
       }
@@ -1191,14 +690,14 @@
       }
 
       function applyAnalysisResult(data) {
+        if (data.schema_version !== "3.0") throw new Error("报告版本不兼容，请更新后端后重新分析。");
         if (data.game_summary) {
-          rulesInput.value = data.game_summary.rules || "";
-          komiInput.value = data.game_summary.komi === null ? "" : data.game_summary.komi;
+          gameSettings.apply(data.game_summary);
         }
         analysisData = data;
         reviewTargets = buildReviewTargets(data);
-        reviewFocus = null;
-        viewedMoveNumber = latestTimelineMoveNumber();
+        reviewFocus = reviewTargets[0] || null;
+        viewedMoveNumber = reviewFocus ? reviewFocus.moveNumber : latestTimelineMoveNumber();
         resetSelectedCandidate(data);
         candidateMarkers = getCurrentCandidateMarkers(data);
         chartMetric = "winrate";
@@ -1219,6 +718,7 @@
       }
 
       function setAnalysisView(view) {
+        if (isBusy) return;
         analysisView = view === "review" ? "review" : "current";
         syncAnalysisViewButtons();
 
@@ -1269,62 +769,19 @@
           recommendedMove: detail.recommended_move || detail.best_move || config.recommendedMove || null,
           topCandidates: topCandidates,
           pvSummary: detail.pv_summary || "",
-          nextPlayer: nextPlayerAfterMoveNumber(config.moveNumber),
+          nextPlayer: config.color || detail.color,
           winrateOwnerColor: config.color || detail.color || null
         };
       }
 
       function buildTimelineReviewSummary(detail) {
-        var parts = [];
-        var scoreDelta;
-        var winrateDelta;
-
-        if (!detail || typeof detail.move_number !== "number") {
-          return "暂无该手说明。";
-        }
-
-        parts.push(moveRefLabel(detail.color, detail.move_number) + "下在" + formatCoord(detail.played_move) + "。");
-
-        if (detail.best_move) {
-          parts.push("引擎更推荐" + formatCoord(detail.best_move) + "。");
-        }
-
-        if (detail.teaching_label) {
-          parts.push("这一手可算" + detail.teaching_label + "。");
-        } else if (detail.severity_label) {
-          parts.push("这一手评级为" + detail.severity_label + "。");
-        } else if (detail.category_label) {
-          parts.push("这一手属于" + detail.category_label + "。");
-        }
-
-        if (typeof detail.score_before === "number" && typeof detail.score_after === "number") {
-          scoreDelta = Math.round((detail.score_after - detail.score_before) * 10) / 10;
-          if (scoreDelta >= 0.1) {
-            parts.push("局势比推荐下法更好，目数上收益约" + String(scoreDelta) + "目。");
-          } else if (scoreDelta <= -0.1) {
-            parts.push("目数上亏损约" + String(Math.abs(scoreDelta)) + "目。");
-          } else {
-            parts.push("目数变化不大。");
-          }
-        }
-
-        if (typeof detail.winrate_before === "number" && typeof detail.winrate_after === "number") {
-          winrateDelta = Math.round((detail.winrate_after - detail.winrate_before) * 100);
-          if (winrateDelta >= 1) {
-            parts.push("胜率提升约" + String(winrateDelta) + "%。");
-          } else if (winrateDelta <= -1) {
-            parts.push("胜率下滑约" + String(Math.abs(winrateDelta)) + "%。");
-          } else {
-            parts.push("胜率变化不大。");
-          }
-        }
-
-        return parts.join("");
+        return detail && detail.summary || "该手证据不可用。";
       }
 
       function buildTimelineReviewTarget(data, moveNumber) {
         var detail = findTimelineItem(data, moveNumber);
         var mistake = findReviewMistake(data, moveNumber) || {};
+        if (!detail) return null;
         var topCandidates = Array.isArray(mistake.top_candidates)
           ? mistake.top_candidates
           : (Array.isArray(detail.top_candidates) ? detail.top_candidates : []);
@@ -1340,126 +797,28 @@
           summary: buildTimelineReviewSummary(detail),
           moveNumber: detail.move_number,
           color: detail.color || null,
-          label: detail.teaching_label || detail.severity_label || detail.category_label || "走势定位",
+          label: detail.severity_label || (detail.is_mistake === null ? "未评估" : "未达失误阈值"),
           playedMove: detail.played_move || null,
-          recommendedMove: mistake.recommended_move || detail.best_move || null,
+          recommendedMove: mistake.recommended_move || detail.recommended_move || null,
           topCandidates: topCandidates,
           pvSummary: mistake.pv_summary || detail.pv_summary || "",
-          nextPlayer: nextPlayerAfterMoveNumber(detail.move_number),
+          nextPlayer: detail.color,
           winrateOwnerColor: detail.color || null
         };
       }
 
-      function buildPositiveReviewTargets(data) {
-        var timeline = data && Array.isArray(data.timeline) ? data.timeline : [];
-        var priority = { "胜负手": 3, "关键好手": 2, "好手": 1 };
-
-        return timeline
-          .filter(function (item) {
-            return item && priority[item.teaching_label];
-          })
-          .sort(function (left, right) {
-            var leftPriority = priority[left.teaching_label] || 0;
-            var rightPriority = priority[right.teaching_label] || 0;
-            var leftScore = (typeof left.score_after === "number" && typeof left.score_before === "number")
-              ? (left.score_after - left.score_before)
-              : 0;
-            var rightScore = (typeof right.score_after === "number" && typeof right.score_before === "number")
-              ? (right.score_after - right.score_before)
-              : 0;
-
-            if (leftPriority !== rightPriority) return rightPriority - leftPriority;
-            if (leftScore !== rightScore) return rightScore - leftScore;
-            return left.move_number - right.move_number;
-          })
-          .slice(0, 3)
-          .map(function (item) {
-            return buildReviewTarget(data, {
-              id: "highlight-" + item.move_number,
-              kind: "highlight_move",
-              title: item.teaching_label,
-              summary: buildTimelineReviewSummary(item),
-              moveNumber: item.move_number,
-              color: item.color,
-              label: item.teaching_label,
-              playedMove: item.played_move,
-              recommendedMove: item.best_move
-            });
-          });
-      }
-
       function buildReviewTargets(data) {
-        var keyPoints = data && data.key_points ? data.key_points : {};
-        var turningPoints = Array.isArray(keyPoints.turning_points) ? keyPoints.turning_points : [];
-        var planBreaks = Array.isArray(keyPoints.plan_breaks) ? keyPoints.plan_breaks : [];
-        var leaveMainBattlefields = Array.isArray(keyPoints.leave_main_battlefields)
-          ? keyPoints.leave_main_battlefields
-          : [];
-        var thresholdMistakes = data && data.review && Array.isArray(data.review.mistakes_above_threshold)
-          ? data.review.mistakes_above_threshold
-          : [];
-        var targets = buildPositiveReviewTargets(data);
-        var i;
-
-        for (i = 0; i < turningPoints.length; i++) {
-          targets.push(buildReviewTarget(data, {
-            id: "turning-" + turningPoints[i].move_number,
-            kind: "turning_point",
-            title: "转折点",
-            summary: turningPoints[i].summary || "暂无说明",
-            moveNumber: turningPoints[i].move_number,
-            color: turningPoints[i].color,
-            label: turningPoints[i].severity_label || "关键点"
-          }));
-        }
-
-        for (i = 0; i < planBreaks.length; i++) {
-          targets.push(buildReviewTarget(data, {
-            id: "plan-break-" + planBreaks[i].break_move_number,
-            kind: "plan_break",
-            title: "没有接上前面的思路",
-            summary: planBreaks[i].summary || "暂无说明",
-            moveNumber: planBreaks[i].break_move_number,
-            color: planBreaks[i].color,
-            label: "原计划 " + formatCoord(planBreaks[i].expected_follow_up),
-            playedMove: planBreaks[i].played_move,
-            recommendedMove: planBreaks[i].expected_follow_up
-          }));
-        }
-
-        for (i = 0; i < leaveMainBattlefields.length; i++) {
-          targets.push(buildReviewTarget(data, {
-            id: "leave-main-battlefield-" + leaveMainBattlefields[i].break_move_number,
-            kind: "leave_main_battlefield",
-            title: "脱离主战场",
-            summary: leaveMainBattlefields[i].summary || "暂无说明",
-            moveNumber: leaveMainBattlefields[i].break_move_number,
-            color: leaveMainBattlefields[i].color,
-            label: "主战场应对 " + formatCoord(leaveMainBattlefields[i].expected_follow_up),
-            playedMove: leaveMainBattlefields[i].played_move,
-            recommendedMove: leaveMainBattlefields[i].expected_follow_up
-          }));
-        }
-
-        for (i = 0; i < thresholdMistakes.length; i++) {
-          if (thresholdMistakes[i].severity !== "major_mistake" && thresholdMistakes[i].severity !== "blunder") {
-            continue;
-          }
-
-          targets.push(buildReviewTarget(data, {
-            id: "major-" + thresholdMistakes[i].move_number,
-            kind: "major_mistake",
-            title: thresholdMistakes[i].severity === "blunder" ? "大恶手" : "大问题手",
-            summary: moveRefLabel(thresholdMistakes[i].color, thresholdMistakes[i].move_number) + "，" +
-              (thresholdMistakes[i].category_label || "关键问题") +
-              "，损失约" + String(thresholdMistakes[i].score_loss) + "目。",
-            moveNumber: thresholdMistakes[i].move_number,
-            color: thresholdMistakes[i].color,
-            label: thresholdMistakes[i].severity_label || "重点复盘"
-          }));
-        }
-
-        return targets;
+        return (data.selected_mistakes || []).map(function (item) {
+          return buildReviewTarget(data, {
+            id: "mistake-" + item.move_number,
+            kind: "mistake",
+            title: item.severity_label,
+            summary: item.summary,
+            moveNumber: item.move_number,
+            color: item.color,
+            label: (item.quality_notes || []).join(" ")
+          });
+        });
       }
 
       function renderReviewTargetList(items, emptyText) {
@@ -1518,14 +877,10 @@
         if (moveNumber < 1 || moveNumber > latestMove) return;
 
         viewedMoveNumber = moveNumber;
-        reviewFocus = null;
+        target = buildTimelineReviewTarget(analysisData, moveNumber);
+        reviewFocus = target;
         resetSelectedCandidate(analysisData);
-        if (moveNumber === latestMove) {
-          candidateMarkers = getCurrentCandidateMarkers(analysisData);
-        } else {
-          target = buildTimelineReviewTarget(analysisData, moveNumber);
-          candidateMarkers = target ? getCandidateMarkersFromCandidates(target.topCandidates) : [];
-        }
+        candidateMarkers = target ? getCandidateMarkersFromCandidates(target.topCandidates) : [];
         drawBoard();
         updateReviewStatus();
         updateReviewNavigationControls();
@@ -1564,29 +919,16 @@
 
       function candidateDeltaText(activeCandidates, rank, candidate) {
         var best = activeCandidates && activeCandidates[0];
-        var scoreDiff;
-        var winrateDiff;
+        if (rank === 1) return "引擎第 1 推荐。";
+        if (!best) return "对比证据不可用。";
         var parts = [];
-
-        if (rank === 1 || !best) {
-          return "这是当前最优推荐点。";
-        }
-
         if (typeof best.score_estimate === "number" && typeof candidate.score_estimate === "number") {
-          scoreDiff = Math.round((best.score_estimate - candidate.score_estimate) * 10) / 10;
-          parts.push("比第1选择少" + String(scoreDiff) + "目左右");
+          parts.push("相对第 1 推荐目差变化 " + (candidate.score_estimate - best.score_estimate).toFixed(2) + " 目");
         }
-
         if (typeof best.winrate === "number" && typeof candidate.winrate === "number") {
-          winrateDiff = Math.round((best.winrate - candidate.winrate) * 100);
-          parts.push("胜率低约" + String(winrateDiff) + "%");
+          parts.push("胜率变化 " + ((candidate.winrate - best.winrate) * 100).toFixed(2) + " 个百分点");
         }
-
-        if (!parts.length) {
-          return "这是备选变化，可作为局部对比参考。";
-        }
-
-        return "这是备选变化，" + parts.join("，") + "。";
+        return parts.length ? parts.join("；") + "。搜索估计可能存在噪声。" : "对比证据不可用。";
       }
 
       function buildCandidateExplanation(data) {
@@ -1607,10 +949,10 @@
         candidate = selected.candidate;
         rankLabel = candidateRankLabel(selected.rank);
         scoreText = typeof candidate.score_estimate === "number"
-          ? String(Math.round(candidate.score_estimate * 10) / 10) + "目"
+          ? candidate.score_estimate.toFixed(2) + "目"
           : "暂无目差";
         winrateText = typeof candidate.winrate === "number"
-          ? String(Math.round(candidate.winrate * 100)) + "%"
+          ? (candidate.winrate * 100).toFixed(1) + "%"
           : "暂无胜率";
 
         if (Array.isArray(candidate.pv) && candidate.pv.length) {
@@ -1629,7 +971,7 @@
           "<span class=\"candidate-rank-badge\">" + escapeHtml(rankLabel) + "</span>",
           "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
           "</div>",
-          "<p>这一步的预计" + escapeHtml(winrateLabel) + "约为" + escapeHtml(winrateText) + "，目差约为" + escapeHtml(scoreText) + "。</p>",
+          "<p>" + escapeHtml(winrateLabel) + "：" + escapeHtml(winrateText) + "；" + escapeHtml(playerLabel(activeContext && activeContext.winrateOwnerColor)) + "目差：" + escapeHtml(scoreText) + "。</p>",
           "<p>" + escapeHtml(candidateDeltaText(activeCandidates, selected.rank, candidate)) + "</p>",
           "<p>变化参考：" + escapeHtml(pvText) + "</p>",
           "</div>"
@@ -1655,7 +997,7 @@
               "<span class=\"candidate-choice-rank\">" + escapeHtml(candidateRankLabel(rank)) + "</span>",
               "<strong>" + escapeHtml(formatCoord(candidate.move)) + "</strong>",
               "<span class=\"candidate-choice-meta\">" + escapeHtml(winrateLabel) + "约" +
-                escapeHtml(typeof candidate.winrate === "number" ? String(Math.round(candidate.winrate * 100)) : "暂无") +
+                escapeHtml(typeof candidate.winrate === "number" ? (candidate.winrate * 100).toFixed(1) : "暂无") +
                 "%，目差约" +
                 escapeHtml(typeof candidate.score_estimate === "number" ? String(Math.round(candidate.score_estimate * 10) / 10) : "暂无") +
                 "</span>",
@@ -1693,7 +1035,7 @@
 
       function formatTrendValue(metric, value) {
         if (metric === "winrate") {
-          return Math.round(value * 100) + "%";
+          return (value * 100).toFixed(1) + "%";
         }
 
         var rounded = Math.round(value * 10) / 10;
@@ -1713,20 +1055,6 @@
         return color === "W" ? "白棋胜率" : "黑棋胜率";
       }
 
-      function inferWinratePerspectiveColor(data) {
-        var activeContext = getActiveContext(data);
-        var current = data && data.current_position ? data.current_position : {};
-
-        if (activeContext && (activeContext.winrateOwnerColor === "B" || activeContext.winrateOwnerColor === "W")) {
-          return activeContext.winrateOwnerColor;
-        }
-
-        if (current.next_player === "B" || current.next_player === "W") {
-          return current.next_player;
-        }
-
-        return "B";
-      }
 
       function winrateIndicatorHtml(color) {
         var normalized = color === "W" ? "W" : "B";
@@ -1738,43 +1066,9 @@
         ].join("");
       }
 
-      function buildTrendContext(timeline, perspectiveColor) {
-        var focusMoveNumber = getViewedMoveNumber();
-        var latest;
-        var focused;
-        var parts = [];
-        var currentWinrate;
-
-        if (!timeline || !timeline.length) {
-          return "暂无走势背景。";
-        }
-
-        latest = timeline[timeline.length - 1];
-        focused = findTimelineItem({ timeline: timeline }, focusMoveNumber) || latest;
-        if (!focused || typeof focused.move_number !== "number") {
-          return "暂无走势背景。";
-        }
-
-        parts.push("目前看到第" + focused.move_number + "手。");
-
-        currentWinrate = perspectiveWinrate(focused, perspectiveColor);
-        if (typeof currentWinrate === "number") {
-          parts.push(winrateLabelForColor(perspectiveColor) + "约 " + formatTrendValue("winrate", currentWinrate) + "。");
-        }
-
-        if (typeof focused.score_black_after === "number") {
-          parts.push("黑棋目差约 " + formatTrendValue("score", focused.score_black_after) + "。");
-        }
-
-        return parts.join("");
-      }
 
       function linePath(points) {
-        if (!points.length) return "";
-
-        return points.map(function (point, index) {
-          return (index === 0 ? "M" : "L") + point.x + " " + point.y;
-        }).join(" ");
+        return trendPath(points);
       }
 
       function renderTrendChart(timeline) {
@@ -1847,10 +1141,10 @@
         points = series.map(function (item, index) {
           var x;
           var y;
-          var xSpan = Math.max(1, series.length - 1);
+          var xSpan = Math.max(1, timeline.length - 1);
           var ySpan = maxValue - minValue;
 
-          x = padding.left + ((width - padding.left - padding.right) * index) / xSpan;
+          x = padding.left + ((width - padding.left - padding.right) * (item.moveNumber - 1)) / xSpan;
           y = padding.top + ((height - padding.top - padding.bottom) * (maxValue - item.value)) / ySpan;
 
           return {
@@ -1916,7 +1210,7 @@
           " 共 " + escapeHtml(String(series.length)) + " 个点。",
           typeof selectedMoveNumber === "number" ? " 当前选中第" + escapeHtml(String(selectedMoveNumber)) + "手。" : " 当前显示最新局面。",
           "</div>",
-          "<div class=\"chart-note\">点击图上的点，可直接跳到对应手数；点“回到最新局面”可返回记录末尾位置。</div>"
+          "<div class=\"chart-note\">缺失评估处断线；目差为引擎估计。</div>"
         ].join("");
 
         Array.prototype.forEach.call(container.querySelectorAll("[data-chart-metric]"), function (button) {
@@ -1942,169 +1236,60 @@
       }
 
       function renderAnalysisSummary(data) {
-        if (!data || typeof data !== "object") {
-          summary.textContent = "暂无分析结果。";
+        if (!data || data.schema_version !== "3.0") {
+          renderErrorState("报告版本不兼容，请更新后端后重新分析。");
           return;
         }
-
-        var current = data.current_position || {};
-        var gameSummary = data.game_summary || {};
-        var keyPoints = data.key_points || {};
-        var reviewSummary = keyPoints.review_summary || {};
-        var activeContext = getActiveContext(data);
-        var activeCandidates = getActiveCandidates(data);
-        var currentPhase = inferPhase(gameSummary);
-        var bestMoveLabel = formatCoord(current.best_move);
-        var activeBestMoveLabel = activeContext ? formatCoord(activeContext.recommendedMove) : bestMoveLabel;
-        var activeNextPlayer = activeContext ? activeContext.nextPlayer : current.next_player;
-        var hasBestMove = activeBestMoveLabel !== "暂无";
-        var timeline = Array.isArray(data.timeline) ? data.timeline : [];
-        var reviewTitle = activeContext && activeContext.kind !== "current_position"
-          ? "当前查看：" + moveRefLabel(activeContext.color, activeContext.moveNumber)
-          : "当前查看：最新局面";
-        var activeExplanation = activeContext
-          ? activeContext.summary
-          : (current.short_explanation || "暂无说明");
-        var reviewTargetsByKind = {
-          highlight: reviewTargets.filter(function (item) { return item.kind === "highlight_move"; }),
-          turning: reviewTargets.filter(function (item) { return item.kind === "turning_point"; }),
-          planBreak: reviewTargets.filter(function (item) { return item.kind === "plan_break"; }),
-          leaveMainBattlefield: reviewTargets.filter(function (item) { return item.kind === "leave_main_battlefield"; }),
-          major: reviewTargets.filter(function (item) { return item.kind === "major_mistake"; })
-        };
-        var trendContext = buildTrendContext(timeline, inferWinratePerspectiveColor(data));
-        var reviewOverview = [
-          "亮点手 " + reviewTargetsByKind.highlight.length + " 个",
-          "转折点 " + reviewTargetsByKind.turning.length + " 个",
-          "没有接上前面的思路 " + reviewTargetsByKind.planBreak.length + " 个",
-          "脱离主战场 " + reviewTargetsByKind.leaveMainBattlefield.length + " 个",
-          "大问题手 " + reviewTargetsByKind.major.length + " 个"
-        ].join("，");
-
+        var active = getActiveContext(data);
+        var candidates = getActiveCandidates(data);
+        var timeline = data.timeline;
+        var detail = active && active.kind !== "current_position"
+          ? findTimelineItem(data, active.moveNumber) : data.current_position;
         ensureSelectedCandidate(data);
-        var currentSections = [
-          "<div class=\"analysis-section\">",
-          "<strong>1. 当前局面</strong>",
-          "<ul>",
-          "<li>" + escapeHtml(reviewTitle) + "</li>",
-          "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
-          "<li>当前推荐点：" + escapeHtml(hasBestMove ? activeBestMoveLabel : "暂无推荐点") + "</li>",
-          "<li>推荐状态：" + escapeHtml(hasBestMove ? "棋盘上已标出当前推荐点。" : "当前局面没有可用的推荐点，棋盘不会显示推荐标记。") + "</li>",
-          "</ul>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>2. 当前说明</strong>",
-          "<div>" + escapeHtml(activeExplanation) + "</div>",
-          "<div class=\"section-note\">" + escapeHtml(
-            activeContext && activeContext.kind === "current_position"
-              ? "当前模式展示记录末尾的推荐点与候选变化。"
-              : "当前模式展示所查看手数的实战落点与推荐变化。"
-          ) + "</div>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<div class=\"section-title-row\"><strong>3. 候选点</strong>" +
-            winrateIndicatorHtml(activeContext && activeContext.winrateOwnerColor) +
-          "</div>",
-          "<div class=\"section-note\">点击棋盘上的 1 / 2 / 3 候选标记，右侧说明会立即切换。</div>",
-          renderCandidateChoiceList(activeCandidates),
-          buildCandidateExplanation(data),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>4. 当前趋势</strong>",
-          "<div>" + escapeHtml(trendContext) + "</div>",
-          "<div id=\"trendChartSection\">暂无走势数据。</div>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>5. 阶段判断</strong>",
-          "<ul>",
-          "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
-          "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
-          "</ul>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>6. 整盘复盘概览</strong>",
-          "<div>" + escapeHtml(reviewOverview) + "</div>",
-          "<div class=\"section-note\">切换到“整盘复盘”可查看并点击关键复盘条目。</div>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>7. 阶段总结</strong>",
-          "<div>" + escapeHtml(reviewSummary.summary || "暂无阶段总结。") + "</div>",
-          "</div>"
-        ].join("");
-        var reviewSections = [
-          "<div class=\"analysis-section\">",
-          "<strong>1. 整盘复盘重点</strong>",
-          "<div>" + escapeHtml(reviewSummary.summary || "暂无阶段总结。") + "</div>",
-          "<div class=\"section-note\">点击下面条目后，棋盘会跳转到对应手数并显示该处推荐点。</div>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>2. 亮点手</strong>",
-          renderReviewTargetList(reviewTargetsByKind.highlight, "暂无明显亮点手。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>3. 转折点</strong>",
-          renderReviewTargetList(reviewTargetsByKind.turning, "暂无明显转折点。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>4. 没有接上前面的思路</strong>",
-          renderReviewTargetList(reviewTargetsByKind.planBreak, "暂无没有接上前面的思路的着手。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>5. 大问题手</strong>",
-          renderReviewTargetList(reviewTargetsByKind.major, "当前没有达到“大问题手 / 大恶手”级别的条目。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>6. 脱离主战场</strong>",
-          renderReviewTargetList(reviewTargetsByKind.leaveMainBattlefield, "暂无脱离主战场的着手。"),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>7. 当前趋势参考</strong>",
-          "<div>" + escapeHtml(trendContext) + "</div>",
-          "<div id=\"trendChartSection\">暂无走势数据。</div>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>8. 当前局面参考</strong>",
-          "<ul>",
-          "<li>" + escapeHtml(reviewTitle) + "</li>",
-          "<li>轮到谁下：" + escapeHtml(playerLabel(activeNextPlayer)) + "</li>",
-          "<li>当前推荐点：" + escapeHtml(hasBestMove ? activeBestMoveLabel : "暂无推荐点") + "</li>",
-          "<li>一句话说明：" + escapeHtml(activeExplanation) + "</li>",
-          "</ul>",
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<div class=\"section-title-row\"><strong>9. 当前候选点</strong>" +
-            winrateIndicatorHtml(activeContext && activeContext.winrateOwnerColor) +
-          "</div>",
-          "<div class=\"section-note\">点击棋盘候选标记可查看该点的短变化说明。</div>",
-          renderCandidateChoiceList(activeCandidates),
-          buildCandidateExplanation(data),
-          "</div>",
-          "<div class=\"analysis-section\">",
-          "<strong>10. 阶段判断</strong>",
-          "<ul>",
-          "<li>当前属于：" + escapeHtml(currentPhase.label) + "</li>",
-          "<li>简短说明：" + escapeHtml(currentPhase.note) + "</li>",
-          "</ul>",
-          "</div>"
-        ].join("");
-
-        summary.innerHTML = analysisView === "review" ? reviewSections : currentSections;
-
+        var overview = renderReportOverview(data);
+        var empty = data.status === "partial" ? "可用证据中暂无明显失误；不能据此判断整盘无失误。" : "当前阈值下未发现明显失误。";
+        var top = '<section class="analysis-section"><h3>重点失误</h3>' +
+          renderReviewTargetList(reviewTargets, empty) + '</section>';
+        var position = '<section class="analysis-section"><h3>' +
+          escapeHtml(active && active.kind !== "current_position" ? moveRefLabel(active.color, active.moveNumber) + " · 落子前" : "记录末尾局面") +
+          '</h3><p>' + escapeHtml(active ? active.summary : "证据不可用。") + '</p>' +
+          '<p>' + (active && active.kind !== "current_position" ? '实战：' + escapeHtml(formatCoord(active.playedMove)) + '；' : '') +
+          '推荐：' + escapeHtml(formatCoord(active && active.recommendedMove)) + '</p>' +
+          renderQualityNotes(detail) + '</section>' +
+          '<section class="analysis-section"><div class="section-title-row"><h3>候选点</h3>' +
+          winrateIndicatorHtml(active && active.winrateOwnerColor) + '</div>' +
+          renderCandidateChoiceList(candidates) + buildCandidateExplanation(data) + '</section>';
+        var trend = '<section class="analysis-section"><h3>黑棋评估走势</h3><div id="trendChartSection"></div></section>';
+        summary.innerHTML = overview + (analysisView === "review"
+          ? top + renderMistakeMarkers(data) + position + trend
+          : position + top + renderMistakeMarkers(data) + trend);
         renderTrendChart(timeline);
-
         Array.prototype.forEach.call(summary.querySelectorAll("[data-review-id]"), function (button) {
           button.addEventListener("click", function () {
             activateReviewTargetById(this.getAttribute("data-review-id"));
+            revealBoardOnMobile();
           });
         });
-
+        Array.prototype.forEach.call(summary.querySelectorAll("[data-review-move]"), function (button) {
+          button.addEventListener("click", function () {
+            activateTimelineMove(Number(this.getAttribute("data-review-move")));
+            revealBoardOnMobile();
+          });
+        });
         Array.prototype.forEach.call(summary.querySelectorAll("[data-candidate-rank]"), function (button) {
           button.addEventListener("click", function () {
             selectedCandidateRank = Number(this.getAttribute("data-candidate-rank")) || 1;
+            if (selectedCandidateRank > 1) showCandidates.checked = true;
             drawBoard();
             renderAnalysisSummary(data);
           });
         });
+      }
+
+      function revealBoardOnMobile() {
+        if (window.matchMedia("(max-width: 900px)").matches) {
+          document.querySelector(".board-column").scrollIntoView({ block: "start" });
+        }
       }
 
       function createBoardSnapshot(uptoMoveCount) {
@@ -2245,7 +1430,7 @@
 
       function syncCanvasSize() {
         var rect = boardElement.getBoundingClientRect();
-        var size = Math.min(640, Math.floor(rect.width || boardElement.clientWidth || 640));
+        var size = Math.floor(rect.width || boardElement.clientWidth || 640);
         var ratio = window.devicePixelRatio || 1;
         canvas.width = size * ratio;
         canvas.height = size * ratio;
@@ -2265,7 +1450,7 @@
       }
 
       function drawGrid() {
-        context.strokeStyle = "#5d3c1a";
+        context.strokeStyle = "#87704a";
         context.lineWidth = 1;
 
         for (var i = 0; i < BOARD_SIZE; i++) {
@@ -2338,6 +1523,7 @@
           context.restore();
         }
 
+        if (!showMoveNumbers.checked) return;
         context.save();
         context.fillStyle = move.color === "B" ? "#f4f4f4" : "#111";
         context.font = "bold " + Math.max(10, Math.floor(radius * (label.length > 2 ? 0.9 : 1.1))) + "px sans-serif";
@@ -2347,83 +1533,48 @@
         context.restore();
       }
 
-      function candidateMarkerStyle(rank, isSelected) {
-        if (rank === 1) {
-          return {
-            outerStroke: "#1f7a3d",
-            innerStroke: "rgba(232, 247, 237, 0.98)",
-            dotFill: "#1f7a3d",
-            ringScale: 0.52,
-            lineWidth: isSelected ? 0.11 : 0.085,
-            glow: "rgba(31, 122, 61, 0.28)"
-          };
-        }
-
-        if (rank === 2) {
-          return {
-            outerStroke: "#43a35f",
-            innerStroke: "rgba(239, 250, 242, 0.96)",
-            dotFill: "#43a35f",
-            ringScale: 0.45,
-            lineWidth: isSelected ? 0.095 : 0.07,
-            glow: "rgba(67, 163, 95, 0.26)"
-          };
-        }
-
-        return {
-          outerStroke: "#7bc98f",
-          innerStroke: "rgba(247, 253, 248, 0.94)",
-          dotFill: "#7bc98f",
-          ringScale: 0.39,
-          lineWidth: isSelected ? 0.085 : 0.06,
-          glow: "rgba(123, 201, 143, 0.24)"
-        };
-      }
-
-      function drawCandidateMarker(point, stoneMap) {
-        var x = boardPoint(point.x);
-        var y = boardPoint(point.y);
-        var stone = stoneMap[pointKey(point.x, point.y)] || null;
-        var isSelected = point.rank === selectedCandidateRank;
-        var style = candidateMarkerStyle(point.rank, isSelected);
-        var ringRadius = boardMetrics.cell * (stone ? Math.max(0.5, style.ringScale) : style.ringScale) + (isSelected ? boardMetrics.cell * 0.04 : 0);
-        var dotRadius = boardMetrics.cell * (isSelected ? 0.13 : 0.1);
-
+      function drawBoardMarker(marker) {
+        var x = boardPoint(marker.x);
+        var y = boardPoint(marker.y);
+        var radius = boardMetrics.cell * 0.43;
+        var isBest = marker.kind === "recommended" || marker.kind === "combined";
+        var isPlayed = marker.kind === "played" || marker.kind === "mistake";
+        var fill = isBest ? "#087a59" : marker.kind === "mistake" ? "#c13545"
+          : isPlayed ? "#505b60" : "#2369bb";
         context.save();
-        if (isSelected) {
-          context.shadowColor = style.glow;
-          context.shadowBlur = Math.max(8, boardMetrics.cell * 0.35);
+        context.translate(x, y);
+        context.beginPath();
+        if (isBest) {
+          context.moveTo(0, -radius * 1.1);
+          context.lineTo(radius, radius * 0.85);
+          context.lineTo(-radius, radius * 0.85);
+          context.closePath();
+        } else if (isPlayed) {
+          context.rect(-radius * 0.88, -radius * 0.88, radius * 1.76, radius * 1.76);
+        } else {
+          context.arc(0, 0, radius * 0.88, 0, Math.PI * 2);
         }
-        context.strokeStyle = style.outerStroke;
-        context.lineWidth = Math.max(2, boardMetrics.cell * style.lineWidth);
-        context.beginPath();
-        context.arc(x, y, ringRadius, 0, Math.PI * 2);
+        // A dark outer edge and white keyline stay visible on both stone colors.
+        context.strokeStyle = marker.selected ? "#172f31" : "rgba(23,47,49,0.3)";
+        context.lineWidth = marker.selected ? 4 : 3;
         context.stroke();
-
-        context.strokeStyle = style.innerStroke;
-        context.lineWidth = Math.max(2, boardMetrics.cell * 0.04);
-        context.beginPath();
-        context.arc(x, y, ringRadius - Math.max(3, boardMetrics.cell * 0.08), 0, Math.PI * 2);
-        context.stroke();
-
-        context.fillStyle = style.dotFill;
-        context.beginPath();
-        context.arc(x, y, dotRadius, 0, Math.PI * 2);
+        context.fillStyle = fill;
         context.fill();
-
-        context.shadowBlur = 0;
-        context.fillStyle = isSelected ? "#fff" : "#1d3d25";
-        context.font = "bold " + Math.max(10, Math.floor(boardMetrics.cell * 0.23)) + "px sans-serif";
+        context.strokeStyle = "#fff";
+        context.lineWidth = 1.5;
+        context.stroke();
+        context.fillStyle = "#fff";
+        context.font = "700 " + Math.max(9, Math.floor(boardMetrics.cell * 0.47)) + "px sans-serif";
         context.textAlign = "center";
         context.textBaseline = "middle";
-        context.fillText(String(point.rank), x, y + 0.5);
+        context.fillText(marker.label, 0, isBest ? radius * 0.23 : 0.5);
         context.restore();
       }
 
       function trySelectCandidateAtPoint(point) {
-        for (var i = 0; i < candidateMarkers.length; i++) {
-          if (candidateMarkers[i].x === point.x && candidateMarkers[i].y === point.y) {
-            selectedCandidateRank = candidateMarkers[i].rank;
+        for (var i = 0; i < visibleMarkers.length; i++) {
+          if (visibleMarkers[i].rank && visibleMarkers[i].x === point.x && visibleMarkers[i].y === point.y) {
+            selectedCandidateRank = visibleMarkers[i].rank;
             drawBoard();
             renderAnalysisSummary(analysisData);
             return true;
@@ -2433,48 +1584,39 @@
         return false;
       }
 
-      function drawRecommendedMoveMarker(move) {
-        var point = extractCoordPoint(move);
-        var x;
-        var y;
-        var size;
-
-        if (!point) return;
-
-        x = boardPoint(point.x);
-        y = boardPoint(point.y);
-        size = boardMetrics.cell * 0.26;
-
+      function drawCoordinates() {
         context.save();
-        context.strokeStyle = "#c74b16";
-        context.lineWidth = Math.max(2, boardMetrics.cell * 0.06);
-        context.beginPath();
-        context.rect(x - size, y - size, size * 2, size * 2);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(x - size * 0.7, y);
-        context.lineTo(x + size * 0.7, y);
-        context.moveTo(x, y - size * 0.7);
-        context.lineTo(x, y + size * 0.7);
-        context.stroke();
+        context.font = Math.max(9, Math.min(12, boardMetrics.cell * 0.36)) + "px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillStyle = "#635134";
+        var edge = boardMetrics.padding * 0.38;
+        for (var i = 0; i < BOARD_SIZE; i++) {
+          context.fillText(DISPLAY_COLUMNS[i], boardPoint(i), edge);
+          context.fillText(DISPLAY_COLUMNS[i], boardPoint(i), boardMetrics.size - edge);
+          context.fillText(String(BOARD_SIZE - i), edge, boardPoint(i));
+          context.fillText(String(BOARD_SIZE - i), boardMetrics.size - edge, boardPoint(i));
+        }
         context.restore();
       }
 
       function drawBoard() {
         var activeMoves = [];
-        var renderedMoveCount = analysisData ? (getViewedMoveNumber() || moves.length) : moves.length;
-        var snapshot = createBoardSnapshot(renderedMoveCount);
         var activeContext = getActiveContext(analysisData);
+        var renderedMoveCount = activeContext && activeContext.kind !== "current_position"
+          ? activeContext.moveNumber - 1 : moves.length;
+        var snapshot = createBoardSnapshot(renderedMoveCount);
         var recommendedMove = activeContext ? activeContext.recommendedMove : null;
         var i;
 
         if (!boardMetrics) return;
 
         context.clearRect(0, 0, boardMetrics.size, boardMetrics.size);
-        context.fillStyle = "#ddb56d";
+        context.fillStyle = "#e7c990";
         context.fillRect(0, 0, boardMetrics.size, boardMetrics.size);
         drawGrid();
         drawStarPoints();
+        drawCoordinates();
 
         for (i = 0; i < snapshot.moves.length; i++) {
           if (!snapshot.moves[i].isCaptured && !snapshot.moves[i].isPass) {
@@ -2489,11 +1631,34 @@
           drawStone(activeMoves[i].move, activeMoves[i].moveNumber, activeMoves[i].moveNumber === renderedMoveCount);
         }
 
-        for (i = 0; i < candidateMarkers.length; i++) {
-          drawCandidateMarker(candidateMarkers[i], snapshot.stonesByPoint);
-        }
+        var reviewing = activeContext && activeContext.kind !== "current_position";
+        var detail = reviewing ? findTimelineItem(analysisData, activeContext.moveNumber) : null;
+        visibleMarkers = buildBoardMarkers({
+          candidates: candidateMarkers,
+          played: reviewing ? extractCoordPoint(activeContext.playedMove) : null,
+          recommended: extractCoordPoint(recommendedMove),
+          isMistake: detail && detail.is_mistake === true,
+          selectedRank: selectedCandidateRank,
+          showCandidates: showCandidates.checked
+        });
+        visibleMarkers.forEach(drawBoardMarker);
+        updatePointSummary();
+      }
 
-        drawRecommendedMoveMarker(recommendedMove);
+      function updatePointSummary() {
+        var active = getActiveContext(analysisData);
+        var selected = visibleMarkers.find(function (marker) { return marker.selected; });
+        var descriptions = visibleMarkers.filter(function (marker) {
+          return marker.played || marker.recommended || marker === selected;
+        }).map(markerDescription);
+        if (active && !extractCoordPoint(active.recommendedMove)) {
+          descriptions.push("推荐 " + formatCoord(active.recommendedMove));
+        }
+        if (active && active.kind !== "current_position" && !extractCoordPoint(active.playedMove)) {
+          descriptions.push("实战 " + formatCoord(active.playedMove));
+        }
+        pointSummary.textContent = descriptions.join("  /  ");
+        canvas.setAttribute("aria-label", "围棋棋盘" + (descriptions.length ? "：" + descriptions.join("；") : ""));
       }
 
       function clickToPoint(event) {
@@ -2515,10 +1680,11 @@
       }
 
       canvas.addEventListener("click", function (event) {
+        if (isBusy) return;
         var point = clickToPoint(event);
         if (!point) return;
         if (analysisData && trySelectCandidateAtPoint(point)) return;
-        if (analysisData && !isViewingLatestMove()) return;
+        if (analysisData) return;
         if (!tryPlaceMove(point, currentColor)) return;
 
         clearAnalysisState();
@@ -2534,6 +1700,24 @@
         currentColor = moves.length % 2 === 0 ? "B" : "W";
         drawBoard();
         updateStatus();
+      });
+
+      editBtn.addEventListener("click", function () {
+        clearAnalysisState();
+        drawBoard();
+        updateStatus();
+      });
+      showCandidates.addEventListener("change", function () {
+        if (!showCandidates.checked) selectedCandidateRank = 1;
+        drawBoard();
+        if (analysisData) renderAnalysisSummary(analysisData);
+      });
+      showMoveNumbers.addEventListener("change", drawBoard);
+      canvas.addEventListener("mousemove", function (event) {
+        var point = clickToPoint(event);
+        var marker = point && visibleMarkers.find(function (item) { return item.x === point.x && item.y === point.y; });
+        canvas.title = marker ? markerDescription(marker) : "";
+        canvas.style.cursor = !isBusy && (!analysisData || marker && marker.rank) ? "pointer" : "default";
       });
 
       clearBtn.addEventListener("click", function () {
@@ -2573,7 +1757,7 @@
         setAnalyzeLoadingState(true);
 
         try {
-          candidateMarkers = [];
+          clearAnalysisState();
           drawBoard();
           renderLoadingState();
           output.textContent = "分析中...";
@@ -2591,7 +1775,7 @@
             })
           };
 
-          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-moves", {
+          var response = await fetch("/api/v1/analyze-moves", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -2650,7 +1834,7 @@
         setUploadLoadingState(true);
 
         try {
-          candidateMarkers = [];
+          clearAnalysisState();
           drawBoard();
           renderLoadingState();
           output.textContent = "分析中...";
@@ -2662,7 +1846,7 @@
           var params = new URLSearchParams();
           if (settings.rules !== null) params.set("rules", settings.rules);
           if (settings.komi !== null) params.set("komi", String(settings.komi));
-          var response = await fetch("http://127.0.0.1:8000/api/v1/analyze-sgf?" + params.toString(), {
+          var response = await fetch("/api/v1/analyze-sgf?" + params.toString(), {
             method: "POST",
             body: formData
           });
@@ -2693,7 +1877,7 @@
           var warnings = data.game_summary && data.game_summary.input_warnings || [];
           var resultLabel = data.game_summary && data.game_summary.record_status === "result_recorded"
             ? "棋谱带有结果记录。" : "棋谱未记录结果，可能尚未结束。";
-          setUploadStatus("已载入棋谱末尾局面。" + resultLabel +
+          setUploadStatus("已载入 " + file.name + "。" + resultLabel +
             (warnings.indexOf("first_variation_only") >= 0 ? "包含变化分支，本次仅分析第一条主线。" : ""), false);
         } catch (err) {
           clearAnalysisState();
@@ -2709,7 +1893,7 @@
       });
 
       document.addEventListener("keydown", function (event) {
-        if (shouldIgnoreReviewKeydown(event) || !analysisData || typeof getViewedMoveNumber() !== "number") return;
+        if (isBusy || shouldIgnoreReviewKeydown(event) || !analysisData || typeof getViewedMoveNumber() !== "number") return;
 
         if (event.key === "ArrowLeft") {
           event.preventDefault();
@@ -2727,7 +1911,7 @@
       updateReviewStatus();
       updateReviewNavigationControls();
       syncAnalysisViewButtons();
-      setUploadStatus("也可以直接上传 SGF 文件进行分析。", false);
+      setUploadStatus("", false);
     })();
   </script>
 </body>

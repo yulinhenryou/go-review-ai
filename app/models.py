@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.game import MAX_MOVES, GameMove, GameRecord, validate_game
+from src.mistake_severity import DEFAULT_LOSS_THRESHOLD, DEFAULT_SEVERE_THRESHOLD, MAX_REVIEW_MISTAKES
 
 
 class InputModel(BaseModel):
@@ -45,5 +46,6 @@ class GamePayload(InputModel):
 
 
 class AnalyzeMovesPayload(GamePayload):
-    loss_threshold: float = Field(1.0, ge=0.0, le=361.0)
-    limit: int = Field(3, ge=1, le=MAX_MOVES)
+    loss_threshold: float = Field(DEFAULT_LOSS_THRESHOLD, ge=0.0, le=361.0)
+    severe_threshold: float = Field(DEFAULT_SEVERE_THRESHOLD, ge=0.0, le=361.0)
+    limit: int = Field(MAX_REVIEW_MISTAKES, ge=1, le=MAX_REVIEW_MISTAKES)

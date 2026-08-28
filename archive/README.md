@@ -30,10 +30,11 @@ git show archive/prototype-2026-08-27:src/katago_client.py
 git show archive/prototype-2026-08-27:frontend/index.html
 ```
 
-No standalone unused Python module was identified in the current source inventory.
-The M2 change moves mock behavior exclusively to test fixtures. Classifier and
-key-point heuristics remain coupled to the legacy report; M3 will retire unsupported
-teaching from the production report. See the [roadmap](../docs/ROADMAP.md).
+M2 moved mock behavior exclusively to test fixtures. M3 retired `src/classifier.py`,
+`src/key_points.py`, `src/chinese_explanations.py` and `src/user_facing_labels.py`,
+with their obsolete consumers/tests, from production and packaging. Their source
+is retained in the prototype tag and pre-M3 commits, not duplicated here.
+See the [report contract](../docs/REPORT_CONTRACT.md) and [roadmap](../docs/ROADMAP.md).
 
 ## Archive Rules
 

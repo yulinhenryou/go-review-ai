@@ -4,10 +4,12 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: M2 real-engine integration verified, not a validated v1.**
+**Current status: M1-M3 implemented and reverified, not a validated web v1.**
 SGF/manual inputs share a validated model; real KataGo analysis now has explicit
-provenance and no mock fallback. Concise factual reporting and public deployment
-remain M3-M5 work. See [M2 acceptance](docs/M2_ACCEPTANCE.md).
+provenance and no mock fallback. Reports use point-loss thresholds, top-five
+selection, explicit coverage and factual Chinese summaries. Bounded browser
+jobs and public deployment remain M4/M5 work. See [M3 acceptance](docs/M3_ACCEPTANCE.md)
+and the [M1-M3 regression record](docs/M1_M3_REGRESSION.md).
 
 ## What It Does
 
@@ -60,10 +62,12 @@ Manual board -> JSON moves -> API models ----+-> GameRecord + shared validation
                                           API JSON -> browser
 ```
 
-The CLI and API share review functions in `src/review_service.py`. The current pipeline
-also runs experimental classification and teaching heuristics. V1 will remove
-unsupported teaching claims from the default report, preserving the old prototype
-in the [archive](archive/README.md).
+The CLI and API share review functions in `src/review_service.py`. M3 compares
+recommendation and actual-move point estimates in the moving player's perspective,
+uses 3/5-point obvious/severe thresholds, and ranks up to five mistakes without
+rounding before selection. Missing evidence remains explicit. Unsupported
+classification/teaching modules are retired; their source remains in Git history
+and the [prototype archive tag](archive/README.md).
 
 ### Repository Layout
 
@@ -76,13 +80,12 @@ in the [archive](archive/README.md).
 | `src/engine_factory.py` | Explicit real-engine configuration; no mock fallback |
 | `src/analyzer.py` | Position-by-position analysis orchestration |
 | `src/mistake_selector.py`, `src/mistake_severity.py` | Mistake ranking and severity |
-| `src/classifier.py`, `src/key_points.py` | Experimental heuristics, still called by the prototype |
 | `src/review_result.py` | Structured result contract and serialization |
-| `src/report_writer.py`, `src/chinese_explanations.py`, `src/user_facing_labels.py` | Report templates and labels |
+| `src/report_writer.py` | Factual Chinese templates and quality notes; no tactical diagnosis |
 | `src/review_service.py` | Shared review orchestration |
 | `src/main.py` | Sample CLI and legacy builder re-exports |
 | `app/` | FastAPI routes and request models |
-| `frontend/` | Current browser prototype and Pages publication source |
+| `frontend/` | Local browser UI, rule/komi controller and testable report rendering; Pages publication source |
 | `tests/` | Regression tests, isolated mock fixtures and recorded real-engine evidence |
 | `config/analysis.cfg`, `scripts/benchmark_engine.py` | Local engine baseline and opt-in performance measurement |
 | `samples/` | Sample SGF inputs; see [sample notes](samples/README.md) |
@@ -98,6 +101,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -c constraints.txt -e '.[api,dev]'
 python -m pytest -q -ra
+node --test tests/frontend/*.test.mjs
 ```
 
 Direct dependencies and build tooling are pinned in `pyproject.toml`;
@@ -108,9 +112,9 @@ The wheel contains only Python packages, not archives, samples, tests or fronten
 files. Use the repository checkout for the sample CLI and browser UI.
 
 **Real engine required:** the CLI/API fail explicitly without a usable KataGo,
-model and configuration. Mock output is now confined to test fixtures. The
-legacy report still contains heuristic teaching prose pending M3; do not treat
-those narratives as established tactical explanations.
+model and configuration. Mock output is confined to test fixtures. Report
+thresholds are configurable product defaults that still need calibration, not
+universal Go rules or a claim of search certainty.
 
 For the real engine, install KataGo and obtain a compatible model and analysis
 config following the [KataGo project](https://github.com/lightvector/KataGo).
@@ -132,24 +136,61 @@ python -m src.main
 
 The tested transport supports macOS/Linux (POSIX); Windows is not verified.
 
-Run the backend:
+### Local Web Workspace
+
+On macOS, double-click **Start Go Review.command** in the repository, or run:
 
 ```bash
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python scripts/local_server.py start --open
 ```
 
-In a second terminal with the same environment activated, serve the frontend:
+The launcher starts an on-demand, loopback-only user service. It stays running
+after the terminal, browser or Codex conversation closes. It does **not** install
+login/startup automation; run the launcher again after logout or reboot.
+It uses the existing `.venv` and your configured engine paths. On this tested
+Homebrew setup it can also locate the already-installed b18 model and KataGo;
+it never downloads a model or substitutes mock analysis.
 
 ```bash
-python -m http.server 3000 --bind 127.0.0.1 --directory frontend
+python scripts/local_server.py status
+python scripts/local_server.py restart
+python scripts/local_server.py stop
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Use that exact browser origin:
-the current backend CORS allowlist only contains `http://localhost:3000`.
-The frontend calls `http://127.0.0.1:8000`; opening it as `file://`, at another
-port, or from Pages is not the supported local API configuration.
+**Stop Go Review.command** stops only this checkout's service. Configuration and
+logs are kept in ignored `.local/`, not in Git. Restart after changing Python
+code or engine environment variables; refresh the page after frontend changes.
+
+Open [http://localhost:3000](http://localhost:3000). If port 3000 belongs to another
+process, the launcher chooses a free port up to 3009 and prints the actual URL.
+The frontend and API now share one origin through `app.local:app`; no second
+server, hardcoded API port or CORS adjustment is needed. A refused connection
+means the launcher must be started, not that a browser proxy must be changed.
+
+For foreground development on macOS/Linux (keep this terminal open):
+
+```bash
+python -m uvicorn app.local:app --host 127.0.0.1 --port 3000
+```
+
+For API-only integrations, `app.main:app` is still available. Opening
+`frontend/index.html` directly or serving it with `http.server` does not provide
+the analysis API.
+
 Choose rules and komi before manual analysis. For SGF uploads, these controls
 fill missing metadata only; existing recorded values take precedence.
+Chinese rules select 7.5 komi; Japanese/Korean rules select 6.5; custom mode
+allows an explicit scoring rule and komi.
+
+The review board uses red square **!** markers for evaluated mistakes, gray
+squares for other played moves, green triangles for recommendations and blue
+numbered circles for other candidates. When actual and recommended points
+coincide, one green **=** marker replaces overlapping symbols. Candidate numbers
+match the report. Coordinates, a text equivalent, optional move numbers and a
+candidate visibility toggle remain available at mobile sizes. Analysis opens
+the highest-ranked mistake; use **Continue entry / 继续录入** to edit the game again.
+See [local workspace acceptance](docs/LOCAL_WORKSPACE_ACCEPTANCE.md) for the
+startup, real-engine and responsive-browser checks.
 
 ### Current API
 
@@ -159,22 +200,28 @@ fill missing metadata only; existing recorded values take precedence.
 | `GET /ready` | Fresh real model-load/version check; expensive, not a frequent polling endpoint |
 | `POST /api/v1/parse-sgf` | Validated upload preview, no engine; identifies missing metadata |
 | `POST /api/v1/validate-moves` | Equivalent preview for manual game JSON, no engine |
-| `POST /api/v1/analyze-sgf` | Multipart `file`; `rules`, `komi`, `loss_threshold` and `limit` are query parameters |
+| `POST /api/v1/analyze-sgf` | Multipart `file`; `rules`, `komi`, `loss_threshold`, `severe_threshold` and `limit` are query parameters |
 | `POST /api/v1/analyze-moves` | Explicit rules/komi and `{color, sgf}` moves; explicit `null` represents pass |
 
 ```bash
 curl --fail-with-body \
-  'http://127.0.0.1:8000/api/v1/analyze-sgf?loss_threshold=3.0&limit=5' \
+  'http://127.0.0.1:3000/api/v1/analyze-sgf?loss_threshold=3.0&limit=5' \
   -F 'file=@samples/sample_game.sgf'
 
-curl --fail-with-body 'http://127.0.0.1:8000/api/v1/analyze-moves' \
+curl --fail-with-body 'http://127.0.0.1:3000/api/v1/analyze-moves' \
   -H 'Content-Type: application/json' \
   -d '{"board_size":19,"rules":"japanese","komi":6.5,"moves":[{"color":"B","sgf":"pd"},{"color":"W","sgf":"dd"}],"loss_threshold":3.0,"limit":5}'
 ```
 
-The API returns review schema `2.2`; that number is a data format version,
-not a claim that product v2 or v1 is complete. A short sample may have no results
-above the example threshold. The proposed v1 threshold is not yet the default.
+The API returns review schema `3.0`; that number is a data format version,
+not a claim that product v3 or v1 is complete. Defaults are `loss_threshold=3`,
+`severe_threshold=5`, `limit=5`; limit is 1-5, thresholds are finite and severe
+must be >= obvious. A short sample may have no qualifying mistakes. Use
+`samples/m3_mistake.sgf` for a synthetic obvious-mistake example.
+Missing fields in otherwise successful engine responses produce HTTP 200 with
+`status=partial`, explicit coverage and null values, not a fabricated clean game.
+Protocol/startup failures still return 503. Old heuristic report fields were
+removed; update backend and frontend together. See [report contract](docs/REPORT_CONTRACT.md).
 Preview schema is `1.0`. See [the input contract](docs/INPUT_CONTRACT.md) for
 limits, supported SGF properties, error responses and pass semantics.
 See [the engine contract](docs/ENGINE_CONTRACT.md) for score perspectives,
@@ -182,26 +229,26 @@ candidate PVs, provenance and missing-evidence behavior.
 
 ## Current Status
 
-Updated: **2026-08-27**. M2 branch: `codex/m2-engine-reliability`.
+Updated: **2026-08-28**. M3 development branch: `codex/m3-factual-report`.
 
 | Area | Status and limitation |
 | --- | --- |
 | SGF input | Shared replay validation, strict limits, metadata confirmation and explicit variation warnings; unsupported setups/rules fail |
 | Manual entry | Shared server-side validation and explicit rules/komi; placement/undo/navigation retained; full pass/input UX remains M4 |
 | KataGo | Real model readiness, process reuse, strict JSONL matching, explicit played-move search, genuine PVs and fixed-black evidence |
-| Mistakes / report | Real numeric evidence; legacy heuristic teaching remains pending M3; incomplete evidence fails clearly instead of fabricating a full report |
-| Web service | Input validation and model readiness; bounded background jobs/cancellation still belong to M4 |
-| Verification | **225 regular tests passed + 3 opt-in real-engine tests passed**; recorded-response replay and real-model performance checks |
+| Mistakes / report | Configurable 3/5-point thresholds, top-five summary plus all chronological markers, coverage and quality notes; no heuristic teaching |
+| Web service | Same-origin local UI/API with on-demand macOS start/stop; bounded analysis jobs/cancellation still belong to M4 |
+| Verification | 276 Python tests including 5 live KataGo tests, 23 frontend tests, fresh wheel/API checks and a 235-move rerun; see the M1-M3 regression record |
 | Deployment | Pages serves the frontend, not a complete online analysis service |
 
 The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
-older prototype. M0 verified its published HTML; the M1/M2 changes have not been
+older prototype. M0 verified its published HTML; the M1-M3 changes have not been
 published to Pages. It targets the visitor's loopback address, and the
 Pages origin is absent from the backend's CORS allowlist. Starting a backend on the
 developer's computer does not make analysis available to other visitors.
 
 `gh-pages` is a separate publication branch and is **not automatically updated**
-by pushing `main`. M1 leaves the deployed prototype unchanged.
+by pushing `main`. This M3 source update leaves the deployed prototype unchanged.
 See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitations.
 
 ## Roadmap
@@ -211,11 +258,11 @@ See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitat
 | M0 | Repository inventory, archive index, README and v1 plan | Complete; housekeeping and archive tag uploaded |
 | M1 | Shared validated game model and supported input contract | Complete; 173 tests reverified and main/branch uploaded at d08fc47 |
 | M2 | Reliable, efficient real KataGo analysis | Implemented and verified with real models; see acceptance evidence and remaining limits |
-| M3 | Obvious-mistake selection and concise factual report | Stable threshold/ranking tests and zero unsupported teaching claims |
+| M3 | Obvious-mistake selection and concise factual report | Implemented and reverified; [acceptance](docs/M3_ACCEPTANCE.md) records coverage, live evidence and browser smoke |
 | M4 | Complete browser flow with bounded analysis jobs | Upload and manual-entry workflows pass browser acceptance tests |
 | M5 | Deployable web release and real-engine acceptance | A second device completes a real game review against the deployed backend |
 
-The next functional milestone is M3: obvious-mistake selection and factual reports.
+The next functional milestone is M4: bounded analysis jobs and the complete browser workflow.
 GitHub terminal write access was restored and verified on 2026-08-27. Keep
 [the access recovery guide](docs/GITHUB_AUTH.md) for future credential renewal.
 
@@ -228,5 +275,6 @@ GitHub terminal write access was restored and verified on 2026-08-27. Keep
 - Keep runtime logs, private uploads, local configuration and model weights out of Git.
 - Preserve historical work through tags and commits; do not rewrite shared history.
 
-The [archive index](archive/README.md) records what was moved, why it was moved,
-and which still-active modules need deliberate replacement during v1 development.
+The [archive index](archive/README.md) records retained output and retired module
+history. Old build caches can retain removed Python files; use a fresh build
+directory when packaging and inspect the wheel for retired modules.

@@ -6,6 +6,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from app.limits import BodyLimitMiddleware
 from app.models import AnalyzeMovesPayload, GamePayload
@@ -15,7 +16,8 @@ from src.game import (
 )
 from src.katago_client import EngineClient
 from src.engine_factory import build_default_engine
-from src.engine_types import IncompleteAnalysisError, KataGoUnavailableError
+from src.engine_types import KataGoUnavailableError
+from src.mistake_severity import DEFAULT_LOSS_THRESHOLD, DEFAULT_SEVERE_THRESHOLD, MAX_REVIEW_MISTAKES
 from src.review_service import build_structured_review_for_game
 from src.sgf_parser import parse_sgf_bytes
 
@@ -61,8 +63,6 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
         message = "Analysis failed; check the server's engine configuration"
         if isinstance(exc, KataGoUnavailableError):
             code, message = "engine_unavailable", "Real KataGo is unavailable; no simulated report was generated"
-        elif isinstance(exc, IncompleteAnalysisError):
-            code, message = "incomplete_analysis", "Engine evidence is incomplete; no complete report was generated"
         return JSONResponse(
             {"detail": message, "error": {"code": code, "message": message,
              "field": None, "move_number": None}}, status_code=503,
@@ -75,11 +75,12 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
             await file.close()
         return parse_sgf_bytes(data, rules=rules, komi=komi)
 
-    def review(game: GameRecord, loss_threshold: float, limit: int) -> dict[str, object]:
+    def review(game: GameRecord, loss_threshold: float, limit: int, severe_threshold: float) -> dict[str, object]:
         validate_game(game)
-        validate_review_options(loss_threshold, limit)
+        validate_review_options(loss_threshold, limit, severe_threshold)
         result = build_structured_review_for_game(
             game, engine=selected_engine_factory(), loss_threshold=loss_threshold, limit=limit,
+            severe_threshold=severe_threshold,
         )
         return result.to_dict()
 
@@ -109,15 +110,16 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
         file: UploadFile = File(...),
         rules: str | None = None,
         komi: float | None = None,
-        loss_threshold: float = 1.0,
-        limit: int = 3,
+        loss_threshold: float = DEFAULT_LOSS_THRESHOLD,
+        limit: int = MAX_REVIEW_MISTAKES,
+        severe_threshold: float = DEFAULT_SEVERE_THRESHOLD,
     ) -> dict[str, object]:
         game = await uploaded_game(file, rules, komi)
-        return review(game, loss_threshold, limit)
+        return await run_in_threadpool(review, game, loss_threshold, limit, severe_threshold)
 
     @app.post("/api/v1/analyze-moves")
     def analyze_moves(payload: AnalyzeMovesPayload) -> dict[str, object]:
-        return review(payload.to_game_record(), payload.loss_threshold, payload.limit)
+        return review(payload.to_game_record(), payload.loss_threshold, payload.limit, payload.severe_threshold)
 
     return app
 

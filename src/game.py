@@ -90,14 +90,19 @@ def validate_komi(value: float | None) -> None:
         )
 
 
-def validate_review_options(loss_threshold: float, limit: int) -> None:
+def validate_review_options(loss_threshold: float, limit: int, severe_threshold: float = 5.0) -> None:
     if (
         isinstance(loss_threshold, bool) or not isinstance(loss_threshold, (int, float))
         or not math.isfinite(loss_threshold) or not 0 <= loss_threshold <= 361
     ):
         raise GameInputError("invalid_threshold", "loss_threshold must be finite and between 0 and 361", field="loss_threshold")
-    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= MAX_MOVES:
-        raise GameInputError("invalid_limit", "limit must be an integer between 1 and 500", field="limit")
+    if (
+        isinstance(severe_threshold, bool) or not isinstance(severe_threshold, (int, float))
+        or not math.isfinite(severe_threshold) or not loss_threshold <= severe_threshold <= 361
+    ):
+        raise GameInputError("invalid_threshold", "severe_threshold must be finite, >= loss_threshold and <= 361", field="severe_threshold")
+    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 5:
+        raise GameInputError("invalid_limit", "limit must be an integer between 1 and 5", field="limit")
 
 
 def validate_game(game: GameRecord, *, require_metadata: bool = True) -> tuple[BoardSnapshot, ...]:

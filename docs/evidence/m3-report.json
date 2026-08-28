@@ -1,0 +1,28 @@
+{
+  "date": "2026-08-28",
+  "source": "Browser SGF upload through local FastAPI and real KataGo",
+  "sample": "samples/m3_mistake.sgf",
+  "sgf_sha256": "39311b92cd1ec8db4c72acd5426b3f77f58e969b78521249bca4db679a2b7ab2",
+  "schema_version": "3.0",
+  "status": "complete",
+  "moves_total": 6,
+  "moves_evaluated": 6,
+  "moves_with_winrate": 6,
+  "loss_threshold": 3.0,
+  "severe_threshold": 5.0,
+  "top_limit": 5,
+  "engine_version": "1.16.4",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "119f88ed99591283e6d6aae15caa446ecfc7134713e5bbeda1ffec59401e4af9",
+  "max_visits": 200,
+  "rules": "chinese",
+  "komi": 7.5,
+  "selected_mistakes": [
+    {"move_number": 1, "color": "B", "played_sgf": "aa", "recommended_sgf": "qd", "score_loss": 12.602285096, "winrate_delta_pp": -35.984844781},
+    {"move_number": 3, "color": "B", "played_sgf": "ba", "recommended_sgf": "dd", "score_loss": 12.0073189, "winrate_delta_pp": -0.8210606419999998},
+    {"move_number": 5, "color": "B", "played_sgf": "ca", "recommended_sgf": "fc", "score_loss": 9.576982100000002, "winrate_delta_pp": -0.0793471344}
+  ],
+  "warnings": ["separate_search"],
+  "rerun_policy": "Named model/config: losses within 4 points of this observation, same mistake moves; tied or nearby ranks and recommended coordinates may vary. Not a strength benchmark."
+}

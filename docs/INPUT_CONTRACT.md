@@ -69,14 +69,15 @@ Japanese encore/dispute phases.
 | --- | --- | --- |
 | `POST /api/v1/parse-sgf` | Multipart file; optional rules/komi query parameters | Validated input preview, no engine created |
 | `POST /api/v1/validate-moves` | Game JSON, metadata may be missing | Same preview shape, no engine created |
-| `POST /api/v1/analyze-sgf` | Same upload, plus loss_threshold/limit query parameters | Review schema 2.2 |
-| `POST /api/v1/analyze-moves` | Complete Game JSON, plus loss_threshold/limit fields | Review schema 2.2 |
+| `POST /api/v1/analyze-sgf` | Same upload, plus loss_threshold/severe_threshold/limit query parameters | Review schema 3.0 |
+| `POST /api/v1/analyze-moves` | Complete Game JSON, plus loss_threshold/severe_threshold/limit fields | Review schema 3.0 |
 
 Manual JSON is strict: no type coercion, NaN/infinity, extra fields, or omitted
 move coordinates. Missing metadata is allowed for preview, not analysis.
 Both analysis endpoints validate the game and review options before calling the
-engine factory. `loss_threshold` is finite, from 0 to 361; `limit` is an integer
-from 1 to 500. Prototype defaults remain 1.0 and 3 until M3 calibrates them.
+engine factory. Both thresholds are finite, from 0 to 361, severe >= obvious;
+`limit` is an integer from 1 to 5. M3 defaults are 3.0/5.0 points and 5 entries.
+These product defaults still need calibration; see [report contract](REPORT_CONTRACT.md).
 
 All POST/PUT/PATCH bodies have a 1 MiB + 64 KiB byte cap before JSON or multipart
 parsing. The extra allowance is for multipart overhead, not a larger SGF file.
@@ -92,10 +93,12 @@ Domain errors return HTTP 400; size limits return 413; invalid request fields
 return 422. Responses contain an `error` object with `code`, `message`, `field`
 and optional `move_number`, plus a legacy `detail` string. Request validation
 also includes sanitized `issues`. Raw payloads and private engine paths are not
-echoed. M2 engine errors use HTTP 503 with `engine_unavailable`,
-`incomplete_analysis`, or `analysis_failed`; see [engine contract](ENGINE_CONTRACT.md).
+echoed. Engine errors use HTTP 503 with `engine_unavailable` or `analysis_failed`.
+M3 returns successfully received but incomplete evidence as HTTP 200 with report
+`status=partial` and explicit coverage, replacing M2's `incomplete_analysis` error.
+See [engine contract](ENGINE_CONTRACT.md) and [report contract](REPORT_CONTRACT.md).
 
-Review schema 2.1 retains the 2.0 fields and adds `rules`, `record_status` and
+Historically, review schema 2.1 retained the 2.0 fields and added `rules`, `record_status` and
 `input_warnings` to `game_summary`. The bundled frontend sends explicit manual
 metadata, supplies optional SGF fallbacks, displays input failures and warns
 about ignored variations. Full preview/confirmation UX is still M4 work.
@@ -104,4 +107,19 @@ The engine input now carries rules and `analysis_kind`. A null played move in
 `played_move` mode is a pass; `current_position` mode means no move is being
 evaluated. M2 explicitly searches an absent played move/pass. Missing evidence
 stays unavailable rather than inheriting another candidate's value. Review schema
-2.2 adds engine evidence to the M1 schema 2.1 fields described above.
+2.2 added engine evidence to the M1 schema 2.1 fields described above. M3's 3.0
+removes heuristic report fields and versions percentage-point deltas explicitly.
+
+## Browser Rule and Komi Controls
+
+The Chinese preset sets 7.5 komi; the Japanese/Korean UI preset sets 6.5 and
+uses the engine's existing `japanese` rules. Preset komi is read-only. Custom
+mode permits any supported integer/half-integer komi, including zero, with an
+explicit Chinese/Japanese scoring selector. It does not add a new engine ruleset.
+An untouched custom form supplies no SGF metadata defaults. Recorded SGF rules
+and komi still take precedence; a nonstandard recorded komi selects custom mode
+instead of being overwritten. Frontend regression tests:
+
+```bash
+node --test tests/frontend/game-settings.test.mjs
+```
