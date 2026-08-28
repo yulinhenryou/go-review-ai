@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
+from dataclasses import replace
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -49,3 +50,10 @@ class AnalyzeMovesPayload(GamePayload):
     loss_threshold: float = Field(DEFAULT_LOSS_THRESHOLD, ge=0.0, le=361.0)
     severe_threshold: float = Field(DEFAULT_SEVERE_THRESHOLD, ge=0.0, le=361.0)
     limit: int = Field(MAX_REVIEW_MISTAKES, ge=1, le=MAX_REVIEW_MISTAKES)
+
+
+class JobPayload(AnalyzeMovesPayload):
+    input_warnings: list[Literal["first_variation_only"]] = Field(default_factory=list, max_length=1)
+
+    def to_game_record(self, *, require_metadata: bool = True) -> GameRecord:
+        return replace(super().to_game_record(require_metadata=require_metadata), warnings=tuple(self.input_warnings))

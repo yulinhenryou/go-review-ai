@@ -1,6 +1,8 @@
 """Opt in with RUN_KATAGO_INTEGRATION=1 and the documented engine paths."""
 import os
 import json
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -9,6 +11,8 @@ from src.analyzer import analyze_game_state
 from src.katago_client import KataGoClient
 from src.review_service import build_structured_review_for_game
 from src.sgf_parser import parse_sgf, parse_sgf_file
+from src.analysis_control import AnalysisControl
+from app.jobs import JobManager
 
 pytestmark = pytest.mark.skipif(os.environ.get("RUN_KATAGO_INTEGRATION") != "1", reason="Real KataGo is opt-in")
 
@@ -60,3 +64,54 @@ def test_real_obvious_mistakes_have_traceable_factual_reports_with_tolerance(rer
         assert item.played_candidate.move.sgf == item.played_move.sgf
         assert f"估计损失 {item.score_loss:.2f} 目" in item.summary
     assert "主战场" not in json.dumps(review.to_dict(), ensure_ascii=False)
+
+
+def test_real_job_progress_counts_completed_batches():
+    game = parse_sgf_file("samples/benchmark_pro_game.sgf")
+    from dataclasses import replace
+    game = replace(game, moves=game.moves[:20])
+    progress = []
+    engine = KataGoClient.from_environment(max_visits=16)
+    engine.configure_control(AnalysisControl(progress=lambda done, total: progress.append((done, total))))
+    report = build_structured_review_for_game(game, engine)
+    assert progress == [(16, 21), (21, 21)]
+    assert report.engine_source == "katago"
+    assert engine._session is None
+
+
+def test_real_running_job_cancel_reaps_engine_and_allows_next_job():
+    entered = threading.Event()
+    pids = []
+
+    class ObservedClient(KataGoClient):
+        def _analyze_batch(self, positions):
+            pids.append(self._session.pid)
+            entered.set()
+            return super()._analyze_batch(positions)
+
+    calls = []
+    def factory():
+        calls.append(1)
+        return ObservedClient.from_environment(max_visits=100000 if len(calls) == 1 else 16)
+
+    manager = JobManager(factory, queue_capacity=0)
+    game = parse_sgf_file("samples/m3_mistake.sgf")
+    try:
+        first = manager.submit(game)["id"]
+        assert entered.wait(30), "Real engine did not start its search"
+        assert manager.get(first)["state"] == "running"
+        manager.cancel(first)
+        deadline = time.monotonic() + 6
+        while manager.get(first)["state"] != "cancelled" and time.monotonic() < deadline:
+            time.sleep(.02)
+        assert manager.get(first)["state"] == "cancelled"
+        with pytest.raises(ProcessLookupError):
+            os.kill(pids[0], 0)
+        second = manager.submit(game)["id"]
+        deadline = time.monotonic() + 40
+        while manager.get(second)["state"] not in {"succeeded", "failed"} and time.monotonic() < deadline:
+            time.sleep(.05)
+        assert manager.get(second)["state"] == "succeeded"
+        assert manager.get(second)["result"]["engine_source"] == "katago"
+    finally:
+        manager.close()

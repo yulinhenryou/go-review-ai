@@ -25,3 +25,9 @@ python -m scripts.benchmark_engine samples/sample_game.sgf --visits 32 \
 
 The script requires the documented engine environment. Never use the recording
 flag for private SGFs. Model weights are external and are not redistributed here.
+
+## M4 Input Fixtures
+
+`m4-missing-metadata.sgf` is a synthetic three-move record ending in a pass,
+without rules/komi, for browser confirmation checks. `m4-invalid.sgf` deliberately
+plays on an occupied point. Neither contains private game data.

@@ -4,12 +4,14 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: M1-M3 implemented and reverified, not a validated web v1.**
+**Current status: M1-M4 implemented locally, not a publicly deployed web v1.**
 SGF/manual inputs share a validated model; real KataGo analysis now has explicit
 provenance and no mock fallback. Reports use point-loss thresholds, top-five
-selection, explicit coverage and factual Chinese summaries. Bounded browser
-jobs and public deployment remain M4/M5 work. See [M3 acceptance](docs/M3_ACCEPTANCE.md)
-and the [M1-M3 regression record](docs/M1_M3_REGRESSION.md).
+selection, explicit coverage and factual Chinese summaries. The browser now
+previews and confirms input, submits bounded cancellable jobs, shows progress,
+and restores tasks after page refresh. Public deployment remains M5 work.
+See [M4 acceptance](docs/M4_ACCEPTANCE.md) and the
+[M1-M3 regression record](docs/M1_M3_REGRESSION.md).
 
 ## What It Does
 
@@ -20,8 +22,8 @@ The target v1 workflow is:
 
 The prototype already contains SGF main-line parsing, a KataGo subprocess client,
 mistake ranking, structured JSON and text reports, a FastAPI API, and a browser
-board with SGF upload and move navigation. These are implementation starting
-points, not proof of a reliable review service.
+board with SGF preview, manual placement/pass/undo, progress/cancellation and
+move navigation. The local workflow is tested; public service acceptance is pending.
 
 V1 will focus on one 19x19 game at a time. Each reported mistake should include
 the move number, player, actual move, recommendation, estimated score loss, and a
@@ -35,9 +37,9 @@ claims about tactical causes are required for this release.
 | Core | Python 3.11+, dataclasses, standard library |
 | Game input | sgfmill 1.1.1, immutable game records, shared replay validation and strict JSON models |
 | Analysis | External KataGo; one loaded process per game, bounded JSONL batches and evidence normalization |
-| API | FastAPI, Pydantic, Uvicorn, python-multipart |
+| API | FastAPI, Pydantic, Uvicorn, python-multipart; one worker and bounded in-memory jobs |
 | Frontend | HTML, CSS, vanilla JavaScript, Canvas 2D |
-| Tests | pytest, HTTPX, protocol subprocess fixtures, recorded real responses and opt-in live KataGo tests |
+| Tests | pytest, HTTPX, Node test runner, browser acceptance, recorded responses and opt-in live KataGo tests |
 | Static preview | GitHub Pages, published from `gh-pages` |
 
 KataGo models and executables are not bundled. There is no deployed Python backend
@@ -50,6 +52,8 @@ enforces the supported turn, suicide and simple-ko policy.
 SGF upload -----------------> SGF parser ----+
                                             |
 Manual board -> JSON moves -> API models ----+-> GameRecord + shared validation
+                                                 |
+                                     preview / confirm / bounded job
                                                  |
                                            analysis pipeline
                                                  |
@@ -84,8 +88,8 @@ and the [prototype archive tag](archive/README.md).
 | `src/report_writer.py` | Factual Chinese templates and quality notes; no tactical diagnosis |
 | `src/review_service.py` | Shared review orchestration |
 | `src/main.py` | Sample CLI and legacy builder re-exports |
-| `app/` | FastAPI routes and request models |
-| `frontend/` | Local browser UI, rule/komi controller and testable report rendering; Pages publication source |
+| `app/` | FastAPI routes, strict models, bounded job manager, retention and origin settings |
+| `frontend/` | Separate input state, API/jobs, canvas, review and style modules; Pages publication source |
 | `tests/` | Regression tests, isolated mock fixtures and recorded real-engine evidence |
 | `config/analysis.cfg`, `scripts/benchmark_engine.py` | Local engine baseline and opt-in performance measurement |
 | `samples/` | Sample SGF inputs; see [sample notes](samples/README.md) |
@@ -182,6 +186,19 @@ fill missing metadata only; existing recorded values take precedence.
 Chinese rules select 7.5 komi; Japanese/Korean rules select 6.5; custom mode
 allows an explicit scoring rule and komi.
 
+Use **导入棋谱** to preview an SGF, or place moves and use **停一手 / 悔棋** for
+manual entry. **预览分析 -> 确认并分析** submits the accepted record. The report
+panel shows completed positions and a cancel button. Refresh can restore the
+current task while it remains in server memory; clearing/editing input prevents
+late results from replacing the new board. Only a task ID is retained in the
+browser, not the game itself. Re-import after server restart or expiry.
+
+Defaults: **one running job, two waiting, 900-second deadline, 30-minute result
+retention**, with additional count/size caps. Run one application worker only.
+These settings and optional remote HTTPS API configuration are documented in
+[the job contract](docs/JOB_CONTRACT.md). CORS is not authentication; public
+hosting and abuse protection are still M5 work.
+
 The review board uses red square **!** markers for evaluated mistakes, gray
 squares for other played moves, green triangles for recommendations and blue
 numbered circles for other candidates. When actual and recommended points
@@ -200,6 +217,11 @@ startup, real-engine and responsive-browser checks.
 | `GET /ready` | Fresh real model-load/version check; expensive, not a frequent polling endpoint |
 | `POST /api/v1/parse-sgf` | Validated upload preview, no engine; identifies missing metadata |
 | `POST /api/v1/validate-moves` | Equivalent preview for manual game JSON, no engine |
+| `POST /api/v1/replay-moves` | Same preview plus server-generated snapshots, used for manual placement/pass |
+| `POST /api/v1/jobs` | Confirmed canonical input -> HTTP 202, job schema 1.0 and opaque ID |
+| `GET /api/v1/jobs/{id}` | State, progress and report; 404 after expiry/restart |
+| `GET /api/v1/jobs/{id}/input` | Stable input snapshot for refresh recovery |
+| `DELETE /api/v1/jobs/{id}` | Cancel queued or running analysis |
 | `POST /api/v1/analyze-sgf` | Multipart `file`; `rules`, `komi`, `loss_threshold`, `severe_threshold` and `limit` are query parameters |
 | `POST /api/v1/analyze-moves` | Explicit rules/komi and `{color, sgf}` moves; explicit `null` represents pass |
 
@@ -213,7 +235,8 @@ curl --fail-with-body 'http://127.0.0.1:3000/api/v1/analyze-moves' \
   -d '{"board_size":19,"rules":"japanese","komi":6.5,"moves":[{"color":"B","sgf":"pd"},{"color":"W","sgf":"dd"}],"loss_threshold":3.0,"limit":5}'
 ```
 
-The API returns review schema `3.0`; that number is a data format version,
+The examples above are compatibility endpoints and share the bounded queue.
+The browser uses jobs. Reports use schema `3.0`; that number is a data format version,
 not a claim that product v3 or v1 is complete. Defaults are `loss_threshold=3`,
 `severe_threshold=5`, `limit=5`; limit is 1-5, thresholds are finite and severe
 must be >= obvious. A short sample may have no qualifying mistakes. Use
@@ -229,26 +252,26 @@ candidate PVs, provenance and missing-evidence behavior.
 
 ## Current Status
 
-Updated: **2026-08-28**. M3 development branch: `codex/m3-factual-report`.
+Updated: **2026-08-29**. M4 development branch: `codex/m4-browser-workflow`.
 
 | Area | Status and limitation |
 | --- | --- |
 | SGF input | Shared replay validation, strict limits, metadata confirmation and explicit variation warnings; unsupported setups/rules fail |
-| Manual entry | Shared server-side validation and explicit rules/komi; placement/undo/navigation retained; full pass/input UX remains M4 |
+| Manual entry | Shared server-side replay validation, placement/pass/undo/clear, names and metadata confirmation |
 | KataGo | Real model readiness, process reuse, strict JSONL matching, explicit played-move search, genuine PVs and fixed-black evidence |
 | Mistakes / report | Configurable 3/5-point thresholds, top-five summary plus all chronological markers, coverage and quality notes; no heuristic teaching |
-| Web service | Same-origin local UI/API with on-demand macOS start/stop; bounded analysis jobs/cancellation still belong to M4 |
-| Verification | 276 Python tests including 5 live KataGo tests, 23 frontend tests, fresh wheel/API checks and a 235-move rerun; see the M1-M3 regression record |
+| Web service | Same-origin local UI/API, on-demand macOS start/stop, bounded jobs, cancellation, progress and refresh recovery |
+| Verification | 294 Python tests including 7 live KataGo cases and 38 frontend tests; real desktop/mobile workflow checks in M4 acceptance |
 | Deployment | Pages serves the frontend, not a complete online analysis service |
 
 The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
-older prototype. M0 verified its published HTML; the M1-M3 changes have not been
+older prototype. M0 verified its published HTML; the M1-M4 changes have not been
 published to Pages. It targets the visitor's loopback address, and the
 Pages origin is absent from the backend's CORS allowlist. Starting a backend on the
 developer's computer does not make analysis available to other visitors.
 
 `gh-pages` is a separate publication branch and is **not automatically updated**
-by pushing `main`. This M3 source update leaves the deployed prototype unchanged.
+by pushing `main`. This M4 source update leaves the deployed prototype unchanged.
 See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitations.
 
 ## Roadmap
@@ -259,10 +282,10 @@ See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitat
 | M1 | Shared validated game model and supported input contract | Complete; 173 tests reverified and main/branch uploaded at d08fc47 |
 | M2 | Reliable, efficient real KataGo analysis | Implemented and verified with real models; see acceptance evidence and remaining limits |
 | M3 | Obvious-mistake selection and concise factual report | Implemented and reverified; [acceptance](docs/M3_ACCEPTANCE.md) records coverage, live evidence and browser smoke |
-| M4 | Complete browser flow with bounded analysis jobs | Upload and manual-entry workflows pass browser acceptance tests |
+| M4 | Complete browser flow with bounded analysis jobs | Implemented and verified locally; [acceptance](docs/M4_ACCEPTANCE.md) |
 | M5 | Deployable web release and real-engine acceptance | A second device completes a real game review against the deployed backend |
 
-The next functional milestone is M4: bounded analysis jobs and the complete browser workflow.
+The next milestone is M5: public backend deployment and second-device acceptance.
 GitHub terminal write access was restored and verified on 2026-08-27. Keep
 [the access recovery guide](docs/GITHUB_AUTH.md) for future credential renewal.
 

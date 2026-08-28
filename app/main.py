@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Callable
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.exceptions import RequestValidationError
@@ -8,32 +9,49 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
-from app.limits import BodyLimitMiddleware
-from app.models import AnalyzeMovesPayload, GamePayload
+from app.limits import BodyLimitMiddleware, NoStoreMiddleware
+from app.models import AnalyzeMovesPayload, GamePayload, JobPayload
+from app.jobs import JobError, JobManager, replay_preview
+from app.settings import allowed_origins, job_options
 from src.game import (
-    MAX_SGF_BYTES, GameInputError, GameRecord, input_preview,
+    MAX_SGF_BYTES, GameInputError, GameRecord,
     validate_game, validate_review_options,
 )
 from src.katago_client import EngineClient
 from src.engine_factory import build_default_engine
 from src.engine_types import KataGoUnavailableError
 from src.mistake_severity import DEFAULT_LOSS_THRESHOLD, DEFAULT_SEVERE_THRESHOLD, MAX_REVIEW_MISTAKES
-from src.review_service import build_structured_review_for_game
 from src.sgf_parser import parse_sgf_bytes
 
 EngineFactory = Callable[[], EngineClient]
 
 
-def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
+def create_app(engine_factory: EngineFactory | None = None, *, job_manager: JobManager | None = None) -> FastAPI:
     selected_engine_factory = engine_factory or build_default_engine
-    app = FastAPI(title="go-review-ai API", version="0.2.0")
+    jobs = job_manager or JobManager(selected_engine_factory, **job_options())
+
+    @asynccontextmanager
+    async def lifespan(_app):
+        try:
+            yield
+        finally:
+            await run_in_threadpool(jobs.close)
+
+    app = FastAPI(title="go-review-ai API", version="0.4.0", lifespan=lifespan)
+    app.state.jobs = jobs
     app.add_middleware(BodyLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=allowed_origins(),
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(NoStoreMiddleware)
+
+    @app.exception_handler(JobError)
+    async def job_error(_request, exc: JobError):
+        return JSONResponse({"detail": str(exc), "error": {"code": exc.code, "message": str(exc)}},
+                            status_code=exc.status, headers={"Retry-After": "2"} if exc.status == 429 else None)
 
     @app.exception_handler(GameInputError)
     async def input_error(_request, exc: GameInputError) -> JSONResponse:
@@ -78,11 +96,7 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
     def review(game: GameRecord, loss_threshold: float, limit: int, severe_threshold: float) -> dict[str, object]:
         validate_game(game)
         validate_review_options(loss_threshold, limit, severe_threshold)
-        result = build_structured_review_for_game(
-            game, engine=selected_engine_factory(), loss_threshold=loss_threshold, limit=limit,
-            severe_threshold=severe_threshold,
-        )
-        return result.to_dict()
+        return jobs.execute(game, (loss_threshold, limit, severe_threshold))
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -90,20 +104,37 @@ def create_app(engine_factory: EngineFactory | None = None) -> FastAPI:
 
     @app.get("/ready")
     def ready() -> dict:
-        engine = selected_engine_factory()
-        if not hasattr(engine, "readiness"):
-            raise KataGoUnavailableError("Real engine readiness is unavailable")
-        return engine.readiness()
+        return jobs.execute(None)
 
     @app.post("/api/v1/parse-sgf")
     async def parse_upload(
         file: UploadFile = File(...), rules: str | None = None, komi: float | None = None,
     ) -> dict[str, object]:
-        return input_preview(await uploaded_game(file, rules, komi))
+        return replay_preview(await uploaded_game(file, rules, komi))
 
     @app.post("/api/v1/validate-moves")
     def validate_moves(payload: GamePayload) -> dict[str, object]:
-        return input_preview(payload.to_game_record(require_metadata=False))
+        return replay_preview(payload.to_game_record(require_metadata=False))
+
+    @app.post("/api/v1/replay-moves")
+    def replay_moves(payload: GamePayload):
+        return replay_preview(payload.to_game_record(require_metadata=False))
+
+    @app.post("/api/v1/jobs", status_code=202)
+    def submit_job(payload: JobPayload):
+        return jobs.submit(payload.to_game_record(), (payload.loss_threshold, payload.limit, payload.severe_threshold))
+
+    @app.get("/api/v1/jobs/{job_id}")
+    def job_status(job_id: str):
+        return jobs.get(job_id)
+
+    @app.get("/api/v1/jobs/{job_id}/input")
+    def job_input(job_id: str):
+        return jobs.input(job_id)
+
+    @app.delete("/api/v1/jobs/{job_id}")
+    def cancel_job(job_id: str):
+        return jobs.cancel(job_id)
 
     @app.post("/api/v1/analyze-sgf")
     async def analyze_sgf(

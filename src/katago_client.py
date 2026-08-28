@@ -41,6 +41,16 @@ class KataGoClient:
         self._model_id = ""
         self._model_hash = ""
         self._config_hash = ""
+        self._control = None
+
+    def configure_control(self, control):
+        if self._session is not None:
+            raise RuntimeError("Cannot change control for an active engine")
+        self._control = control
+
+    def _checkpoint(self):
+        if self._control is not None:
+            self._control.checkpoint()
 
     @classmethod
     def from_environment(cls, **options) -> "KataGoClient":
@@ -52,6 +62,7 @@ class KataGoClient:
         return cls(model_path=model, config_path=config, **options)
 
     def __enter__(self):
+        self._checkpoint()
         if self._session is not None:
             raise RuntimeError("Engine context is already open")
         binary = shutil.which(self._katago_path)
@@ -63,10 +74,8 @@ class KataGoClient:
                     raise KataGoUnavailableError("Configured model/config file is missing or empty")
                 with path.open("rb") as source:
                     source.read(1)
-            with self._model_path.open("rb") as source:
-                self._model_hash = hashlib.file_digest(source, "sha256").hexdigest()
-            with self._config_path.open("rb") as source:
-                self._config_hash = hashlib.file_digest(source, "sha256").hexdigest()
+            self._model_hash = self._hash_file(self._model_path)
+            self._config_hash = self._hash_file(self._config_path)
         except OSError as exc:
             raise KataGoUnavailableError("Configured model/config is not readable") from exc
         self._session = JsonlProcess([
@@ -75,6 +84,7 @@ class KataGoClient:
             "reportAnalysisWinratesAs=BLACK,logAllRequests=false,logAllResponses=false,"
             "logErrorsAndWarnings=false,logToStderr=false",
         ])
+        self._session.control = self._control
         try:
             version_id, models_id = self._new_id(), self._new_id()
             responses, _ = self._session.exchange(
@@ -96,6 +106,14 @@ class KataGoClient:
         except BaseException:
             self.close()
             raise
+
+    def _hash_file(self, path):
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            while chunk := source.read(1024 * 1024):
+                self._checkpoint()
+                digest.update(chunk)
+        return digest.hexdigest()
 
     def __exit__(self, *_exc) -> None:
         self.close()
@@ -139,8 +157,11 @@ class KataGoClient:
                 return self.analyze_positions(positions)
         result = []
         for start in range(0, len(positions), 16):
+            self._checkpoint()
             batch = positions[start:start + 16]
             result.extend(self._analyze_batch(batch))
+            if self._control is not None:
+                self._control.advance(len(result), len(positions))
         return result
 
     def _analyze_batch(self, positions: list[PositionInput]) -> list[PositionAnalysis]:

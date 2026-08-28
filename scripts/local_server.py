@@ -47,6 +47,9 @@ def engine_environment():
                       if (p := Path(prefix) / "share/katago" / DEFAULT_MODEL).is_file()), None)
     if model:
         env["KATAGO_MODEL_PATH"] = model
+    for key in ("GO_REVIEW_QUEUE_CAPACITY", "GO_REVIEW_JOB_TIMEOUT", "GO_REVIEW_RESULT_TTL", "GO_REVIEW_ALLOWED_ORIGINS"):
+        if key in os.environ:
+            env[key] = os.environ[key]
     return env
 
 

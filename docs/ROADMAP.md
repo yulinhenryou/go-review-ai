@@ -1,10 +1,11 @@
 # V1 Development Path
 
-**Status: approved on 2026-08-27; M1-M3 implemented and reverified on 2026-08-28.**
+**Status: approved on 2026-08-27; M1-M4 implemented locally, M4 verified on 2026-08-29.**
 Prepared on 2026-08-27 after auditing prototype `7447f54`.
 M1 was reverified and uploaded at d08fc47 after GitHub access recovery.
 M2 implementation and real-engine evidence are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
-M3 evidence is recorded in [M3 acceptance](M3_ACCEPTANCE.md). M4/M5 are not implemented.
+M3 evidence is recorded in [M3 acceptance](M3_ACCEPTANCE.md).
+M4 evidence is recorded in [M4 acceptance](M4_ACCEPTANCE.md). M5 is not implemented.
 
 ## Release Goal
 
@@ -212,6 +213,11 @@ Real-engine reruns use tolerances; only fixture transformations must be exact.
 ## M4 - Complete the Browser Workflow
 
 Dependencies: M1 contracts, M2 engine lifecycle and M3 report semantics.
+
+Delivered locally: modular browser input/review, shared replay snapshots,
+preview/confirmation, pass/undo/clear, bounded ephemeral jobs, progress,
+cancellation, refresh recovery and exact-origin configuration. See the
+[job contract](JOB_CONTRACT.md) and [acceptance evidence](M4_ACCEPTANCE.md).
 
 Work:
 

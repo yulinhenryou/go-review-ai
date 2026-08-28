@@ -69,6 +69,7 @@ Japanese encore/dispute phases.
 | --- | --- | --- |
 | `POST /api/v1/parse-sgf` | Multipart file; optional rules/komi query parameters | Validated input preview, no engine created |
 | `POST /api/v1/validate-moves` | Game JSON, metadata may be missing | Same preview shape, no engine created |
+| `POST /api/v1/replay-moves` | Same Game JSON | Same preview with every validated position, used for manual entry |
 | `POST /api/v1/analyze-sgf` | Same upload, plus loss_threshold/severe_threshold/limit query parameters | Review schema 3.0 |
 | `POST /api/v1/analyze-moves` | Complete Game JSON, plus loss_threshold/severe_threshold/limit fields | Review schema 3.0 |
 
@@ -86,6 +87,15 @@ Chunked bodies are counted rather than trusting Content-Length.
 Preview schema 1.0 contains `game`, `status`, `missing_fields`, `warnings` and
 `final_position`. Status is `ready` or `needs_metadata`. The final position
 contains `next_player` and a list of stones, each with `color` and `sgf`.
+M4 adds `positions` to all three preview routes: initial board plus each post-move
+snapshot, with `next_player` and stones containing `color`, `sgf`, `move_number`.
+The final field is the original move number of each surviving stone, including
+correct numbering after captures/reoccupation. The browser renders these shared
+snapshots rather than implementing another capture/ko engine.
+
+The browser now submits confirmed canonical input to asynchronous jobs; see
+[job contract](JOB_CONTRACT.md). The synchronous endpoints remain compatible but
+use the same bounded worker/capacity as jobs.
 
 ## Errors and Compatibility
 
@@ -100,8 +110,8 @@ See [engine contract](ENGINE_CONTRACT.md) and [report contract](REPORT_CONTRACT.
 
 Historically, review schema 2.1 retained the 2.0 fields and added `rules`, `record_status` and
 `input_warnings` to `game_summary`. The bundled frontend sends explicit manual
-metadata, supplies optional SGF fallbacks, displays input failures and warns
-about ignored variations. Full preview/confirmation UX is still M4 work.
+metadata, displays input failures and warns about ignored variations. M4's upload
+preview locks recorded rules/komi and requires confirmation before job submission.
 
 The engine input now carries rules and `analysis_kind`. A null played move in
 `played_move` mode is a pass; `current_position` mode means no move is being

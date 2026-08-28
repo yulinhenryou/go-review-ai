@@ -6,6 +6,7 @@ import pytest
 
 from src.engine_types import EngineProtocolError, KataGoUnavailableError
 from src.katago_process import JsonlProcess
+from src.analysis_control import AnalysisControl, AnalysisCancelled
 
 
 def session(mode):
@@ -46,5 +47,22 @@ def test_failures_close_process_without_exposing_engine_text(mode, error):
         engine.exchange([{"id": "test", "analyzeTurns": [0, 1]}], {("test", 0), ("test", 1)}, .3 if mode == "timeout" else 3)
     assert "/path" not in str(info.value)
     engine.close()
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+
+
+def test_cancellation_reaps_the_running_subprocess():
+    import threading
+    engine = session("timeout")
+    pid = engine.pid
+    engine.control = AnalysisControl()
+    timer = threading.Timer(.05, engine.control.cancelled.set)
+    timer.start()
+    try:
+        with pytest.raises(AnalysisCancelled):
+            engine.exchange([{"id": "cancel", "analyzeTurns": [0]}], {("cancel", 0)}, 30)
+    finally:
+        timer.join()
+        engine.close()
     with pytest.raises(ProcessLookupError):
         os.kill(pid, 0)

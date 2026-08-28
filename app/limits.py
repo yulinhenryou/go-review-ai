@@ -1,9 +1,24 @@
 from starlette.responses import JSONResponse
+from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.game import MAX_SGF_BYTES
 
 MAX_REQUEST_BYTES = MAX_SGF_BYTES + 64 * 1024
+
+
+class NoStoreMiddleware:
+    """Task IDs and game results must not outlive retention in HTTP caches."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        async def no_store(message):
+            if message["type"] == "http.response.start":
+                MutableHeaders(scope=message)["Cache-Control"] = "no-store"
+            await send(message)
+        await self.app(scope, receive, no_store)
 
 
 class BodyLimitMiddleware:

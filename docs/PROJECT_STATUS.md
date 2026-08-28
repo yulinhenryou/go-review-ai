@@ -1,5 +1,19 @@
 # Project Status Audit
 
+## M4 Update
+
+On 2026-08-29, branch `codex/m4-browser-workflow` implements upload preview and
+confirmation, manual pass/undo/clear through shared server validation, separate
+frontend modules and one bounded analysis worker. Jobs support real progress,
+cancellation, expiry, refresh recovery and stale-response protection. Legacy API
+calls share the same capacity. The full suite passed 294 Python cases including
+7 live KataGo checks, plus 38 Node cases; real browser checks covered input,
+reports, cancellation and desktop/mobile layouts.
+
+See [M4 acceptance](M4_ACCEPTANCE.md) and [job contract](JOB_CONTRACT.md).
+M4 is a local implementation; M5 public hosting remains outstanding. This branch
+has not updated GitHub Pages. The sections below retain their historical scope.
+
 ## Local Workspace Follow-up
 
 On 2026-08-28, the refused localhost connection was reproduced with no listeners

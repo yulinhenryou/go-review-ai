@@ -8,6 +8,7 @@ import tempfile
 import time
 
 from src.engine_types import EngineProtocolError, KataGoUnavailableError
+from src.analysis_control import AnalysisTimedOut
 
 MAX_LINE_BYTES = 4 * 1024 * 1024
 
@@ -21,6 +22,7 @@ class JsonlProcess:
         self._buffer = bytearray()
         self._process = None
         self._closed = False
+        self.control = None
         try:
             self._process = subprocess.Popen(
                 command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -51,9 +53,11 @@ class JsonlProcess:
         self._selector.register(self._process.stdin, selectors.EVENT_WRITE, "stdin")
         try:
             while len(results) < len(expected) or pending:
+                if self.control is not None:
+                    self.control.checkpoint()
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise KataGoUnavailableError("KataGo analysis timed out")
+                    raise AnalysisTimedOut("KataGo analysis timed out")
                 if self._process.poll() is not None:
                     raise KataGoUnavailableError("KataGo exited before completing analysis")
                 for key, _mask in self._selector.select(min(remaining, 0.25)):
