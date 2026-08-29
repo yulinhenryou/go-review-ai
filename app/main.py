@@ -26,7 +26,12 @@ from src.sgf_parser import parse_sgf_bytes
 EngineFactory = Callable[[], EngineClient]
 
 
-def create_app(engine_factory: EngineFactory | None = None, *, job_manager: JobManager | None = None) -> FastAPI:
+def create_app(
+    engine_factory: EngineFactory | None = None,
+    *,
+    job_manager: JobManager | None = None,
+    public: bool = False,
+) -> FastAPI:
     selected_engine_factory = engine_factory or build_default_engine
     jobs = job_manager or JobManager(selected_engine_factory, **job_options())
 
@@ -37,7 +42,8 @@ def create_app(engine_factory: EngineFactory | None = None, *, job_manager: JobM
         finally:
             await run_in_threadpool(jobs.close)
 
-    app = FastAPI(title="go-review-ai API", version="0.4.0", lifespan=lifespan)
+    hidden_docs = {"docs_url": None, "redoc_url": None, "openapi_url": None} if public else {}
+    app = FastAPI(title="go-review-ai API", version="0.5.0", lifespan=lifespan, **hidden_docs)
     app.state.jobs = jobs
     app.add_middleware(BodyLimitMiddleware)
     app.add_middleware(

@@ -1,0 +1,29 @@
+primary_region = "syd"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  GO_REVIEW_ALLOWED_ORIGINS = '["https://yulinhenryou.github.io"]'
+
+[deploy]
+  wait_timeout = "10m"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "5m"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"

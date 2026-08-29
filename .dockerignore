@@ -1,0 +1,15 @@
+.git
+.venv
+.local
+.pytest_cache
+__pycache__
+archive
+analysis_logs
+build
+dist
+docs/evidence
+models
+reports
+uploads
+*.bin.gz
+*.katago.log

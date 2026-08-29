@@ -197,6 +197,16 @@ def test_default_engine_never_falls_back(monkeypatch):
         build_default_engine()
 
 
+def test_environment_can_bound_engine_visits(monkeypatch):
+    monkeypatch.setenv("KATAGO_MODEL_PATH", "/model.bin.gz")
+    monkeypatch.setenv("KATAGO_CONFIG_PATH", "/analysis.cfg")
+    monkeypatch.setenv("KATAGO_MAX_VISITS", "64")
+
+    engine = KataGoClient.from_environment()
+
+    assert engine._max_visits == 64
+
+
 def test_missing_binary(monkeypatch):
     monkeypatch.setattr("src.katago_client.shutil.which", lambda _: None)
     with pytest.raises(KataGoUnavailableError, match="binary not found"):

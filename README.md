@@ -4,12 +4,14 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: M1-M4 implemented locally, not a publicly deployed web v1.**
+**Current status: M1-M4 complete; M5 deployment candidate is in progress, not a public web v1.**
 SGF/manual inputs share a validated model; real KataGo analysis now has explicit
 provenance and no mock fallback. Reports use point-loss thresholds, top-five
 selection, explicit coverage and factual Chinese summaries. The browser now
 previews and confirms input, submits bounded cancellable jobs, shows progress,
-and restores tasks after page refresh. Public deployment remains M5 work.
+and restores tasks after page refresh. M5 now has a pinned container, production
+HTTP controls and local real-engine preflight; paid hosting and different-network
+acceptance still require approval.
 See [M4 acceptance](docs/M4_ACCEPTANCE.md) and the
 [M1-M3 regression record](docs/M1_M3_REGRESSION.md).
 
@@ -40,9 +42,11 @@ claims about tactical causes are required for this release.
 | API | FastAPI, Pydantic, Uvicorn, python-multipart; one worker and bounded in-memory jobs |
 | Frontend | HTML, CSS, vanilla JavaScript, Canvas 2D |
 | Tests | pytest, HTTPX, Node test runner, browser acceptance, recorded responses and opt-in live KataGo tests |
-| Static preview | GitHub Pages, published from `gh-pages` |
+| Deployment candidate | Pinned multi-stage Docker image, Fly.io Sydney config, fail-closed readiness and release metadata |
+| Static preview | GitHub Pages, published separately from `gh-pages` |
 
-KataGo models and executables are not bundled. There is no deployed Python backend
+KataGo models and executables are not stored in Git. The M5 image downloads and
+hash-verifies pinned official artifacts during its build. There is no deployed Python backend
 in this repository's Pages site. sgfmill supplies parsing and captures; the app
 enforces the supported turn, suicide and simple-ko policy.
 
@@ -209,6 +213,23 @@ the highest-ranked mistake; use **Continue entry / 继续录入** to edit the ga
 See [local workspace acceptance](docs/LOCAL_WORKSPACE_ACCEPTANCE.md) for the
 startup, real-engine and responsive-browser checks.
 
+### M5 Deployment Candidate
+
+The production candidate serves the frontend and API from one HTTPS origin,
+starts only after real KataGo readiness succeeds, runs one non-root Uvicorn
+worker, keeps jobs/results in bounded ephemeral memory, and disables request,
+engine and access logs that could contain private game data. Expensive requests
+are limited per client and globally; exact Host validation, strict security
+headers and Pages-only CORS are enabled only in `app.production`.
+
+The proposed first host is one always-on Fly.io Sydney `shared-cpu-2x` Machine
+with 2 GiB RAM and no database/volume. Current estimated compute is about
+US$18.40/month; authorization is required before provisioning, with a proposed
+US$25/month project ceiling. Fly does not provide a provider-enforced billing
+cap or alert. Full commands, artifact hashes, licenses, limits and rollback are
+in the [M5 deployment runbook](docs/M5_DEPLOYMENT.md); current evidence and
+pending gates are in [M5 acceptance](docs/M5_ACCEPTANCE.md).
+
 ### Current API
 
 | Endpoint | Input / behavior |
@@ -252,7 +273,7 @@ candidate PVs, provenance and missing-evidence behavior.
 
 ## Current Status
 
-Updated: **2026-08-29**. M4 development branch: `codex/m4-browser-workflow`.
+Updated: **2026-08-29**. M5 development branch: `codex/m5-deployment`.
 
 | Area | Status and limitation |
 | --- | --- |
@@ -261,8 +282,8 @@ Updated: **2026-08-29**. M4 development branch: `codex/m4-browser-workflow`.
 | KataGo | Real model readiness, process reuse, strict JSONL matching, explicit played-move search, genuine PVs and fixed-black evidence |
 | Mistakes / report | Configurable 3/5-point thresholds, top-five summary plus all chronological markers, coverage and quality notes; no heuristic teaching |
 | Web service | Same-origin local UI/API, on-demand macOS start/stop, bounded jobs, cancellation, progress and refresh recovery |
-| Verification | 294 Python tests including 7 live KataGo cases and 38 frontend tests; real desktop/mobile workflow checks in M4 acceptance |
-| Deployment | Pages serves the frontend, not a complete online analysis service |
+| Verification | 308 Python tests including live KataGo cases and 38 frontend tests; M5 production/deployment contracts and local release preflight pass |
+| Deployment | Pinned candidate and runbook prepared; Pages remains frontend-only and paid/public acceptance is pending |
 
 The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
 older prototype. M0 verified its published HTML; the M1-M4 changes have not been
@@ -283,9 +304,9 @@ See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitat
 | M2 | Reliable, efficient real KataGo analysis | Implemented and verified with real models; see acceptance evidence and remaining limits |
 | M3 | Obvious-mistake selection and concise factual report | Implemented and reverified; [acceptance](docs/M3_ACCEPTANCE.md) records coverage, live evidence and browser smoke |
 | M4 | Complete browser flow with bounded analysis jobs | Implemented and verified locally; [acceptance](docs/M4_ACCEPTANCE.md) |
-| M5 | Deployable web release and real-engine acceptance | A second device completes a real game review against the deployed backend |
+| M5 | Deployable web release and real-engine acceptance | In progress; local candidate passed, resource approval/Linux image/public second-device gates remain |
 
-The next milestone is M5: public backend deployment and second-device acceptance.
+The active milestone is M5: public backend deployment and second-device acceptance.
 GitHub terminal write access was restored and verified on 2026-08-27. Keep
 [the access recovery guide](docs/GITHUB_AUTH.md) for future credential renewal.
 

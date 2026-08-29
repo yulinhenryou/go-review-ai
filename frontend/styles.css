@@ -150,6 +150,7 @@ input::file-selector-button { padding: 8px 10px; border: 1px solid var(--line); 
 #jobStatus { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 details { margin-top: 10px; }
 summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+[data-chart-move] { cursor: pointer; }
 .raw-data { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 18px; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
 @media (min-width: 901px) { .panel { max-height: calc(100vh - 32px); overflow: auto; padding-right: 6px; } }

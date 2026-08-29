@@ -59,6 +59,7 @@ class KataGoClient:
         if not model or not config:
             raise KataGoUnavailableError("Set KATAGO_MODEL_PATH and KATAGO_CONFIG_PATH; no mock fallback is available")
         options.setdefault("katago_path", os.environ.get("KATAGO_PATH", "katago"))
+        options.setdefault("max_visits", int(os.environ.get("KATAGO_MAX_VISITS", "200")))
         return cls(model_path=model, config_path=config, **options)
 
     def __enter__(self):

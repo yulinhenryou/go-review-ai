@@ -4,6 +4,7 @@ const MESSAGES = {
   engine_unavailable: "KataGo 暂不可用，未生成模拟报告。",
   analysis_timeout: "分析超时，请缩短棋谱后重试。",
   analysis_failed: "分析失败，未生成完整报告，请重试。",
+  rate_limited: "公开服务的分析次数已达上限，请稍后重试。",
   service_stopping: "服务正在关闭，请稍后重试。",
   missing_metadata: "请补全棋谱的规则和贴目。",
   occupied_point: "此处已有棋子。",

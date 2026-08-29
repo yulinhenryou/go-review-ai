@@ -780,7 +780,6 @@ export function createReviewController(getInput) {
           " tabindex=\"0\"",
           " role=\"button\"",
           " aria-label=\"跳转到第" + point.moveNumber + "手\"",
-          " style=\"cursor:pointer\"",
           "><title>第" + point.moveNumber + "手: " + formatTrendValue(activeMetric, point.value) + (point.isSelected ? "（当前选中）" : "") + "</title></circle>"
         ].join("");
       }).join(""),

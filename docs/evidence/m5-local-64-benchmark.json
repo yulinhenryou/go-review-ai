@@ -1,0 +1,21 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "python": "3.14.4",
+  "moves": 235,
+  "sgf_sha256": "9b4ed82c58f994180df7638967ec68af55b13304ed4bf8c4b5d386ee2bd738ba",
+  "wall_seconds": 144.64120008298778,
+  "engine_peak_rss_bytes": 624427008,
+  "engine_process_count": 1,
+  "positions": 236,
+  "forced_evaluations": 34,
+  "metadata": {
+    "engine_version": "1.16.4",
+    "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+    "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+    "config_sha256": "930a72dbf7b4e39cd6ee390a88aa391f5764d841919a1b2267ee126e04e08c81",
+    "max_visits": 64,
+    "rules": "japanese",
+    "komi": 5.5
+  }
+}
