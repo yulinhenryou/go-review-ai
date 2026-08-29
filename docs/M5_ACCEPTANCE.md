@@ -1,9 +1,9 @@
 # M5 Acceptance
 
 Date: 2026-08-29. Branch: `codex/m5-deployment`, based on M4 commit `184add1`.
-Status: **in progress, not public v1**. Code-side deployment controls and local
-real-engine preflight are complete. Paid resource approval, Linux image build,
-public deployment, Pages publication and different-network acceptance remain.
+Status: **in progress, not public v1**. Code-side deployment controls, local
+real-engine preflight and a read-only Pages showcase are complete. Paid resource
+approval, Linux image build, public analysis and different-network acceptance remain.
 
 ## Local Deployment-Candidate Evidence
 
@@ -35,8 +35,8 @@ measured.
 
 ## Automated Coverage Added
 
-The release check completed with **308 Python tests passed, zero skipped**, all
-live KataGo cases enabled, **38 frontend tests passed**, no broken Python
+The release check completed with **309 Python tests passed, zero skipped**, all
+live KataGo cases enabled, **40 frontend tests passed**, no broken Python
 requirements and a clean whitespace check.
 
 - Production mode hides docs, validates Host, sets CSP/HSTS/privacy headers and
@@ -61,6 +61,9 @@ requirements and a clean whitespace check.
 | No mock/invented evidence | Passed code/local service checks |
 | Missing engine, invalid input, full queue, cancellation | Passed local automated/M4 checks; image startup failure pending |
 | Different-device, different-network review | Pending public resource approval and deployment |
+
+The Pages publication is a sanitized, read-only real-engine example and does not
+satisfy the public-analysis or different-network review gates.
 
 M5 must not be marked complete until every pending item is recorded against the
 deployed commit and actual HTTPS origin. See [M5 deployment runbook](M5_DEPLOYMENT.md).

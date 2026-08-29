@@ -174,9 +174,8 @@ byId("analyzeBtn").addEventListener("click", () => {
     byId("inputPreview").scrollIntoView({ block: "nearest" });
   } catch (error) { message(error.message, true); }
 });
-byId("uploadAnalyzeBtn").addEventListener("click", async () => {
-  const file = byId("sgfFileInput").files[0];
-  if (!file) { message("请选择一个 SGF 文件。", true); return; }
+async function importSgf(file) {
+  if (!file) return;
   if (file.size > 1024 * 1024) { message("棋谱文件不能超过 1 MiB。", true); return; }
   const token = invalidate();
   validating = true; controls(); message("正在解析棋谱");
@@ -193,6 +192,10 @@ byId("uploadAnalyzeBtn").addEventListener("click", async () => {
     byId("inputPreview").scrollIntoView({ block: "nearest" });
   } catch (error) { if (token === action) message(error.message, true); }
   finally { if (token === action) { validating = false; controls(); } }
+}
+byId("uploadAnalyzeBtn").addEventListener("click", () => byId("sgfFileInput").click());
+byId("sgfFileInput").addEventListener("change", () => {
+  void importSgf(byId("sgfFileInput").files[0]);
 });
 byId("confirmBtn").addEventListener("click", () => {
   try {

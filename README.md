@@ -4,14 +4,15 @@ A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.
 
-**Current status: M1-M4 complete; M5 deployment candidate is in progress, not a public web v1.**
+**Current status: M1-M4 complete; the M5 local candidate and read-only Pages showcase are ready, but this is not a public analysis service or web v1.**
 SGF/manual inputs share a validated model; real KataGo analysis now has explicit
 provenance and no mock fallback. Reports use point-loss thresholds, top-five
 selection, explicit coverage and factual Chinese summaries. The browser now
 previews and confirms input, submits bounded cancellable jobs, shows progress,
-and restores tasks after page refresh. M5 now has a pinned container, production
-HTTP controls and local real-engine preflight; paid hosting and different-network
-acceptance still require approval.
+and restores tasks after page refresh. The repository also contains a pinned
+deployment candidate and a static Pages showcase generated from real KataGo
+evidence. The owner has chosen local analysis plus Pages presentation for now;
+paid hosting and different-network acceptance are deferred.
 See [M4 acceptance](docs/M4_ACCEPTANCE.md) and the
 [M1-M3 regression record](docs/M1_M3_REGRESSION.md).
 
@@ -41,9 +42,9 @@ claims about tactical causes are required for this release.
 | Analysis | External KataGo; one loaded process per game, bounded JSONL batches and evidence normalization |
 | API | FastAPI, Pydantic, Uvicorn, python-multipart; one worker and bounded in-memory jobs |
 | Frontend | HTML, CSS, vanilla JavaScript, Canvas 2D |
-| Tests | pytest, HTTPX, Node test runner, browser acceptance, recorded responses and opt-in live KataGo tests |
+| Tests | pytest, HTTPX, Node test runner, browser acceptance, recorded responses and live KataGo release checks |
 | Deployment candidate | Pinned multi-stage Docker image, Fly.io Sydney config, fail-closed readiness and release metadata |
-| Static preview | GitHub Pages, published separately from `gh-pages` |
+| Static showcase | GitHub Pages, explicit read-only real-engine example published separately from `gh-pages` |
 
 KataGo models and executables are not stored in Git. The M5 image downloads and
 hash-verifies pinned official artifacts during its build. There is no deployed Python backend
@@ -93,14 +94,14 @@ and the [prototype archive tag](archive/README.md).
 | `src/review_service.py` | Shared review orchestration |
 | `src/main.py` | Sample CLI and legacy builder re-exports |
 | `app/` | FastAPI routes, strict models, bounded job manager, retention and origin settings |
-| `frontend/` | Separate input state, API/jobs, canvas, review and style modules; Pages publication source |
+| `frontend/` | Separate input state, API/jobs, canvas, review and style modules; explicit Pages demo data/entry |
 | `tests/` | Regression tests, isolated mock fixtures and recorded real-engine evidence |
-| `config/analysis.cfg`, `scripts/benchmark_engine.py` | Local engine baseline and opt-in performance measurement |
+| `config/analysis.cfg`, `scripts/` | Local engine baseline, release checks, Pages build and performance measurement |
 | `samples/` | Sample SGF inputs; see [sample notes](samples/README.md) |
 | `docs/` | Contracts, acceptance evidence, status audit and approved roadmap |
 | `archive/` | Historical output snapshots and prototype archive index; not runtime code |
 
-### Run the Current Prototype
+### Install and Verify
 
 Run commands from the repository root. For a fresh environment:
 
@@ -108,9 +109,12 @@ Run commands from the repository root. For a fresh environment:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -c constraints.txt -e '.[api,dev]'
-python -m pytest -q -ra
-node --test tests/frontend/*.test.mjs
+./scripts/release_check.sh
 ```
+
+Stop the local background service before `release_check.sh`: the live integration
+suite starts its own KataGo processes, and Metal model instances should not compete
+with the already-running app. Restart the service after the check.
 
 Direct dependencies and build tooling are pinned in `pyproject.toml`;
 `constraints.txt` records tested transitive versions. Editable and regular wheel
@@ -190,7 +194,7 @@ fill missing metadata only; existing recorded values take precedence.
 Chinese rules select 7.5 komi; Japanese/Korean rules select 6.5; custom mode
 allows an explicit scoring rule and komi.
 
-Use **导入棋谱** to preview an SGF, or place moves and use **停一手 / 悔棋** for
+Use **导入 SGF** to select and immediately preview a file, or place moves and use **停一手 / 悔棋** for
 manual entry. **预览分析 -> 确认并分析** submits the accepted record. The report
 panel shows completed positions and a cancel button. Refresh can restore the
 current task while it remains in server memory; clearing/editing input prevents
@@ -282,17 +286,17 @@ Updated: **2026-08-29**. M5 development branch: `codex/m5-deployment`.
 | KataGo | Real model readiness, process reuse, strict JSONL matching, explicit played-move search, genuine PVs and fixed-black evidence |
 | Mistakes / report | Configurable 3/5-point thresholds, top-five summary plus all chronological markers, coverage and quality notes; no heuristic teaching |
 | Web service | Same-origin local UI/API, on-demand macOS start/stop, bounded jobs, cancellation, progress and refresh recovery |
-| Verification | 308 Python tests including live KataGo cases and 38 frontend tests; M5 production/deployment contracts and local release preflight pass |
-| Deployment | Pinned candidate and runbook prepared; Pages remains frontend-only and paid/public acceptance is pending |
+| Verification | 309 Python tests including live KataGo cases and 40 frontend tests; local real-engine, Pages and deployment contracts pass |
+| Deployment | Pinned candidate and runbook prepared; Pages is a read-only showcase and paid/public analysis is deferred |
 
-The [Pages preview](https://yulinhenryou.github.io/go-review-ai/) still serves the
-older prototype. M0 verified its published HTML; the M1-M4 changes have not been
-published to Pages. It targets the visitor's loopback address, and the
-Pages origin is absent from the backend's CORS allowlist. Starting a backend on the
-developer's computer does not make analysis available to other visitors.
+The [Pages showcase](https://yulinhenryou.github.io/go-review-ai/) publishes the
+current review UI with a checked-in, sanitized report generated by real KataGo.
+It is deliberately read-only: GitHub Pages cannot run Python or KataGo, so uploads
+and new analysis still run only in the local workspace.
 
 `gh-pages` is a separate publication branch and is **not automatically updated**
-by pushing `main`. This M4 source update leaves the deployed prototype unchanged.
+by pushing `main`. Build it with `python scripts/build_pages.py`, verify the output,
+then publish that generated tree to `gh-pages`.
 See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitations.
 
 ## Roadmap
@@ -304,9 +308,10 @@ See the [detailed status audit](docs/PROJECT_STATUS.md) for evidence and limitat
 | M2 | Reliable, efficient real KataGo analysis | Implemented and verified with real models; see acceptance evidence and remaining limits |
 | M3 | Obvious-mistake selection and concise factual report | Implemented and reverified; [acceptance](docs/M3_ACCEPTANCE.md) records coverage, live evidence and browser smoke |
 | M4 | Complete browser flow with bounded analysis jobs | Implemented and verified locally; [acceptance](docs/M4_ACCEPTANCE.md) |
-| M5 | Deployable web release and real-engine acceptance | In progress; local candidate passed, resource approval/Linux image/public second-device gates remain |
+| M5 | Deployable web release and real-engine acceptance | Local candidate and static showcase pass; paid host/Linux/public second-device gates are deferred |
 
-The active milestone is M5: public backend deployment and second-device acceptance.
+The active product mode is local analysis plus a static Pages showcase. M5 remains
+open until a public backend and different-network acceptance are intentionally resumed.
 GitHub terminal write access was restored and verified on 2026-08-27. Keep
 [the access recovery guide](docs/GITHUB_AUTH.md) for future credential renewal.
 

@@ -1,11 +1,12 @@
 # V1 Development Path
 
-**Status: approved on 2026-08-27; M1-M4 implemented locally, M4 verified on 2026-08-29.**
+**Status: approved on 2026-08-27; M1-M4 complete, M5 local candidate and static showcase verified on 2026-08-29.**
 Prepared on 2026-08-27 after auditing prototype `7447f54`.
 M1 was reverified and uploaded at d08fc47 after GitHub access recovery.
 M2 implementation and real-engine evidence are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
 M3 evidence is recorded in [M3 acceptance](M3_ACCEPTANCE.md).
-M4 evidence is recorded in [M4 acceptance](M4_ACCEPTANCE.md). M5 is not implemented.
+M4 evidence is recorded in [M4 acceptance](M4_ACCEPTANCE.md). M5 production controls
+and local evidence are implemented; public backend gates are deferred by owner choice.
 
 ## Release Goal
 
@@ -291,7 +292,6 @@ Keep the prototype available while replacements are built, but remove retired
 runtime paths when their consumers migrate. Do not retain experiments as silent
 fallbacks in the final default flow.
 
-Next functional work: **M4's bounded analysis jobs and complete browser workflow**.
-M2 is the first real-analysis milestone, M4 is the local usable web milestone, and
-M5 is the first public usable release. No completion dates are committed before
-the real-engine and deployment benchmarks.
+Next functional work: continue polishing the local candidate and calibrating report
+quality. M5 becomes the first public usable release only when backend hosting and
+different-network acceptance are intentionally resumed.

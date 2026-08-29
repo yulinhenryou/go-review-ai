@@ -104,11 +104,11 @@ export function createBoardView(boardElement, canvas) {
   function drawBoardMarker(marker) {
     var x = boardPoint(marker.x);
     var y = boardPoint(marker.y);
-    var radius = boardMetrics.cell * 0.43;
+    var radius = boardMetrics.cell * 0.47;
     var isBest = marker.kind === "recommended" || marker.kind === "combined";
     var isPlayed = marker.kind === "played" || marker.kind === "mistake";
-    var fill = isBest ? "#087a59" : marker.kind === "mistake" ? "#c13545"
-      : isPlayed ? "#505b60" : "#2369bb";
+    var fill = isBest ? "#087557" : marker.kind === "mistake" ? "#bd3145"
+      : isPlayed ? "#414c50" : "#1e63ad";
     context.save();
     context.translate(x, y);
     context.beginPath();
@@ -122,15 +122,16 @@ export function createBoardView(boardElement, canvas) {
     } else {
       context.arc(0, 0, radius * 0.88, 0, Math.PI * 2);
     }
-    // A dark outer edge and white keyline stay visible on both stone colors.
-    context.strokeStyle = marker.selected ? "#172f31" : "rgba(23,47,49,0.3)";
-    context.lineWidth = marker.selected ? 4 : 3;
-    context.stroke();
     context.fillStyle = fill;
     context.fill();
     context.strokeStyle = "#fff";
-    context.lineWidth = 1.5;
+    context.lineWidth = marker.selected ? 3 : 2;
     context.stroke();
+    if (marker.selected) {
+      context.strokeStyle = "#172f31";
+      context.lineWidth = 1.5;
+      context.stroke();
+    }
     context.fillStyle = "#fff";
     context.font = "700 " + Math.max(9, Math.floor(boardMetrics.cell * 0.47)) + "px sans-serif";
     context.textAlign = "center";

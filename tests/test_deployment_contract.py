@@ -1,4 +1,7 @@
 from pathlib import Path
+import json
+import subprocess
+import sys
 
 from scripts.container_server import server_port
 
@@ -50,6 +53,22 @@ def test_frontend_is_compatible_with_the_public_content_security_policy():
     assert ' style="' not in sources
     assert "<style" not in html
     assert "onclick=" not in html
+
+
+def test_pages_demo_is_explicit_and_built_from_real_engine_evidence(tmp_path):
+    bundle = json.loads((ROOT / "frontend/demo-data.json").read_text())
+    assert bundle["generated_from"] == "samples/m3_mistake.sgf"
+    assert bundle["report"]["engine_source"] == "katago"
+    assert bundle["report"]["schema_version"] == "3.0"
+    assert len(bundle["input"]["positions"]) == len(bundle["input"]["game"]["moves"]) + 1
+
+    output = tmp_path / "pages"
+    subprocess.run([sys.executable, "scripts/build_pages.py", str(output)], check=True)
+    html = (output / "index.html").read_text()
+    assert '<script type="module" src="./demo-app.mjs"></script>' in html
+    assert "KataGo 示例报告" in html
+    assert (output / ".nojekyll").is_file()
+    assert not (output / "app.mjs").exists()
 
 
 def test_container_port_is_strict(monkeypatch):

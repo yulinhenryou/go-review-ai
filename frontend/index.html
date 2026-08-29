@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="api-base" content="" />
   <title>围棋复盘 · 本地工作台</title>
+  <link rel="icon" href="./icons/scan-line.svg" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="app-header">
-    <div class="brand"><span class="brand-stones" aria-hidden="true"></span><h1>围棋复盘</h1></div>
-    <span class="workspace-label">本地工作台 <span class="version">M4</span></span>
+    <div class="brand"><img class="brand-icon" src="./icons/scan-line.svg" alt="" /><h1>围棋复盘</h1></div>
+    <span class="workspace-label">本地工作台</span>
   </header>
 
   <section class="input-bar" aria-label="棋谱输入">
     <div class="upload-controls">
-      <input id="sgfFileInput" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
-      <button id="uploadAnalyzeBtn" type="button"><img src="./icons/upload.svg" alt="" /><span>导入棋谱</span></button>
+      <input id="sgfFileInput" class="visually-hidden" type="file" accept=".sgf,application/x-go-sgf,text/plain" aria-label="选择 SGF 文件" />
+      <button id="uploadAnalyzeBtn" type="button"><img src="./icons/upload.svg" alt="" /><span>导入 SGF</span></button>
     </div>
     <div class="game-settings">
       <label for="rulesInput">规则
@@ -101,9 +102,9 @@
           <button id="retryJobBtn" type="button" hidden>重试</button>
         </div>
       </section>
-      <div class="view-switch" id="analysisViewSwitch" aria-label="分析视图切换">
-        <button id="currentViewBtn" type="button" class="active" data-analysis-view="current">当前局面</button>
-        <button id="reviewViewBtn" type="button" data-analysis-view="review">整盘复盘</button>
+      <div class="view-switch" id="analysisViewSwitch" role="group" aria-label="分析视图切换">
+        <button id="currentViewBtn" type="button" class="active" data-analysis-view="current" aria-pressed="true">当前局面</button>
+        <button id="reviewViewBtn" type="button" data-analysis-view="review" aria-pressed="false">整盘复盘</button>
       </div>
       <div id="analysisSummary"><div class="empty-state">暂无分析结果</div></div>
       <details class="raw-data">

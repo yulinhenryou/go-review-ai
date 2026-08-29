@@ -2,18 +2,25 @@
 
 ## M5 Update
 
+The 2026-08-29 project-wide audit fixed the final-move/terminal-position state
+collision, separated current-position and whole-game report views, simplified SGF
+import, increased mobile touch targets and report legibility, strengthened board
+markers, disabled KataGo file logging, and made release checks reuse local engine
+discovery. GitHub Pages now builds an explicit read-only showcase from sanitized
+real KataGo evidence. See [the audit record](PROJECT_AUDIT_2026-08-29.md).
+
 On 2026-08-29, branch `codex/m5-deployment` adds a pinned Linux/Eigen container,
 single-machine Sydney deployment configuration, fail-closed real-engine startup,
 exact Host/security headers, anonymous in-memory rate limits, 15-minute retention,
 privacy-safe logging defaults and repeatable local/remote acceptance scripts.
 The 64-visit production entry passed local SGF and equivalent manual real-engine
 flows; a 235-move public benchmark recorded 144.64 seconds and 595.5 MiB peak
-child RSS on Apple M4/Metal. The complete release check passed 308 Python tests
-with live KataGo enabled, 38 frontend tests and dependency validation.
+child RSS on Apple M4/Metal. The complete release check passed 309 Python tests
+with live KataGo enabled, 40 frontend tests and dependency validation.
 
 No paid resource has been created. Linux image build, owner approval, public
-HTTPS deployment, current Pages publication and different-network acceptance
-remain M5 gates. See [M5 deployment](M5_DEPLOYMENT.md) and
+HTTPS analysis and different-network acceptance remain M5 gates. The owner has
+chosen local analysis plus a static Pages showcase for now. See [M5 deployment](M5_DEPLOYMENT.md) and
 [M5 acceptance](M5_ACCEPTANCE.md). Historical sections below retain the state
 known at their respective milestones.
 

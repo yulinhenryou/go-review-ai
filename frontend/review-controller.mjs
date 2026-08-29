@@ -2,6 +2,7 @@ import { renderReportOverview, renderMistakeMarkers, renderQualityNotes, trendPa
 import { buildBoardMarkers, markerDescription } from "./board-markers.mjs";
 import { BOARD_SIZE, DISPLAY_COLUMNS, colorName, fromSgf, fromDisplayCoord } from "./coordinates.mjs";
 import { createBoardView } from "./board-view.mjs";
+import { reviewNavigationState, stepReviewMove, timelineBounds } from "./review-navigation.mjs";
 
 export function createReviewController(getInput) {
   const byId = (id) => document.getElementById(id);
@@ -23,8 +24,9 @@ export function createReviewController(getInput) {
     var active = getActiveContext(analysisData);
     var reviewing = active && active.kind !== "current_position";
     var detail = reviewing ? findTimelineItem(analysisData, active.moveNumber) : null;
-    document.getElementById("moveCounter").textContent =
-      (reviewing ? active.moveNumber : moves.length) + " / " + moves.length;
+    document.getElementById("moveCounter").textContent = !analysisData
+      ? moves.length + " / " + moves.length
+      : reviewing ? active.moveNumber + " / " + moves.length : "终局";
     status.textContent = analysisData ? "复盘 · " + moves.length + " 手" :
       "下一手：" + colorName(currentColor) + " | 手数：" + moves.length;
     if (!analysisData || !active) {
@@ -54,17 +56,7 @@ export function createReviewController(getInput) {
 
   function getTimelineMoveBounds() {
     var timeline = analysisData && Array.isArray(analysisData.timeline) ? analysisData.timeline : [];
-
-    if (!timeline.length) {
-      return null;
-    }
-
-    return {
-      first: typeof timeline[0].move_number === "number" ? timeline[0].move_number : 1,
-      last: typeof timeline[timeline.length - 1].move_number === "number"
-        ? timeline[timeline.length - 1].move_number
-        : timeline.length
-    };
+    return timelineBounds(timeline);
   }
 
   function updateReviewNavigationControls() {
@@ -75,11 +67,10 @@ export function createReviewController(getInput) {
       return;
     }
     var bounds = getTimelineMoveBounds();
-    var currentMoveNumber = getViewedMoveNumber();
-    var canNavigate = Boolean(bounds && typeof currentMoveNumber === "number");
+    var state = reviewNavigationState(viewedMoveNumber, bounds);
 
-    prevReviewBtn.disabled = !canNavigate || currentMoveNumber <= bounds.first;
-    nextReviewBtn.disabled = !canNavigate || currentMoveNumber >= bounds.last;
+    prevReviewBtn.disabled = !state.canPrevious;
+    nextReviewBtn.disabled = !state.canNext;
   }
 
   function escapeHtml(value) {
@@ -119,16 +110,7 @@ export function createReviewController(getInput) {
   }
 
   function getViewedMoveNumber() {
-    if (typeof viewedMoveNumber === "number") {
-      return viewedMoveNumber;
-    }
-
-    return latestTimelineMoveNumber();
-  }
-
-  function isViewingLatestMove() {
-    var latestMove = latestTimelineMoveNumber();
-    return typeof latestMove === "number" && getViewedMoveNumber() === latestMove;
+    return viewedMoveNumber;
   }
 
   function nextPlayerAfterMoveNumber(moveNumber) {
@@ -168,7 +150,7 @@ export function createReviewController(getInput) {
       return reviewFocus;
     }
 
-    if (isViewingLatestMove()) {
+    if (currentMoveNumber === null) {
       return buildLatestPositionContext(data);
     }
 
@@ -285,7 +267,7 @@ export function createReviewController(getInput) {
     analysisData = data;
     reviewTargets = buildReviewTargets(data);
     reviewFocus = reviewTargets[0] || null;
-    viewedMoveNumber = reviewFocus ? reviewFocus.moveNumber : latestTimelineMoveNumber();
+    viewedMoveNumber = reviewFocus ? reviewFocus.moveNumber : null;
     resetSelectedCandidate(data);
     candidateMarkers = getCurrentCandidateMarkers(data);
     chartMetric = "winrate";
@@ -447,6 +429,8 @@ export function createReviewController(getInput) {
 
     reviewFocus = target;
     viewedMoveNumber = target.moveNumber;
+    analysisView = "current";
+    syncAnalysisViewButtons();
     resetSelectedCandidate(analysisData);
     candidateMarkers = getCandidateMarkersFromCandidates(target.topCandidates);
     drawBoard();
@@ -467,6 +451,8 @@ export function createReviewController(getInput) {
     viewedMoveNumber = moveNumber;
     target = buildTimelineReviewTarget(analysisData, moveNumber);
     reviewFocus = target;
+    analysisView = "current";
+    syncAnalysisViewButtons();
     resetSelectedCandidate(analysisData);
     candidateMarkers = target ? getCandidateMarkersFromCandidates(target.topCandidates) : [];
     drawBoard();
@@ -477,7 +463,9 @@ export function createReviewController(getInput) {
 
   function returnToLatestBoardState() {
     reviewFocus = null;
-    viewedMoveNumber = latestTimelineMoveNumber();
+    viewedMoveNumber = null;
+    analysisView = "current";
+    syncAnalysisViewButtons();
     resetSelectedCandidate(analysisData);
     candidateMarkers = getCurrentCandidateMarkers(analysisData);
     drawBoard();
@@ -488,11 +476,14 @@ export function createReviewController(getInput) {
 
   function stepReviewPosition(offset) {
     var nextMoveNumber;
+    var bounds;
 
     if (!analysisData || !offset) return;
 
-    nextMoveNumber = getViewedMoveNumber() + offset;
-    activateTimelineMove(nextMoveNumber);
+    bounds = getTimelineMoveBounds();
+    nextMoveNumber = stepReviewMove(viewedMoveNumber, offset, bounds);
+    if (nextMoveNumber === null) returnToLatestBoardState();
+    else activateTimelineMove(nextMoveNumber);
   }
 
   function shouldIgnoreReviewKeydown(event) {
@@ -848,9 +839,9 @@ export function createReviewController(getInput) {
       renderCandidateChoiceList(candidates) + buildCandidateExplanation(data) + '</section>';
     var trend = '<section class="analysis-section"><h3>黑棋评估走势</h3><div id="trendChartSection"></div></section>';
     summary.innerHTML = overview + (analysisView === "review"
-      ? top + renderMistakeMarkers(data) + position + trend
-      : position + top + renderMistakeMarkers(data) + trend);
-    renderTrendChart(timeline);
+      ? top + renderMistakeMarkers(data) + trend
+      : position);
+    if (analysisView === "review") renderTrendChart(timeline);
     Array.prototype.forEach.call(summary.querySelectorAll("[data-review-id]"), function (button) {
       button.addEventListener("click", function () {
         activateReviewTargetById(this.getAttribute("data-review-id"));
