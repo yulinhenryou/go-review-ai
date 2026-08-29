@@ -7,7 +7,8 @@ public deployment, Pages publication and different-network acceptance remain.
 
 ## Local Deployment-Candidate Evidence
 
-The production ASGI entry was started with the deployment config, 64 visits,
+The production ASGI entry from commit `f179c2a9565667b95e46fbb043343e4133b1a662`
+was started with the deployment config, 64 visits,
 strict Host/security controls and the real local KataGo 1.16.4 Metal backend.
 `scripts/remote_acceptance.py` then used only `samples/m3_mistake.sgf`:
 
@@ -17,8 +18,8 @@ strict Host/security controls and the real local KataGo 1.16.4 Metal backend.
 | SGF path | Multipart upload -> validated preview -> bounded job -> complete 6/6 report |
 | Manual path | Equivalent six moves entered as canonical JSON -> complete 6/6 report |
 | Obvious mistakes | Both runs selected moves 1, 3 and 5 |
-| Uploaded losses | 12.63, 12.10 and 9.17 points |
-| Manual losses | 12.63, 11.87 and 9.26 points |
+| Uploaded losses | 12.63, 11.84 and 8.99 points |
+| Manual losses | 12.58, 11.96 and 9.17 points |
 | Traceability | Every accepted recommendation was present in that move's candidate evidence |
 | Mock/unsupported prose | `engine_source=katago`; no fallback or tactical diagnosis added |
 
