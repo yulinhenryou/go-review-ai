@@ -1,0 +1,57 @@
+:root {
+  --bg: #fbfbfa;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --font-display: 'Baskerville', 'Libre Baskerville', 'Songti SC', 'Noto Serif SC', serif;
+  --font-body: -apple-system, 'Helvetica Neue', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111112;
+    --ink: #f5f5f7;
+    --muted: #a1a1a6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.status {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
