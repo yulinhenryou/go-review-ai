@@ -1,5 +1,11 @@
 # go-review-ai
 
+> **Historical prototype.** This is Go Review AI, preserved during the rebuild
+> described in the [root README](../README.md); it is frozen and will be removed
+> at the end of M4 (tag `v0.1.0-prototype` keeps it permanently). Run every
+> command below from this `legacy/` directory. Create its environment with
+> `uv venv --python 3.14 .venv && uv pip install --python .venv/bin/python -c constraints.txt -e '.[api,dev]'`.
+
 A Go game review prototype built around KataGo. The first release is intended to
 turn an uploaded SGF or a manually entered game into a short, evidence-based web
 report highlighting obvious mistakes.

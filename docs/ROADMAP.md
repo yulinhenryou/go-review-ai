@@ -1,8 +1,14 @@
-# Roadmap (draft)
+# Roadmap
 
-*Draft of 2026-11-03, awaiting the owner's approval. It replaces the prototype's
-`docs/ROADMAP.md` (which moves to `legacy/docs/` in M0). Fupan is a provisional
+*Written 2026-11-03 and approved by the owner the same day. It replaces the
+prototype's roadmap, now at `legacy/docs/ROADMAP.md`. Fupan is a provisional
 name.*
+
+| Milestone | State |
+| --- | --- |
+| M0 Archive, legacy move, skeleton, CI | Done — [acceptance](acceptance/M0.md) |
+| M1 Rust rules engine and SGF parser | Next |
+| M2–M8 | Not started |
 
 ## Rules for every milestone
 
@@ -64,7 +70,7 @@ Acceptance:
    `node --test tests/frontend/*.test.mjs` passes 40 tests; the opt-in live suite
    also passes locally; the legacy local web workspace starts and completes a
    review of `samples/sample_game.sgf`.
-3. A fresh clone runs `cargo test`, `uv run pytest`, `npm test` (or pnpm) and all
+3. A fresh clone runs `cargo test`, `uv run pytest`, `npm test` and all
    linters successfully with the documented commands.
 4. All four CI jobs are green on the M0 PR.
 5. `git log --follow legacy/src/game.py` shows the file's prototype history.

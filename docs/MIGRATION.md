@@ -1,8 +1,8 @@
 # Migration from the Prototype
 
 *Written 2026-11-03 from a read-through of the prototype at commit `eb089bc`
-(branch `codex/m5-deployment`). Nothing listed here has been executed yet; every
-status is **Planned** until the owner approves M0.*
+(tag `v0.1.0-prototype`). Statuses are updated as items complete; M0 completed
+the repository-level moves in §3 and the D-items marked Done.*
 
 ## 1. Principles
 
@@ -25,21 +25,20 @@ status is **Planned** until the owner approves M0.*
 
 ## 3. The `legacy/` transition
 
-### 3.1 Before the move
+### 3.1 Before the move (done 2026-11-03)
 
-1. Owner accepts the Xcode license on the development Mac (git currently fails).
-2. Tag commit: `eb089bc` (owner confirmed 2026-11-03, ADR-P14). It is the
-   `codex/m5-deployment` head and, per the local remote-tracking ref, also
-   `origin/main`; the local `main` branch is behind at `bf002e0`.
-3. Annotated tag `v0.1.0-prototype` on that commit, pushed. The existing tag
+1. Xcode license accepted on the development Mac (git had been failing).
+2. Tag commit `eb089bc` (ADR-P14): the `codex/m5-deployment` head and `origin/main`.
+3. Annotated tag `v0.1.0-prototype` on that commit. The existing tag
    `archive/prototype-2026-08-27` (on `7447f54`, the pre-M1 prototype) stays.
-4. Fast-forward local `main` to the tagged commit and start M0 on a branch.
+4. Local `main` fast-forwarded to `eb089bc`; M0 work on `rebuild/m0-foundation`.
 
-### 3.2 What moves into `legacy/` (with `git mv`, so history follows)
+### 3.2 What moved into `legacy/` (with `git mv`, so history follows)
 
 `src/`, `app/`, `frontend/`, `tests/`, `scripts/`, `samples/`, `config/`,
 `deploy/`, `archive/`, `Dockerfile`, `.dockerignore`, `pyproject.toml`,
-`constraints.txt`, `.env.example`, `Start Go Review.command`,
+`constraints.txt`, `.env.example`, `.gitignore`, `AGENTS.md`, `licenses/`,
+`Start Go Review.command`,
 `Stop Go Review.command`, the old `README.md` (→ `legacy/README.md`), and all
 existing `docs/*` files and `docs/evidence/` (→ `legacy/docs/`).
 
@@ -47,23 +46,25 @@ All prototype paths are relative to the project root (`samples/…`,
 `docs/evidence/m3-report.json`, `Path(__file__).parents[1]`), so moving the whole
 tree together keeps them valid when commands run from `legacy/`.
 
-### 3.3 What stays at the root
+### 3.3 What the root has instead
 
-`licenses/KATAGO_NETWORK_LICENSE.txt` (still applies), `.gitignore` (rewritten,
-legacy rules kept under a `legacy/` section), `AGENTS.md` (rewritten as a pointer
-to `CLAUDE.md`), and the new documents.
+A copy of `licenses/KATAGO_NETWORK_LICENSE.txt` (the legacy deployment test
+reads its own copy), a new monorepo `.gitignore`, a one-line `AGENTS.md`
+pointing to `CLAUDE.md`, the new README and documents, and the new skeleton.
 
 ### 3.4 Keeping legacy runnable
 
-- `legacy/` gets its own virtual environment (`legacy/.venv`, ignored) created
-  with uv from its existing `pyproject.toml` and `constraints.txt`.
-- CI job `legacy`: `cd legacy && pytest -q` (live KataGo cases stay opt-in) and
+- `legacy/` has its own virtual environment (`legacy/.venv`, ignored), created
+  with uv (Python 3.14) from its `pyproject.toml` and `constraints.txt`.
+- CI job `legacy` runs its pytest suite (live KataGo cases skipped) and
   `node --test tests/frontend/*.test.mjs`. It must stay green until deletion.
-- The local web workspace keeps working via `legacy/Start Go Review.command`.
-  The macOS launchd label and paths are recomputed from the new location the
-  first time it starts; this is verified in M0.
-- The untracked root `.venv/` and `.local/` are removed locally only after the
-  legacy environment works and only with the owner's approval.
+- M0 verified the web app from `legacy/` by running `uvicorn app.local:app` with
+  the launcher's engine environment: the UI was served and a real KataGo review
+  completed. The launcher derives its launchd label from the checkout path, so
+  it now reports a new project id; starting it through launchd
+  (`legacy/Start Go Review.command`) was not exercised in M0.
+- Root `.local/` (old server logs) moved to `legacy/.local/`; the stale root
+  `.venv/` was removed after the legacy environment passed its tests.
 - Legacy is frozen: only changes needed to keep it running are allowed.
 
 ### 3.5 Deleting `legacy/` (end of M4)
@@ -160,19 +161,19 @@ Source paths are pre-M0 locations. Targets use the layout in ARCHITECTURE §2.
 | --- | --- | --- | --- | --- | --- |
 | D01 | `Dockerfile` (pinned digests, KataGo source build with SHA-256 check, model hash check, licence copy) | M8 container | Reference | — | Planned |
 | D02 | `deploy/fly.toml`, `scripts/deploy_fly.sh`, `scripts/*acceptance*` | M8 | Reference | — | Planned |
-| D03 | `licenses/KATAGO_NETWORK_LICENSE.txt` | root `licenses/` | Keep | — | Planned |
+| D03 | `licenses/KATAGO_NETWORK_LICENSE.txt` | root `licenses/` | Keep | — | Done (M0, root copy kept; legacy keeps its own) |
 | D04 | `samples/sample_game.sgf`, `samples/m3_mistake.sgf` (synthetic) | `testdata/sgf/` | Keep | Copy with provenance | Planned |
 | D05 | `samples/benchmark_pro_game.sgf` (235 moves, from Sabaki's public test fixture, normalised) | `testdata/sgf/` | Keep | Provenance in `samples/README.md` is carried over | Planned |
 | D06 | `samples/test_game_kejie.sgf` (111-move main line, 柯洁 vs 王泽锦, with variations; original source not recorded) | `testdata/sgf/` | Keep | Owner approved public use on 2026-11-03; it is the real game the prototype was demonstrated on and a comparison-suite input | Planned |
 | D07 | `tests/fixtures/m4-*.sgf` | `testdata/sgf/` | Keep | — | Planned |
-| D08 | `archive/legacy-reports/` | `legacy/archive/` | Keep (moved) | Deleted with `legacy/`, preserved in tags | Planned |
-| D09 | `docs/*.md`, `docs/evidence/` (prototype milestones, contracts, audits) | `legacy/docs/` | Keep (moved) | Decisions summarised in `docs/DECISIONS.md` | Planned |
-| D10 | `AGENTS.md` | root | Rewrite | Pointer to `CLAUDE.md` so there is one source of truth; Codex is not in use for now (2026-11-03) but may return | Planned |
-| D11 | `README.md` | `legacy/README.md`; root gets `docs/README.draft.md` | Rewrite | After owner approval | Planned |
-| D12 | `pyproject.toml`, `constraints.txt` (package names `src`, `app`) | `legacy/` | Keep (moved) | New Python project lives in `python/` | Planned |
-| D13 | `.gitignore` | root | Rewrite | Add Rust `target/`, `node_modules/`, web build output, `*.sqlite*`, wasm output, `legacy/.venv/` | Planned |
-| D14 | `.env.example` | root | Rewrite | `KATAGO_*` kept; brand-free names | Planned |
-| D15 | Untracked `.venv/`, `.local/` (logs) | — | Drop locally | Owner approval required | Planned |
+| D08 | `archive/legacy-reports/` | `legacy/archive/` | Keep (moved) | Deleted with `legacy/`, preserved in tags | Done (M0) |
+| D09 | `docs/*.md`, `docs/evidence/` (prototype milestones, contracts, audits) | `legacy/docs/` | Keep (moved) | Decisions summarised in `docs/DECISIONS.md` | Done (M0) |
+| D10 | `AGENTS.md` | root | Rewrite | Pointer to `CLAUDE.md` so there is one source of truth; Codex is not in use for now (2026-11-03) but may return | Done (M0) |
+| D11 | `README.md` | `legacy/README.md`; root gets the new README | Rewrite | After owner approval | Done (M0) |
+| D12 | `pyproject.toml`, `constraints.txt` (package names `src`, `app`) | `legacy/` | Keep (moved) | New Python project lives in `python/` | Done (M0) |
+| D13 | `.gitignore` | root | Rewrite | Add Rust `target/`, `node_modules/`, web build output, `*.sqlite*`, wasm output, `legacy/.venv/` | Done (M0) |
+| D14 | `.env.example` | root | Rewrite | `KATAGO_*` kept; brand-free names | Planned (M3, when the service has settings) |
+| D15 | Untracked `.venv/`, `.local/` (logs) | — | Drop locally | Owner approval required | Done (M0; `.local/` moved to `legacy/.local/`, root `.venv/` removed) |
 
 ## 5. Status tracking
 

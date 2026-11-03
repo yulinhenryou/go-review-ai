@@ -135,6 +135,18 @@ not edited after acceptance except for status.
 - **Decision:** Local SGF upload first. Online platforms later, only through
   means permitted by their terms, preferring public APIs.
 
+### ADR-023 Toolchain versions and web tooling
+- **Status:** Accepted 2026-11-03 under the owner's delegation during M0.
+- **Decision:** Rust 1.99.1, edition 2024 (`rust-toolchain.toml`); Python 3.14
+  (`python/.python-version`), one release behind the newest 3.15 for mature
+  binding support (PyO3 0.30); Node ≥ 22.12, CI on Node 24; npm rather than pnpm
+  (already installed, a single web package needs no workspace tool); eslint with
+  typescript-eslint as the brief specified, not oxlint, which the current Vite
+  template defaults to; TypeScript pinned to 6.0.3 because typescript-eslint
+  8.72 supports only TypeScript < 6.1.
+- **Consequences:** Upgrade TypeScript to 7 when typescript-eslint supports it,
+  in its own PR. Version bumps are deliberate PRs, not side effects.
+
 ## Proposed by the planning session
 
 ### ADR-P01 Stable internal namespace `weiqi` *(M0)*
