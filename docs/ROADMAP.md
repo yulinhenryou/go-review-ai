@@ -1,297 +1,267 @@
-# V1 Development Path
+# Roadmap
 
-**Status: approved on 2026-08-27; M1-M4 complete, M5 local candidate and static showcase verified on 2026-08-29.**
-Prepared on 2026-08-27 after auditing prototype `7447f54`.
-M1 was reverified and uploaded at d08fc47 after GitHub access recovery.
-M2 implementation and real-engine evidence are recorded in [M2 acceptance](M2_ACCEPTANCE.md).
-M3 evidence is recorded in [M3 acceptance](M3_ACCEPTANCE.md).
-M4 evidence is recorded in [M4 acceptance](M4_ACCEPTANCE.md). M5 production controls
-and local evidence are implemented; public backend gates are deferred by owner choice.
+*Written 2026-11-03 and approved by the owner the same day. It replaces the
+prototype's roadmap, now at `legacy/docs/ROADMAP.md`. Fupan is a provisional
+name.*
 
-## Release Goal
-
-A user uploads an SGF or enters a game move by move on a web board. The system
-validates the game, runs real KataGo, marks obvious mistakes, and displays a short
-report whose numbers and recommendations can be traced to engine output.
-
-A static board, mock report, or successful unit-test run alone is not v1.
-The local workflow is an intermediate milestone; the release requires a deployed
-backend that another device can reach.
-
-## Proposed Scope
-
-| Include in v1 | Defer until after v1 |
+| Milestone | State |
 | --- | --- |
-| One standard 19x19 game per analysis | Batch games, accounts, saved-game library |
-| UTF-8 SGF, optional BOM; first variation with an explicit notice | Other encodings and interactive variation-tree editing |
-| Board-based manual entry, pass, undo, clear, player names, rules and komi | Arbitrary text notation import and setup-position editor |
-| Chinese and Japanese rules selected explicitly or read from SGF | Other rulesets, handicap and setup-stone games |
-| Actual move and recommendation markers; previous/next move | Interactive variation exploration beyond a short engine PV |
-| Top 5 obvious mistakes plus chronological mistake markers | Automated tactical causes, training plans, teaching labels and LLM commentary |
-| Concise Chinese report; engine provenance and honest failure states | Database, Redis/Celery cluster, paid accounts |
+| M0 Archive, legacy move, skeleton, CI | Done — [acceptance](acceptance/M0.md) |
+| M1 Rust rules engine and SGF parser | Next |
+| M2–M8 | Not started |
 
-Manual entry means clicking the board in sequence, not setting up an arbitrary
-position. A partial game is allowed and must be labeled as partial; do not infer
-a final result or a missing game phase.
+## Rules for every milestone
 
-Unsupported input must fail explicitly. Do not silently ignore nonzero handicap,
-setup properties (`AB/AW/AE`), unsupported turn overrides, multiple-game collections,
-or other board sizes. Missing rules/komi require a user-confirmed choice before
-analysis, rather than a hidden engine default. Comments and unrelated metadata
-may be ignored safely; properties affecting position or rules may not.
+- Starts only after the previous milestone's acceptance is recorded and the
+  owner approves.
+- Ends with the repository runnable, all CI jobs green (including `legacy`
+  until it is deleted), and an acceptance record in `docs/acceptance/Mx.md`
+  listing commands, inputs, versions, hardware and results.
+- Any number in docs comes from that record. No performance targets are
+  promised before they are measured.
+- Changes of technical direction stop the work and go to the owner first.
 
-Initial resource limits to implement and verify: 1 MiB SGF, 1-500 main-line moves,
-finite validated komi/thresholds, one running engine job and a small bounded queue.
-These are proposed application limits, not statements about KataGo's capability.
-Confirm concrete queue size, timeout and retention settings with M2 benchmarks.
+## Adjustments to the suggested sequence
 
-## Architecture Direction
+The owner's suggested order is kept, with three adjustments accepted by the
+owner on 2026-11-03 (ADR-P04):
 
-Retain Python, FastAPI, vanilla JavaScript and the existing separation of concerns.
-Do not add a frontend framework just to reorganize the prototype.
+1. **Web work starts in M2, not M8.** WASM must be proven in a real browser when
+   it is built, and deleting `legacy/` at the end of M4 would otherwise remove
+   the only web interface. So M2 adds a minimal web shell (board with WASM
+   rules), and M4 adds the new single-game review page needed for parity.
+   M8 becomes design polish, deployment and the first public release.
+2. **Storage starts in M3.** The analysis cache needs persistent storage, so the
+   SQLite schema and migrations begin with the engine adapter rather than with
+   the profile.
+3. **Labelling sessions with the owner** are scheduled in M4 and M5: phase and
+   situation classifiers need gold labels from a strong player before their
+   statistics can be trusted.
 
-```text
-Web input
-  -> SGF adapter / manual-moves adapter
-  -> one validated GameRecord
-  -> review job
-  -> KataGo adapter
-  -> normalized evaluations
-  -> mistake selector + factual templates
-  -> versioned ReviewResult
-  -> browser board + concise report
-```
+## M0 — Archive, legacy move, monorepo skeleton and CI
 
-Suggested responsibility boundaries, not a request to create empty modules:
+**Goal:** a clean starting point where the prototype is preserved and still runs,
+and an empty but fully wired monorepo passes CI.
 
-| Boundary | Rule |
-| --- | --- |
-| Game model and validation | Own rules, turn order, legal positions and coordinate conversion |
-| SGF adapter | Parse into the shared model; no engine calls or report prose |
-| Engine adapter | Own process lifecycle and raw JSONL mapping; no Go teaching claims |
-| Analysis | Normalize evidence, score perspectives and quality flags |
-| Selection/classification | Threshold and severity only for the v1 default report |
-| Reporting | Serialize evidence and fill deterministic factual templates |
-| API/jobs | Validate requests, manage bounded work, expose status and cancellation |
-| Frontend | Present input/report states; do not invent missing evaluations |
+Scope:
 
-The API should call a shared review service rather than depend on CLI setup.
-Move the orchestration out of `src/main.py` when changing that boundary, keeping
-a thin CLI adapter. Avoid a wholesale rename of every module at once.
+- Prerequisite (owner): accept the Xcode license.
+- Tag `v0.1.0-prototype` (annotated) on `eb089bc` (ADR-P14); push it.
+- `git mv` the prototype into `legacy/` (MIGRATION §3); legacy gets its own
+  uv-managed environment.
+- Install toolchains: rustup (stable + nightly for fuzzing), uv, maturin, wasm
+  tooling; pin versions (`rust-toolchain.toml`, `.python-version`, Node version
+  file).
+- Skeleton: Cargo workspace with `weiqi-core` (one trivial function and test),
+  `python/` uv project with package `weiqi` (one test), `web/` Vite + React + TS
+  (one test), `config/project.json`.
+- Lint and format configs: rustfmt, clippy, ruff, mypy strict, eslint, tsc.
+- GitHub Actions: jobs `rust`, `python`, `web`, `legacy`; caching; required on PRs.
+- Root `README.md` replaced by the approved draft; `AGENTS.md` becomes a
+  pointer; `docs/ROADMAP.md` replaced by this file; Apache-2.0 `LICENSE` added
+  (ADR-P09).
 
-## M0 - Establish the Baseline
+Acceptance:
 
-Deliverables for this housekeeping pass:
+1. `git show v0.1.0-prototype` shows the approved commit, and
+   `git ls-remote --tags origin` lists the tag.
+2. In `legacy/`: `pytest -q` passes with the same test count as before the move
+   (302 passed, 7 skipped without live KataGo, as measured on 2026-11-03) and
+   `node --test tests/frontend/*.test.mjs` passes 40 tests; the opt-in live suite
+   also passes locally; the legacy local web workspace starts and completes a
+   review of `samples/sample_game.sgf`.
+3. A fresh clone runs `cargo test`, `uv run pytest`, `npm test` and all
+   linters successfully with the documented commands.
+4. All four CI jobs are green on the M0 PR.
+5. `git log --follow legacy/src/game.py` shows the file's prototype history.
 
-- Inventory the source and document known release blockers.
-- Archive the two unused generated report snapshots without changing their bytes.
-- Preserve the entire prototype through its existing GitHub baseline commit and
-  tag `archive/prototype-2026-08-27`, uploaded after authentication recovery.
-- Clarify the roles of active source, samples, tests, archived output and Pages.
-- Update README and AGENTS to distinguish the historical CLI phase from web v1.
-- Ignore local credentials, private uploads, model files and generated outputs.
+## M1 — Rust rules engine and SGF parser
 
-Gate: same 54 regression tests pass, runtime source is unchanged, archive contents
-are preserved, documentation links resolve, and the changes are on GitHub.
-Runtime mock/heuristic isolation is deliberately deferred to M2/M3 because it
-changes behavior. The user has now approved functional development.
-Verification and GitHub synchronization are complete. See [the status audit](PROJECT_STATUS.md).
+**Goal:** the single authoritative implementation of board rules, scoring,
+hashing and SGF.
 
-## M1 - Normalize and Validate Inputs
+Scope: ARCHITECTURE §3 — board, captures, suicide policy, simple ko,
+positional and situational superko, rule-set presets, setup stones and
+handicap, `Strict` and `Record` replay modes, Zobrist (128-bit, deterministic
+keys), area and territory scoring with explicit life-and-death input, SGF
+decode/lex/parse/arena tree/extract/write, encodings, leniency warnings,
+limits. Each Rust concept used is explained to the owner before the code.
 
-Dependencies: M0 and approval of this plan.
+Acceptance:
 
-Delivered: shared immutable records, sgfmill adapters and replay validation,
-preview endpoints, strict pre-engine input boundaries, explicit pass context,
-rule propagation, versioned result metadata and verified packaging.
-Details: [input contract](INPUT_CONTRACT.md) and [acceptance evidence](M1_ACCEPTANCE.md).
+1. All ported prototype rule and SGF cases (MIGRATION G02, G08, G10) pass, with
+   every intentionally changed expectation listed in the PR.
+2. Proptest properties pass: incremental hash = recomputed hash; undo restores
+   state; stone conservation (stones placed − captured = stones on board);
+   SGF `parse(write(tree)) == tree`.
+3. Fuzz targets for decode, parse and round-trip run for a recorded duration
+   locally without crashes or panics; CI runs a short time-boxed fuzz job.
+4. Scoring tests cover Chinese and Japanese results on hand-checked final
+   positions, including captures, dead stones and a seki case.
+5. Real-world SGF corpus (public files with provenance, including a GBK file
+   and a multi-variation file) parses with expected warnings.
+6. `cargo clippy -D warnings`, `cargo fmt --check`, `#![forbid(unsafe_code)]`.
+7. Benchmarks (criterion) for replaying a 300-move game and parsing a large SGF
+   are recorded as a baseline, without targets.
 
-Work:
+## M2 — Python bindings, WASM build and web shell
 
-- Define `GameRecord` and review-contract semantics: board size, rules, komi, players, main-line
-  moves, pass representation and game result. Distinguish an actual pass from
-  "no played move" in current-position analysis requests.
-- Use [sgfmill](https://github.com/mattheww/sgfmill) 1.1.1 under a small adapter.
-  Its Board handles captures; the application enforces turn order, no suicide,
-  simple ko and the supported input boundary with fixtures. This is not a full
-  tournament adjudication/scoring implementation.
-- Route SGF and manual moves through one server-side legality validator.
-- Handle root-node moves, empty/pass moves, first variation, invalid syntax,
-  out-of-range coordinates, unsupported properties and input-size limits.
-- Specify request, result and error contracts before changing the UI. Version
-  schema changes and update consumers together; keep product version separate.
-- Establish explicit package discovery, exclude archives from distributions, and
-  verify installation and tests in a clean environment with recorded dependencies.
+**Goal:** the same Rust core is usable from Python and the browser, and the
+three agree.
 
-Gate: equivalent SGF/manual input gives the same normalized moves, metadata and
-positions; capture/ko/pass fixtures replay correctly; malformed or unsupported
-input never reaches KataGo. Existing small SGF tests stay meaningful, not just green.
+Scope: `weiqi-py` (PyO3 + maturin, `.pyi` stubs), `weiqi-wasm`
+(wasm-bindgen, TS types), shared golden conformance cases, a minimal web page:
+SVG board, manual entry with WASM legality (captures, ko, pass, undo), SGF file
+open and move navigation. No analysis yet.
 
-## M2 - Make Real Analysis Trustworthy
+Acceptance:
 
-Dependencies: M1's validated model and rules semantics.
+1. The golden conformance suite produces identical positions, hashes and
+   warnings in Rust, Python and WASM (CI).
+2. `mypy --strict` passes against the stubs; Python tests import `weiqi_core`
+   from a wheel built in CI.
+3. Browser end-to-end test (Playwright) places stones, captures, rejects an
+   immediate ko recapture and suicide, passes and undoes, without a server call.
+4. WASM bundle size and Python wheel build time are measured and recorded.
+5. Each binding's ownership/borrowing boundary (what is copied, what is
+   borrowed) is documented and explained.
 
-Delivered: real-only factory, model readiness, one process per game, bounded
-turn batches, ID/turn matching, fixed-black evidence, actual-move search, genuine
-PVs, failure cleanup, recorded-response replay and live benchmarks. See
-[engine contract](ENGINE_CONTRACT.md) for the conservative missing-data boundary.
+## M3 — KataGo adapter, cache and storage foundation
 
-Work:
+**Goal:** reliable, reproducible, cancellable real-engine analysis.
 
-- Check binary/model/config readiness. The production path must report an error
-  when unavailable; never automatically substitute mock analysis.
-- Move deterministic mock behavior to test fixtures or an explicit demo entry
-  outside production imports. Preserve coverage of former adapter helpers.
-- Reuse a loaded model for a game's positions; consume complete JSONL responses,
-  including error/warning records, and match final results by request ID and turn.
-- Fix or explicitly normalize analysis perspective. Store a fixed black perspective
-  for charts; compute move loss from the player who actually made the move.
-- Use actual evaluated moves: if the played move is absent, request its evaluation
-  with the same rules, komi, perspective and search budget. Missing evidence remains
-  unavailable; it is never estimated from another candidate's score.
-- Only use score values in point units. Missing scores/winrates/PVs stay missing,
-  not utility-as-points, 50% defaults, candidate lists as sequences or padded passes.
-- Keep genuine PVs as structured moves belonging to their own candidate.
-- Record engine version, model identifier/hash, rules, komi, visits, perspective,
-  elapsed time and warnings without exposing local absolute paths or configuration.
-- Handle end-of-game positions, timeouts, malformed output, engine exit and cleanup.
+Scope: ARCHITECTURE §5 — asyncio process supervisor, JSON query model,
+`analyzeTurns` whole-game queries, strict response parsing (ported), BLACK-
+perspective normalisation, ownership, `terminate`-based cancellation, timeouts,
+restart, readiness and provenance, `query_key` cache with `stones_hash` index,
+SQLite schema and Alembic migrations (also tested on PostgreSQL in CI), recorded
+fixtures, benchmark tool.
 
-Gate: recorded-response tests cover both players, missing played moves, pass,
-nonfinite/missing fields, absent PV, out-of-order messages and engine failure.
-An opt-in integration test runs a small valid game against real KataGo; the result
-is not a fixed mock. Save a sanitized evidence fixture and its provenance.
+Acceptance:
 
-Use the [official analysis protocol](https://github.com/lightvector/KataGo/blob/master/docs/Analysis_Engine.md)
-to specify batching and response matching. Benchmark a short game and a typical
-200-300 move game on named hardware/model/search settings; record time and memory.
-Do not promise a fixed response time before these measurements.
+1. Ported engine tests (MIGRATION E08) pass against the async adapter.
+2. Recorded-response replay reproduces every normalised field except timing and
+   ids.
+3. Opt-in live tests: a short game and the 235-move benchmark complete with full
+   provenance; cancel mid-game terminates queries and the process stays usable;
+   killing the engine process fails pending queries cleanly and the supervisor
+   restarts it.
+4. Re-analysing the same game hits the cache for every position (0 engine
+   queries), verified by counters.
+5. Benchmarks recorded on named hardware/model/visits: wall time and peak RSS for
+   the 235-move game, cold and warm process.
+6. Migrations apply on SQLite and PostgreSQL in CI.
 
-## M3 - Select Obvious Mistakes and Write a Factual Report
+## M4 — Single-game metrics, review page, comparison and legacy removal
 
-Dependencies: M2's evaluated move evidence.
+**Goal:** the new pipeline matches and exceeds the prototype on single-game
+review; then `legacy/` is deleted.
 
-Delivered: schema 3.0 factual Chinese templates, coverage-aware partial reports,
-point-only severity, ranked top-five summary, all chronological mistake markers,
-candidate-owned PVs, visible provenance/warnings, and retired heuristic modules.
-CLI/API/frontend consumers are migrated together. See [report contract](REPORT_CONTRACT.md)
-and [M3 acceptance](M3_ACCEPTANCE.md). The [M1-M3 regression record](M1_M3_REGRESSION.md)
-covers this source update. Public deployment remains M5 work.
+Scope: ARCHITECTURE §6 — score loss (definitions per ADR-P02), winrate delta,
+ownership delta, group status changes, turning points, severity with the
+default calibration band, coverage and partial results, result schema, CLI,
+API (games, analyses, jobs with SSE progress and cancel), and a web review page
+(upload, metadata confirmation, progress, cancel, loss timeline that jumps to
+positions, mistake list, markers). First labelling session: the owner labels
+phase boundaries on a sample of their games.
 
-Implemented initial selection policy (still requires calibration):
+Comparison suite (legacy vs new, same model, config and visits):
 
-- Start with estimated point loss >= 3.0 as an obvious mistake and >= 5.0 as a
-  severe mistake. These are configurable product defaults to calibrate, not
-  established universal Go rules. M3 replaces the older 1.0/3-entry defaults.
-- Compute `loss = max(0, recommended_score - played_score)` only after scores have
-  the same moving-player perspective and comparable search context.
-- Preserve raw differences and quality warnings. A negative difference can reflect
-  search noise; do not turn it into an invented positive teaching claim.
-- Sort by unrounded loss descending, break ties by move number, display at most
-  five entries. No forced padding when fewer or no qualifying mistakes exist.
-- Express winrate changes in percentage points with an explicit player perspective.
-  Do not use winrate alone to infer a tactical cause or severe error.
+- **Noise envelope first:** run legacy twice on each corpus game and record the
+  run-to-run spread of its per-move loss and its top-mistake set. Tolerances for
+  the comparison are set from this measured spread, before seeing new results.
+- Corpus: `sample_game`, `m3_mistake`, `benchmark_pro_game` (235 moves), the
+  111-move game (`test_game_kejie`), and malformed/unsupported inputs.
+- Checks: identical accept/reject decisions for inputs legacy supports; the new
+  same-root diagnostic agrees with legacy loss within the envelope; top-mistake
+  sets overlap within the envelope; every legacy warning type has an equivalent.
 
-Work:
+Acceptance:
 
-- Keep all per-move markers separate from the top-five summary.
-- Each mistake includes move number/color, actual move, recommendation, point loss,
-  available winrate change, and genuine candidate PV when present.
-- Use short templates equivalent to "Move 83, Black: K10; recommended D4;
-  estimated loss 4.2 points." Example numbers illustrate the format, not a result.
-- Show missing-evidence, partial-result and no-obvious-mistake states explicitly.
-  Incomplete evaluation must not be described as a fully clean game.
-- Remove unsupported direction/overplay/main-battlefield/plan-break narratives from
-  the default report. Retire obsolete consumers and tests together; do not leave
-  unused teaching modules imported by production. Their source remains in Git.
-- Keep a summary of metadata, coverage, method/threshold and top mistakes; skip
-  invented phase summaries, diagnoses and broad training advice.
+1. Ported metric and report tests (MIGRATION R01–R07) pass.
+2. The comparison suite passes.
+3. "Exceeds" is demonstrated with tests: handicap/setup-stone games, a non-UTF-8
+   SGF, a multi-variation SGF, cached re-analysis, persisted results, ownership-
+   based group status facts, all of which legacy cannot do.
+4. Browser end-to-end tests cover upload, manual entry, confirmation, progress,
+   cancel, timeline jump and mistake selection on desktop and mobile widths,
+   including one run against real KataGo.
+5. Every MIGRATION item is Done or Dropped; the owner approves; `legacy/` is
+   removed in one commit; CI stays green.
 
-Gate: threshold boundaries, ordering ties, zero/fewer-than-five mistakes, both
-player perspectives and missing data are tested with fixed engine evidence.
-The report cannot name a tactical cause solely from distance, rank or move number.
-Real-engine reruns use tolerances; only fixture transformations must be exact.
+## M5 — Multi-game import and player profile
 
-## M4 - Complete the Browser Workflow
+**Goal:** answer "where am I weak?" across many games.
 
-Dependencies: M1 contracts, M2 engine lifecycle and M3 report semantics.
+Scope: bulk SGF import (folders/archives, duplicate detection by content and
+moves), player identity across names, batch analysis with priorities, phase
+and situation classifiers v1, game-level aggregation, cluster-bootstrap
+intervals, trends, comparability strata, profile API and interactive profile
+view. Second labelling session: the owner labels situation types on sampled
+positions.
 
-Delivered locally: modular browser input/review, shared replay snapshots,
-preview/confirmation, pass/undo/clear, bounded ephemeral jobs, progress,
-cancellation, refresh recovery and exact-origin configuration. See the
-[job contract](JOB_CONTRACT.md) and [acceptance evidence](M4_ACCEPTANCE.md).
+Acceptance:
 
-Work:
+1. Importing the owner's corpus (private, never committed) completes; duplicates
+   are reported.
+2. Each classifier's precision and recall against the owner's labels are
+   measured and recorded; a classifier below the owner-approved bar is shown
+   as experimental or hidden.
+3. Statistical code is tested on synthetic data with known answers (interval
+   coverage close to nominal in simulation).
+4. Profile cells below the minimum sample size show "insufficient data".
+5. The owner reviews their profile and records whether it matches their own
+   assessment (qualitative acceptance, written down).
 
-- Split the existing HTML into board/state, API, report-rendering and style units
-  as those units are tested. Keep the current UI as a reference in the archive tag.
-- Provide upload preview and metadata confirmation before analysis; provide manual
-  placement, pass, undo and clear using consistent board/rules validation.
-- Implement bounded analysis jobs outside the request/event loop. Start with one
-  application instance and an in-memory job store; do not require a database.
-- Proposed API: submit validated input -> job ID; poll status/result; cancel job.
-  States: queued, running, succeeded, failed, cancelled. Progress counts analyzed
-  positions and never pretends a partial result is complete.
-- Keep a stable input snapshot per job; ignore late responses after input changes.
-  Cancellation must release engine work and capacity. On restart, clearly mark old
-  jobs unavailable and allow resubmission. Expire stored results and raw uploads.
-- Show the concise report beside the board. Clicking a mistake shows the position
-  immediately before that move and clearly distinguishes actual/recommended points.
-- Provide loading, validation, unavailable-engine, timeout, cancellation, queue-full,
-  incomplete-analysis and empty-result states without requiring raw JSON inspection.
-- Prefer same-origin API URLs for the full app. Allow explicit HTTPS API configuration
-  for Pages if retained; configure exact allowed origins, not wildcard CORS.
+## M6 — Explanation layer
 
-Gate: browser tests actually exercise SGF upload and manual entry through the API,
-pass/undo, error recovery, selecting a mistake, move navigation and stale responses.
-Check desktop and mobile layouts. Mock tests cover failures; at least one full
-browser workflow must also run through real KataGo. The old string-presence test
-is not sufficient acceptance coverage.
+**Goal:** bilingual explanations built only from facts.
 
-## M5 - Deploy and Accept the Release
+Scope: fact extraction, template catalog keyed by facts and strength band,
+`zh-CN` and `en` locales, glossary of Go terms, explanation views. No LLM in
+this milestone.
 
-Dependencies: M4 and approved backend hosting resources.
+Acceptance:
 
-Preferred topology: one HTTPS origin serving the frontend and FastAPI, with a
-KataGo worker in the backend environment. Pages may remain a separate static preview.
-[GitHub Pages hosts static files](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages);
-it does not run this Python/KataGo service.
+1. Every template has tests with fixed fact inputs, in both languages.
+2. A checker verifies that every coordinate, number and move in rendered text
+   exists in the input facts; it runs on all fixtures in CI.
+3. The owner reviews a sample of explanations for correctness and terminology,
+   and the review is recorded; corrections become test cases.
 
-Work:
+## M7 — Training loop
 
-- Choose backend hardware and a spending limit after M2 benchmarks; get approval
-  before provisioning paid infrastructure. Do not promise that free hosting is sufficient.
-- Document binary/model/config setup, license/provenance, environment settings,
-  readiness checks, startup, resource limits, logs and rollback.
-- Keep private SGFs and player data out of normal logs and repository artifacts.
-  Use unguessable job references, limited retention and basic abuse/rate controls.
-- Verify upload limits, process cleanup, queue saturation and safe text rendering
-  before enabling public access to expensive analysis.
-- Establish a repeatable test-and-deploy process. Previous workflow pushes were
-  rejected for missing token scope; inspect permissions before choosing Actions.
-  Do not assume `main` pushes automatically update `gh-pages`.
-- Update README with verified commands, actual backend/site URLs and known limits.
+**Goal:** review → diagnose → practise → measure again.
 
-Release gate:
+Scope: exercise generation with deep re-analysis, acceptable-answer sets by
+strength band, deduplication by `stones_hash`, answer checking with on-demand
+engine evaluation, spaced-repetition scheduler (ADR-P05), review log, practice
+UI, re-measurement of linked weaknesses in later games.
 
-1. A fresh checkout can be installed and started from the documented instructions.
-2. An uploaded supported SGF and equivalent manual game both complete real analysis.
-3. A documented real-engine fixture with an obvious loss produces the expected
-   mistake region within stated numeric tolerance; recommendations are traceable.
-4. Clicking a listed mistake shows the correct position and both markers.
-5. No mock values, invented PVs or unsupported Go diagnoses enter the release report.
-6. Missing engine, invalid input, full queue and cancellation behave as documented.
-7. Another device on a different network completes a review without relying on the
-   developer's localhost. Record the deployed commit, engine/model, test inputs,
-   benchmark results and known limitations before declaring v1 complete.
+Acceptance:
 
-## Execution Rules
+1. Exercises are generated from the owner's games, and every acceptable answer
+   is traceable to stored engine evidence.
+2. A non-precomputed answer is never graded without an engine evaluation.
+3. Scheduler tests reproduce the chosen algorithm's reference examples.
+4. The owner uses the loop for an agreed period; the re-measurement report shows
+   before/after values with intervals and states the limits of the inference.
 
-Work in milestone order; use small reviewed changes rather than one rewrite.
-Each milestone closes with its acceptance evidence and an updated status document.
-Keep the prototype available while replacements are built, but remove retired
-runtime paths when their consumers migrate. Do not retain experiments as silent
-fallbacks in the final default flow.
+## M8 — Design polish, deployment and first public release
 
-Next functional work: continue polishing the local candidate and calibrating report
-quality. M5 becomes the first public usable release only when backend hosting and
-different-network acceptance are intentionally resumed.
+**Goal:** a refined, deployable product.
+
+Scope: full visual design pass (typography, spacing, palette, motion), strength
+calibration settings UI, accessibility, privacy and retention policy, public
+deployment (container, hosting chosen with a spending limit approved by the
+owner), security controls from the prototype's public mode, release process,
+README with verified facts only.
+
+Acceptance:
+
+1. A fresh checkout builds and deploys with the documented process.
+2. A user on another device and network completes import → profile → practice.
+3. Security checks (upload limits, rate limits, safe rendering, no private data
+   in logs) pass.
+4. Release notes list measured performance, known limitations and the exact
+   engine/model used.

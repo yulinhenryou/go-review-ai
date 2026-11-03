@@ -1,29 +1,50 @@
-__pycache__/
-*.pyc
-.venv/
-.env
-.local/
+# OS and editors
 .DS_Store
-.Rhistory
-.pytest_cache/
-analysis_logs/
+*.swp
+.idea/
+.vscode/
 
-# Local configuration and private runtime data
+# Local configuration and secrets
+.env
 .env.*
 !.env.example
+
+# Private runtime data and model weights (never commit)
 /uploads/
 /reports/
 /models/
 *.bin.gz
 *.onnx
 *.katago.log
+*.sqlite
+*.sqlite3
+*.db
 
-# Python build, test and tooling output
+# Rust
+/target/
+crates/*/fuzz/target/
+crates/*/fuzz/corpus/
+crates/*/fuzz/artifacts/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
 *.egg-info/
-/build/
-/dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 .coverage.*
 htmlcov/
-.ruff_cache/
-.mypy_cache/
+/python/dist/
+
+# Web
+node_modules/
+/web/dist/
+/web/coverage/
+/web/test-results/
+/web/playwright-report/
+crates/weiqi-wasm/pkg/
+
+# The prototype keeps its own ignore rules in legacy/.gitignore
