@@ -352,6 +352,11 @@ impl Game {
         self.to_play
     }
 
+    /// Stones removed so far.
+    pub fn captures(&self) -> Captures {
+        self.captures
+    }
+
     /// Passes since the last placement.
     pub fn consecutive_passes(&self) -> u32 {
         self.passes
