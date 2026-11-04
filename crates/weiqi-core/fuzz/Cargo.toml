@@ -1,0 +1,46 @@
+[package]
+name = "weiqi-core-fuzz"
+version = "0.0.0"
+description = "cargo-fuzz targets for weiqi-core (nightly toolchain only)."
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+weiqi-core = { path = ".." }
+
+# Its own workspace, so the stable workspace never builds it.
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "decode"
+path = "fuzz_targets/decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "round_trip"
+path = "fuzz_targets/round_trip.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "game"
+path = "fuzz_targets/game.rs"
+test = false
+doc = false
+bench = false

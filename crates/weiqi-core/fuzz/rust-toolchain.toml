@@ -1,0 +1,5 @@
+# libFuzzer instrumentation needs nightly; the rest of the workspace stays on
+# the pinned stable toolchain in the root rust-toolchain.toml.
+[toolchain]
+channel = "nightly"
+profile = "minimal"

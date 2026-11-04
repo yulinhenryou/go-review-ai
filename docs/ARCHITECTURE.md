@@ -45,12 +45,14 @@ Cargo.toml                 Rust workspace (members: crates/*)
 crates/
   weiqi-core/              Pure Rust library, no I/O, #![forbid(unsafe_code)]
     src/coord.rs           Points, board geometry, SGF/GTP coordinate conversion
-    src/rules/             Board, chains, captures, ko, superko, rule sets
+    src/board.rs           Board, chains, captures, suicide, simple-ko point
+    src/rules.rs           Rule components, named presets, komi
+    src/game.rs            Turn order, superko, setup stones, replay modes, undo
     src/zobrist.rs         Position hashing
-    src/scoring.rs         Area and territory scoring
-    src/sgf/               Lexer, parser, arena tree, encodings, writer, game extraction
+    src/scoring.rs         Area and territory scoring, SGF results
+    src/sgf/               Decoding, parser, arena tree, writer, game extraction
     tests/  benches/       Integration tests, proptest, criterion benchmarks
-    fuzz/                  cargo-fuzz targets (nightly toolchain only)
+    fuzz/                  cargo-fuzz targets (own workspace, nightly toolchain)
   weiqi-py/                PyO3 bindings, built by maturin → Python module `weiqi_core`
   weiqi-wasm/              wasm-bindgen bindings → JS/TS package for web/
 python/
@@ -99,19 +101,21 @@ call it through bindings and never re-implement legality.
 
 Rust note for the owner: the board owns its `Vec`s; functions borrow it
 (`&Board` to read, `&mut Board` to play). No lifetimes appear in the public API
-because callers receive owned values (`Vec<Point>`, `MoveResult`), not
+because callers receive owned values (`Vec<Point>`, `MoveEffect`), not
 references into the board.
 
 ### 3.2 Moves, captures and ko
 
-`play(color, point)` returns `Result<MoveEffect, IllegalMove>`:
+`Game::play_as(color, move, mode)` (and `play(move)` for the player to move)
+returns `Result<MoveEffect, IllegalMove>`:
 
 1. Reject occupied points.
 2. Place the stone; remove adjacent opponent chains with zero liberties
    (captures).
 3. If the new chain has zero liberties: suicide. Illegal unless the rule set
-   allows it (KataGo's Tromp-Taylor / NZ style), in which case the own chain is
-   removed.
+   allows multi-stone suicide (KataGo's `multiStoneSuicideLegal`, as in
+   Tromp-Taylor and New Zealand), in which case the own chain is removed. A
+   lone stone with no liberties is always illegal, as in KataGo.
 4. Ko: simple ko is the point recorded when exactly one stone was captured by a
    single stone that ends with one liberty. Superko is checked with the
    position-hash history:
@@ -133,15 +137,17 @@ Validation has two modes:
 A `Rules` value mirrors KataGo's rule components so a query maps 1:1 onto the
 engine: ko rule (`Simple`, `Positional`, `Situational`), scoring (`Area`,
 `Territory`), suicide allowed, tax rule, button, white handicap bonus. Named
-presets (`chinese`, `japanese`, `korean`, `aga`, `new_zealand`,
-`tromp_taylor`) are constructors. Handicap and setup stones (`AB`/`AW`/`AE`,
-`PL`) are part of the initial position, not moves.
+presets (`japanese`, `korean`, `chinese`, `chinese_superko`, `aga`,
+`aga_button`, `new_zealand`, `tromp_taylor`, `stone_scoring`) are constructors
+matching KataGo's rule names. `Komi` accepts finite half-point values in
+−150…150. Handicap and setup stones (`AB`/`AW`/`AE`, `PL`) are part of the
+initial position (`Setup`, `Game::with_setup`), not moves.
 
 ### 3.4 Zobrist hashing
 
-Algorithm: assign a random key to each `(point, color)` and one to "white to
-move". A position's hash is the XOR of the keys of all stones (plus the side
-key when white is to move). Because XOR is its own inverse, placing or removing
+Algorithm: assign a random key to each `(x, y, color)` on a 25×25 grid, one to
+"white to move", one per simple-ko point, and one per width and height. A
+position's hash is the XOR of the keys that apply to it. Because XOR is its own inverse, placing or removing
 a stone updates the hash in O(1): `h ^= key[p][c]`.
 
 - **Width: 128 bits** (proposal, ADR-P03). Hashes are stored in the database
@@ -154,12 +160,14 @@ a stone updates the hash in O(1): `h ^= key[p][c]`.
   changing keys requires a data migration.
 - **Across the JS boundary** hashes are lowercase hex strings, because a
   JavaScript `number` cannot hold 64 or 128 bits exactly.
-- Two hashes are exposed: `stones_hash` (arrangement only, for positional
-  superko and cross-game lookup) and `situation_hash` (plus side to move and
-  simple-ko point, for exact legality state).
+- Two hashes are exposed: `stones_hash` (arrangement and board size, for
+  positional superko and cross-game lookup) and `situation_hash` (plus side to
+  move and simple-ko point, for exact legality state).
 
-Properties tested with proptest: incremental hash equals hash recomputed from
-scratch after any random legal sequence; undo restores the previous hash.
+Properties tested with proptest (`tests/properties.rs`) and fuzzed (`game`
+target): after every random move sequence, in both replay modes, the
+incremental hash equals the hash recomputed from scratch, rejected moves change
+nothing, and undo restores every earlier position.
 
 ### 3.5 Scoring
 
@@ -169,44 +177,73 @@ scratch after any random legal sequence; undo restores the previous hash.
   prisoners; empty points in seki are not territory; komi applied.
 
 Dead stones and seki cannot be decided by rules alone. The scorer takes a
-`LifeAndDeath` input (dead chains, seki regions). In the product this input is
-proposed from KataGo ownership and confirmed or edited by the user; the
-scorer itself stays deterministic. Results are emitted in SGF `RE` format.
+`LifeAndDeath` input (dead chains and seki chains, each named by any one of
+their stones). In the product this input is proposed from KataGo ownership and
+confirmed or edited by the user; the scorer itself stays deterministic.
+
+The entry point is `score(&Board, Captures, &LifeAndDeath, &Terms)`, where
+`Terms` holds rules, komi, handicap and the button holder; `Game::score(&marks)`
+fills these from a game. The board and captures are passed instead of a
+`Position` so that the scorer does not depend on the game layer. Following
+KataGo, White receives komi plus the handicap bonus, the button gives half a
+point to the first player to pass, and under `TaxRule::Seki` empty points
+bordering a seki chain belong to nobody. `TaxRule::All` is reported as
+unsupported (`unsupported_rule`) rather than approximated. Results are
+emitted in SGF `RE` format (`GameResult`).
 
 ### 3.6 SGF
 
-Pipeline: **bytes → decode → lex → parse to arena tree → extract game**.
+Pipeline: **bytes → decode → parse to arena tree → extract game**.
 
-- **Decoding.** Honour `CA`; otherwise try UTF-8, then fall back through common
-  legacy encodings (GB18030/GBK, Big5, Shift_JIS, EUC-KR) via `encoding_rs`,
-  choosing the first strict decode and reporting the choice as a warning.
-  Chinese server exports in GBK are a known real-world case.
-- **Lexer/parser** is iterative (explicit stack, no recursion), so deeply nested
-  variation trees cannot overflow the stack. Errors carry byte offsets.
+- **Decoding** comes first, because GBK, Big5 and Shift_JIS trail bytes can
+  equal `]` or `\`. Order: a BOM; else a declared `CA` (a Latin-1 declaration
+  on non-ASCII bytes that are valid UTF-8 is overridden to UTF-8, with a
+  warning); else the first strict decode among UTF-8, GB18030 (a superset of
+  GBK), Big5, Shift_JIS and EUC-KR via `encoding_rs`; else lossy UTF-8. Every
+  fallback is reported as a warning. Chinese server exports in GBK are a known
+  real-world case.
+- **Parser** is a single iterative pass (explicit stack, no recursion, no
+  separate lexer), so deeply nested variation trees cannot overflow the stack.
+  Errors and warnings carry byte offsets.
 - **Arena tree:** `Vec<Node>` with `NodeId(u32)` parent/child indices. This avoids
   `Rc<RefCell<…>>` and borrow-checker friction, serialises trivially and is
-  cache-friendly. Properties are kept raw (`Vec<(Ident, Vec<RawValue>)>`), and
+  cache-friendly. Properties are kept raw (`Property { ident, values:
+  Vec<Value> }`, each value the text between the brackets with its escapes), and
   typed accessors interpret them, so unknown properties round-trip unchanged.
 - **Leniency** (each produces a warning, never silent): missing `FF`/`GM`,
   lowercase-prefixed FF[1–3] identifiers, `tt` as pass on boards ≤ 19, compressed
   point lists, whitespace and junk outside the tree, collections of multiple
   games (returned as a list), comments and markup kept.
-- **Strictness:** limits on bytes, node count and depth; malformed coordinates
-  or contradictory properties are errors with stable codes.
-- **Writer:** canonical serialisation; property `parse(write(t)) == t` is a
-  proptest. Fuzz targets: decode, parse, extract, and parse→write→parse.
+- **Strictness:** limits on bytes, node count and depth (defaults 16 MiB,
+  1,000,000 nodes, depth 10,000; `ParseLimits`); malformed coordinates or
+  contradictory properties are errors with stable codes.
+- **Extraction** (`extract(&SgfTree) -> GameRecord`) reads the main line only.
+  Missing or invalid rules and komi become `None` plus a warning, never a
+  default, so they must be confirmed before analysis (G04).
+  `GameRecord::replay(rules, komi)` replays it in `Record` mode.
+- **Writer:** canonical serialisation; `parse(write(t)) == t` is a proptest.
+  Fuzz targets: `decode`; `parse` (parse, extract and replay); `round_trip`
+  (parse, write, parse).
 
 ### 3.7 Public API shape
 
 A small, owned API that binds cleanly to both Python and JS:
 
 ```text
-Game::new(size, rules) / Game::from_sgf(bytes) -> Result<Vec<GameRecord>, SgfError>
-game.play(mv) -> Result<MoveEffect, IllegalMove>   game.undo()
-game.position() -> Position { stones, to_play, ko, captures, stones_hash, situation_hash }
-game.replay(mode) -> Replay { positions, warnings }
-score(&Position, &LifeAndDeath, &Rules) -> Score
+Game::new(size, rules, komi)   Game::with_setup(size, rules, komi, setup)
+game.play(mv) / game.play_as(color, mv, mode) -> Result<MoveEffect, IllegalMove>
+game.undo() -> Option<(Color, Move)>
+game.position() -> Position { size, cells, to_play, ko_ban, captures,
+                              consecutive_passes, stones_hash, situation_hash }
+game.replay(&moves, mode) -> Result<Replay { game, positions, warnings }, ReplayError>
+game.score(&marks) / score(&board, captures, &marks, &terms) -> Result<Score, ScoreError>
+sgf::parse(bytes) -> Result<Collection { games: Vec<SgfTree>, encoding, warnings }, SgfError>
+sgf::extract(&tree) -> Result<GameRecord, ExtractError>   tree.to_sgf()
+record.replay(rules, komi) -> Result<Replay, RecordReplayError>
 ```
+
+As built in M1. There is no `Game::from_sgf`: parsing, extraction and replay
+are separate steps, so that rules and komi can be confirmed between them.
 
 ## 4. Bindings
 

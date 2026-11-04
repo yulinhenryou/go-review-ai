@@ -52,9 +52,10 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 
 | Path | Contents | State |
 | --- | --- | --- |
-| `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Skeleton; rules arrive in M1 |
+| `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1; no bindings yet |
 | `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
 | `web/` | TypeScript + React + Vite app | Placeholder page |
+| `testdata/sgf/` | Public SGF test corpus with provenance | — |
 | `config/project.json` | The single source of the provisional project name | — |
 | `legacy/` | The Go Review AI prototype | Runs and is tested in CI |
 | `docs/` | Vision, architecture, roadmap, decisions, migration, acceptance records | — |
@@ -73,6 +74,14 @@ Node.js 22.12 or later.
 cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
 ```
 
+Benchmarks: `cargo bench -p weiqi-core`. Fuzzing needs the nightly toolchain
+and [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz); run it from
+`crates/weiqi-core/fuzz/`, which selects nightly itself:
+
+```bash
+cd crates/weiqi-core/fuzz && cargo fuzz run parse -- -max_total_time=60
+```
+
 ```bash
 cd python && uv sync && uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest
 ```
@@ -87,7 +96,8 @@ KataGo binaries and network weights are not part of this repository.
 ## Current status
 
 M0 (archive, legacy move, monorepo skeleton, CI) is recorded in
-[docs/acceptance/M0.md](docs/acceptance/M0.md). Progress continues milestone by
+[docs/acceptance/M0.md](docs/acceptance/M0.md). M1 (Rust rules engine, scoring
+and SGF parser) is recorded in [docs/acceptance/M1.md](docs/acceptance/M1.md). Progress continues milestone by
 milestone in the [roadmap](docs/ROADMAP.md); this README states only facts
 that have been tested.
 

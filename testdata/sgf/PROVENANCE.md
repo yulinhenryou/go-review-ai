@@ -18,7 +18,7 @@ Ke Jie (Black) vs Wang Zejin (White), 2025-11-27, round 11 of the 27th China
 Weiqi League (per its `GN`), Chinese rules, komi 7.5, `RE[黑胜白]`. It has 1212
 nodes: a 111-move main line and 110 commentary variations. Its `GN` says
 "绝艺讲解" (Fine Art commentary). The owner approved publishing Ke Jie's games
-for this project. The upstream source was not recorded when the prototype
+for this project on 2026-11-03 (MIGRATION D06). The upstream source was not recorded when the prototype
 added the file, so it is unknown.
 
 The file shows two real-world irregularities: `GN` is double-encoded (UTF-8

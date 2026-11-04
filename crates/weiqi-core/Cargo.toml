@@ -13,3 +13,15 @@ workspace = true
 [dependencies]
 encoding_rs = "0.8.44"
 thiserror = "2.0.21"
+
+[dev-dependencies]
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+proptest = { version = "1.12.0", default-features = false, features = ["std"] }
+
+[[bench]]
+name = "replay"
+harness = false
+
+[[bench]]
+name = "sgf"
+harness = false

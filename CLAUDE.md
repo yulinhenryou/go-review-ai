@@ -221,9 +221,11 @@ docs/                English public documentation
 - Owner's Mac (2026-11-03): Xcode license accepted, so git and the Rust linker
   work. uv and rustup are installed via Homebrew; rustup is keg-only, so shells
   need `export PATH=/opt/homebrew/opt/rustup/bin:$PATH` (in the owner's
-  `~/.zshrc`; non-interactive agent shells prefix commands with it). maturin,
-  wasm-bindgen tooling, the nightly toolchain and Playwright are installed in
-  the milestone that first needs them.
+  `~/.zshrc`; non-interactive agent shells prefix commands with it). The
+  nightly toolchain (minimal profile) and `cargo-fuzz` 0.13.2 were installed in
+  M1 (2026-11-04); fuzzing runs from `crates/weiqi-core/fuzz/`, whose own
+  `rust-toolchain.toml` selects nightly. maturin, wasm-bindgen tooling and
+  Playwright are installed in the milestone that first needs them.
 - `legacy/` uses its own `legacy/.venv` (Python 3.14, created with uv from
   `legacy/constraints.txt`); run its commands from inside `legacy/`.
 - Real KataGo 1.16.4 and three models are installed under `/opt/homebrew`
