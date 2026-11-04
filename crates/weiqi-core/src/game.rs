@@ -145,6 +145,17 @@ pub enum SetupError {
     NoLiberties(Point),
 }
 
+impl SetupError {
+    /// Stable machine-readable code.
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::OffBoard(_) => "setup_off_board",
+            Self::Conflict(_) => "setup_conflict",
+            Self::NoLiberties(_) => "setup_no_liberties",
+        }
+    }
+}
+
 /// An owned snapshot of a game position.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Position {

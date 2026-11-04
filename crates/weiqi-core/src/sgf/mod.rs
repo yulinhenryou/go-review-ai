@@ -1,7 +1,8 @@
 //! SGF (FF\[4\]) reading and writing.
 //!
 //! Pipeline: bytes → [`decode`] to UTF-8 → [`parse_text`] into one arena
-//! [`SgfTree`] per game → [`SgfTree::to_sgf`]. Decoding comes first because
+//! [`SgfTree`] per game → [`extract`] a [`GameRecord`]; [`SgfTree::to_sgf`]
+//! writes a tree back. Decoding comes first because
 //! in GBK, Big5 and Shift_JIS the second byte of a character can be `\` or
 //! `]`; after decoding, every SGF delimiter is a single ASCII byte that never
 //! occurs inside a multi-byte UTF-8 character.
@@ -11,11 +12,16 @@
 //! tolerated irregularity yields an [`SgfWarning`] with a stable code.
 
 mod decode;
+mod extract;
 mod parse;
 mod tree;
 mod write;
 
 pub use decode::{Decoded, decode};
+pub use extract::{
+    ExtractError, ExtractErrorKind, ExtractWarning, ExtractWarningKind, GameInfo, GameRecord,
+    RecordReplayError, extract,
+};
 pub use parse::{ParseLimits, parse, parse_text, parse_with};
 pub use tree::{InvalidProperty, InvalidValue, Node, NodeId, Property, SgfTree, Value};
 pub use write::write_collection;

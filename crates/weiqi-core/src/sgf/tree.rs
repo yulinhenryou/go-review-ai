@@ -213,6 +213,11 @@ impl SgfTree {
         self.nodes.get(id.index())
     }
 
+    /// Every node; a node's position is its [`NodeId::index`].
+    pub fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+
     /// Number of nodes.
     pub fn len(&self) -> usize {
         self.nodes.len()
