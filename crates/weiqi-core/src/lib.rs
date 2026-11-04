@@ -8,6 +8,7 @@
 //! - [`rules`]: KataGo-compatible rule sets and komi.
 //! - [`zobrist`]: deterministic 128-bit position hashes.
 //! - [`game`]: turns, ko and superko, setup stones, undo and replay.
+//! - [`sgf`]: SGF decoding, parsing into arena trees, and writing.
 //! - [`scoring`]: area and territory counts with explicit dead stones and
 //!   seki, and SGF `RE` results.
 
@@ -16,6 +17,7 @@ pub mod coord;
 pub mod game;
 pub mod rules;
 pub mod scoring;
+pub mod sgf;
 pub mod zobrist;
 
 pub use board::{Board, Cell, Chain, Color, IllegalPlacement, Placement, SuicideRule};
