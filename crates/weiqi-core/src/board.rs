@@ -71,6 +71,15 @@ pub enum SuicideRule {
     MultiStoneAllowed,
 }
 
+/// How [`Board::place_with`] treats a placement whose own chain has no liberties.
+#[derive(Clone, Copy, Debug)]
+enum SuicidePolicy {
+    /// Apply the game's rule.
+    Rule(SuicideRule),
+    /// Remove the chain whatever its size, as a recorded game demands.
+    AsRecorded,
+}
+
 /// Why a stone cannot be placed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, thiserror::Error)]
 pub enum IllegalPlacement {
@@ -90,7 +99,7 @@ pub enum IllegalPlacement {
 pub struct Placement {
     /// Opponent stones removed, in the order they were found.
     pub captured: Vec<Point>,
-    /// Own stones removed by an allowed multi-stone suicide, the new stone included.
+    /// Own stones removed by suicide, the new stone included.
     pub suicided: Vec<Point>,
     /// The point where an immediate recapture would repeat the position (simple ko).
     pub ko_point: Option<Point>,
@@ -391,6 +400,39 @@ impl Board {
         point: Point,
         suicide: SuicideRule,
     ) -> Result<Placement, IllegalPlacement> {
+        self.place_with(color, point, SuicidePolicy::Rule(suicide))
+    }
+
+    /// Places a stone as a game record wrote it: if the own chain has no
+    /// liberties it is removed, whatever its size. Only off-board and occupied
+    /// points fail.
+    pub(crate) fn place_as_recorded(
+        &mut self,
+        color: Color,
+        point: Point,
+    ) -> Result<Placement, IllegalPlacement> {
+        self.place_with(color, point, SuicidePolicy::AsRecorded)
+    }
+
+    /// Undoes a successful [`Board::place`] of `color` on `point`.
+    pub(crate) fn revert(&mut self, color: Color, point: Point, placement: &Placement) {
+        let opponent = Cell::from(color.opponent());
+        for &stone in &placement.captured {
+            self.cells[stone.index()] = opponent;
+        }
+        for &stone in &placement.suicided {
+            self.cells[stone.index()] = color.into();
+        }
+        // The point was empty before; this also covers a suicided new stone.
+        self.cells[point.index()] = Cell::Empty;
+    }
+
+    fn place_with(
+        &mut self,
+        color: Color,
+        point: Point,
+        policy: SuicidePolicy,
+    ) -> Result<Placement, IllegalPlacement> {
         match self.get(point) {
             None => return Err(IllegalPlacement::OffBoard),
             Some(Cell::Empty) => {}
@@ -432,7 +474,12 @@ impl Board {
             // A capture always frees a liberty, so nothing was captured here
             // and undoing the placement restores the board exactly.
             debug_assert!(placement.captured.is_empty());
-            if chain.len() == 1 || suicide == SuicideRule::Forbidden {
+            let allowed = match policy {
+                SuicidePolicy::Rule(SuicideRule::Forbidden) => false,
+                SuicidePolicy::Rule(SuicideRule::MultiStoneAllowed) => chain.len() > 1,
+                SuicidePolicy::AsRecorded => true,
+            };
+            if !allowed {
                 self.cells[point.index()] = Cell::Empty;
                 return Err(IllegalPlacement::Suicide);
             }
