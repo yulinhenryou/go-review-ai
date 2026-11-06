@@ -7,8 +7,9 @@ name.*
 | Milestone | State |
 | --- | --- |
 | M0 Archive, legacy move, skeleton, CI | Done — [acceptance](acceptance/M0.md) |
-| M1 Rust rules engine and SGF parser | Next |
-| M2–M8 | Not started |
+| M1 Rust rules engine and SGF parser | Done — [acceptance](acceptance/M1.md) |
+| M2 Python bindings, WASM build and web shell | Next |
+| M3–M8 | Not started |
 
 ## Rules for every milestone
 
