@@ -24,6 +24,29 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
 
+  # A short, time-boxed run on every push; longer runs are local and recorded
+  # in docs/acceptance. A crash fails the job and libFuzzer prints the input.
+  fuzz:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/weiqi-core/fuzz
+    steps:
+      - uses: actions/checkout@v7
+      # fuzz/rust-toolchain.toml selects nightly, which libFuzzer needs.
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/weiqi-core/fuzz
+      - run: cargo install cargo-fuzz@0.13.2 --locked
+      - run: cargo fuzz build
+      - name: Fuzz each target for 30 seconds
+        run: |
+          for target in decode parse round_trip game; do
+            mkdir -p "corpus/$target"
+            cargo fuzz run "$target" "corpus/$target" ../../../testdata/sgf -- -max_total_time=30
+          done
+
   python:
     runs-on: ubuntu-latest
     defaults:

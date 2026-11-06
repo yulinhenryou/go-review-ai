@@ -84,16 +84,16 @@ Source paths are pre-M0 locations. Targets use the layout in ARCHITECTURE §2.
 
 | ID | Source | Target | Action | Notes | Status |
 | --- | --- | --- | --- | --- | --- |
-| G01 | `src/game.py` `validate_game` | `crates/weiqi-core/src/rules/` | Rewrite | Turn order, occupied point, simple ko, suicide, two passes; extend with superko, rule sets, setup stones | Planned |
-| G02 | `tests/test_game_input.py` (ko and recapture, single/multi-stone suicide, pass handling, coordinate validation, komi validation, immutability) | `crates/weiqi-core/tests/`, Python binding tests | Port | The highest-value test cases in the prototype | Planned |
-| G03 | `src/game.py` `validate_komi` (finite, half-point steps, −150…150) | Rust `Rules` + API models | Port | Keep the exact boundary tests | Planned |
-| G04 | `GameRecord.missing_fields` and `require_metadata`: rules/komi must be confirmed before analysis | API + web confirm flow | Port | Inherited decision ADR-010 | Planned |
+| G01 | `src/game.py` `validate_game` | `crates/weiqi-core/src/{board,rules,game}.rs` | Rewrite | Turn order, occupied point, simple ko, suicide, two passes; extend with superko, rule sets, setup stones | Done (M1, 59b995a, 863ac83) |
+| G02 | `tests/test_game_input.py` (ko and recapture, single/multi-stone suicide, pass handling, coordinate validation, komi validation, immutability) | `crates/weiqi-core/tests/`, Python binding tests | Port | The highest-value test cases in the prototype | In progress (Rust tests done in M1, 59b995a, 863ac83, a009265; Python binding tests in M2) |
+| G03 | `src/game.py` `validate_komi` (finite, half-point steps, −150…150) | Rust `Rules` + API models | Port | Keep the exact boundary tests | In progress (Rust `Komi` done in M1, 863ac83; API models later) |
+| G04 | `GameRecord.missing_fields` and `require_metadata`: rules/komi must be confirmed before analysis | API + web confirm flow | Port | Inherited decision ADR-010 | In progress (M1 extraction leaves unconfirmed rules and komi as `None`, a009265; API and confirm flow later) |
 | G05 | `GameRecord.record_status`: a stored result is metadata, not proof the record is complete | Game record model | Port | Small but important honesty rule | Planned |
-| G06 | Limits `MAX_SGF_BYTES` 1 MiB, `MAX_MOVES` 500, `MAX_SGF_NODES` 5000 | Core parse limits + API limits | Reference | Re-evaluate for multi-game import | Planned |
-| G07 | `src/sgf_parser.py`, `_check_properties` | `crates/weiqi-core/src/sgf/` | Rewrite | New parser supports variations, setup, handicap, encodings, collections; strictness becomes warnings with codes | Planned |
-| G08 | `tests/test_sgf_parser.py`, malformed-SGF cases in `tests/test_game_input.py` | Rust SGF tests + fuzz seed corpus | Port | Expected outcomes change where support is added (e.g. `AB`), each change listed in the PR | Planned |
+| G06 | Limits `MAX_SGF_BYTES` 1 MiB, `MAX_MOVES` 500, `MAX_SGF_NODES` 5000 | Core parse limits + API limits | Reference | Re-evaluate for multi-game import | In progress (core `ParseLimits` in M1, 23ec86b: defaults 16 MiB, 1,000,000 nodes, depth 10,000; API limits later) |
+| G07 | `src/sgf_parser.py`, `_check_properties` | `crates/weiqi-core/src/sgf/` | Rewrite | New parser supports variations, setup, handicap, encodings, collections; strictness becomes warnings with codes | Done (M1, 23ec86b, a009265) |
+| G08 | `tests/test_sgf_parser.py`, malformed-SGF cases in `tests/test_game_input.py` | Rust SGF tests + fuzz seed corpus | Port | Expected outcomes change where support is added (e.g. `AB`), each change listed in the PR | Done (M1, 23ec86b, a009265; the fuzz runs are seeded with `testdata/sgf/`) |
 | G09 | `sgfmill` dependency | — | Drop | Removed with `legacy/` | Planned |
-| G10 | `src/engine_protocol.py` `sgf_to_gtp` / `gtp_to_sgf` (column I skipped) and `tests/test_katago_client.py::test_coordinate_mapping` | `weiqi-core/src/coord.rs` | Port | Single coordinate authority for all languages | Planned |
+| G10 | `src/engine_protocol.py` `sgf_to_gtp` / `gtp_to_sgf` (column I skipped) and `tests/test_katago_client.py::test_coordinate_mapping` | `weiqi-core/src/coord.rs` | Port | Single coordinate authority for all languages | Done (M1, 59b995a) |
 
 ### 4.2 Engine integration
 
@@ -163,8 +163,8 @@ Source paths are pre-M0 locations. Targets use the layout in ARCHITECTURE §2.
 | D02 | `deploy/fly.toml`, `scripts/deploy_fly.sh`, `scripts/*acceptance*` | M8 | Reference | — | Planned |
 | D03 | `licenses/KATAGO_NETWORK_LICENSE.txt` | root `licenses/` | Keep | — | Done (M0, root copy kept; legacy keeps its own) |
 | D04 | `samples/sample_game.sgf`, `samples/m3_mistake.sgf` (synthetic) | `testdata/sgf/` | Keep | Copy with provenance | Planned |
-| D05 | `samples/benchmark_pro_game.sgf` (235 moves, from Sabaki's public test fixture, normalised) | `testdata/sgf/` | Keep | Provenance in `samples/README.md` is carried over | Planned |
-| D06 | `samples/test_game_kejie.sgf` (111-move main line, 柯洁 vs 王泽锦, with variations; original source not recorded) | `testdata/sgf/` | Keep | Owner approved public use on 2026-11-03; it is the real game the prototype was demonstrated on and a comparison-suite input | Planned |
+| D05 | `samples/benchmark_pro_game.sgf` (235 moves, from Sabaki's public test fixture, normalised) | `testdata/sgf/` | Keep | Provenance in `samples/README.md` is carried over | Done (M1, a009265, as `testdata/sgf/maruyama-ito-1976.sgf`) |
+| D06 | `samples/test_game_kejie.sgf` (111-move main line, 柯洁 vs 王泽锦, with variations; original source not recorded) | `testdata/sgf/` | Keep | Owner approved public use on 2026-11-03; it is the real game the prototype was demonstrated on and a comparison-suite input | Done (M1, a009265, as `testdata/sgf/kejie-2025-11-27.sgf`) |
 | D07 | `tests/fixtures/m4-*.sgf` | `testdata/sgf/` | Keep | — | Planned |
 | D08 | `archive/legacy-reports/` | `legacy/archive/` | Keep (moved) | Deleted with `legacy/`, preserved in tags | Done (M0) |
 | D09 | `docs/*.md`, `docs/evidence/` (prototype milestones, contracts, audits) | `legacy/docs/` | Keep (moved) | Decisions summarised in `docs/DECISIONS.md` | Done (M0) |
