@@ -85,7 +85,7 @@ Source paths are pre-M0 locations. Targets use the layout in ARCHITECTURE §2.
 | ID | Source | Target | Action | Notes | Status |
 | --- | --- | --- | --- | --- | --- |
 | G01 | `src/game.py` `validate_game` | `crates/weiqi-core/src/{board,rules,game}.rs` | Rewrite | Turn order, occupied point, simple ko, suicide, two passes; extend with superko, rule sets, setup stones | Done (M1, 59b995a, 863ac83) |
-| G02 | `tests/test_game_input.py` (ko and recapture, single/multi-stone suicide, pass handling, coordinate validation, komi validation, immutability) | `crates/weiqi-core/tests/`, Python binding tests | Port | The highest-value test cases in the prototype | In progress (Rust tests done in M1, 59b995a, 863ac83, a009265; Python binding tests in M2) |
+| G02 | `tests/test_game_input.py` (ko and recapture, single/multi-stone suicide, pass handling, coordinate validation, komi validation, immutability) | `crates/weiqi-core/tests/`, Python binding tests | Port | The highest-value test cases in the prototype | Done (Rust tests in M1: 59b995a, 863ac83, a009265; Python binding tests in M2: daa0d4f) |
 | G03 | `src/game.py` `validate_komi` (finite, half-point steps, −150…150) | Rust `Rules` + API models | Port | Keep the exact boundary tests | In progress (Rust `Komi` done in M1, 863ac83; API models later) |
 | G04 | `GameRecord.missing_fields` and `require_metadata`: rules/komi must be confirmed before analysis | API + web confirm flow | Port | Inherited decision ADR-010 | In progress (M1 extraction leaves unconfirmed rules and komi as `None`, a009265; API and confirm flow later) |
 | G05 | `GameRecord.record_status`: a stored result is metadata, not proof the record is complete | Game record model | Port | Small but important honesty rule | Planned |

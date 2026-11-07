@@ -114,7 +114,9 @@ KataGo binaries and network weights are not part of this repository.
 
 M0 (archive, legacy move, monorepo skeleton, CI) is recorded in
 [docs/acceptance/M0.md](docs/acceptance/M0.md). M1 (Rust rules engine, scoring
-and SGF parser) is recorded in [docs/acceptance/M1.md](docs/acceptance/M1.md). Progress continues milestone by
+and SGF parser) is recorded in [docs/acceptance/M1.md](docs/acceptance/M1.md). M2 (Python and WebAssembly
+bindings, a web shell for manual entry and SGF replay, browser end-to-end
+tests) is recorded in [docs/acceptance/M2.md](docs/acceptance/M2.md). Progress continues milestone by
 milestone in the [roadmap](docs/ROADMAP.md); this README states only facts
 that have been tested.
 
