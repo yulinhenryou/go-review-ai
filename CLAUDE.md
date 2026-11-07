@@ -27,9 +27,8 @@ tools such as KaTrain. Fupan instead aims at four pillars (details in
 Non-goals: no playing engine, no neural-network training, no competition with
 Sabaki or KaTrain on board editing.
 
-**Current phase (2026-11-07): M0 and M1 merged to `main`; M2 (Python
-bindings, WASM build and web shell) complete on branch
-`rebuild/m2-bindings-web`, acceptance recorded, awaiting review and merge.**
+**Current phase (2026-11-07): M0, M1 and M2 merged to `main`; M3 (KataGo
+adapter, cache and storage foundation) is next.**
 The plan is in [docs/ROADMAP.md](docs/ROADMAP.md),
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/MIGRATION.md](docs/MIGRATION.md)
 and [docs/DECISIONS.md](docs/DECISIONS.md); acceptance records live in

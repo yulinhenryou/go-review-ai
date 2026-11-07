@@ -8,8 +8,9 @@ name.*
 | --- | --- |
 | M0 Archive, legacy move, skeleton, CI | Done — [acceptance](acceptance/M0.md) |
 | M1 Rust rules engine and SGF parser | Done — [acceptance](acceptance/M1.md) |
-| M2 Python bindings, WASM build and web shell | Acceptance recorded, in review — [acceptance](acceptance/M2.md) |
-| M3–M8 | Not started |
+| M2 Python bindings, WASM build and web shell | Done — [acceptance](acceptance/M2.md) |
+| M3 KataGo adapter, cache and storage foundation | Next |
+| M4–M8 | Not started |
 
 ## Rules for every milestone
 

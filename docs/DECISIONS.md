@@ -275,8 +275,8 @@ not edited after acceptance except for status.
   `7447f54`, before the prototype's own v1 milestones) unchanged.
 
 ### ADR-P15 Python binding shape *(M2)*
-- **Status:** Proposed 2026-11-07, built in M2 step 2; accepted when the owner
-  approves M2.
+- **Status:** Accepted 2026-11-07: built in M2 (`840090b`), which the owner
+  approved and merged on 2026-11-07.
 - **Decision:** `weiqi-py` uses PyO3 0.30.1 with the `abi3-py314` stable ABI
   (one wheel per platform for Python 3.14 and later) and is packaged by maturin
   as the brand-free distribution `weiqi-core`. `python/` depends on it as a uv
@@ -292,8 +292,8 @@ not edited after acceptance except for status.
   exposed when the engine adapter needs them (M3).
 
 ### ADR-P16 WASM binding shape *(M2)*
-- **Status:** Proposed 2026-11-07, built in M2 step 3; accepted when the owner
-  approves M2.
+- **Status:** Accepted 2026-11-07: built in M2 (`5d79537`), which the owner
+  approved and merged on 2026-11-07.
 - **Decision:** `weiqi-wasm` uses wasm-bindgen 0.2.130 (pinned with `=`, since
   the CLI that generates the JS glue must match it) and the `wasm-bindgen` CLI
   directly with `--target web`, not wasm-pack, so the build is one cargo
