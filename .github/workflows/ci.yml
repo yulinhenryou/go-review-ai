@@ -40,11 +40,15 @@ jobs:
           workspaces: crates/weiqi-core/fuzz
       - run: cargo install cargo-fuzz@0.13.2 --locked
       - run: cargo fuzz build
+      # The SGF targets start from the public corpus. `game` reads bytes as
+      # moves, so SGF seeds only make its inputs long and slow; it starts empty.
       - name: Fuzz each target for 30 seconds
         run: |
           for target in decode parse round_trip game; do
             mkdir -p "corpus/$target"
-            cargo fuzz run "$target" "corpus/$target" ../../../testdata/sgf -- -max_total_time=30
+            seeds=../../../testdata/sgf
+            if [ "$target" = game ]; then seeds=; fi
+            cargo fuzz run "$target" "corpus/$target" $seeds -- -max_total_time=30
           done
 
   python:
