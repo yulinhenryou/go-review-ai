@@ -96,10 +96,12 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run wasm
-      - name: WASM size in bytes (raw, gzip -9)
+      # -n keeps the file name and time stamp out of the gzip header, so the
+      # number matches docs/acceptance/M2.md.
+      - name: WASM size in bytes (raw, gzip -9 -n)
         run: |
           wc -c < src/wasm/weiqi_wasm_bg.wasm
-          gzip -9 -c src/wasm/weiqi_wasm_bg.wasm | wc -c
+          gzip -9 -n -c < src/wasm/weiqi_wasm_bg.wasm | wc -c
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
