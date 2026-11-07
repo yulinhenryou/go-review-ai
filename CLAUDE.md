@@ -173,7 +173,7 @@ crates/weiqi-wasm/   wasm-bindgen bindings -> web package
 python/              uv project; package `weiqi` (engine, metrics, profile, explain, training, storage, api)
 web/                 Vite + React + TypeScript app
 config/              project.json, KataGo configs (no weights)
-testdata/            public SGF corpus with provenance, recorded engine responses
+testdata/            public SGF corpus with provenance, conformance cases, recorded engine responses
 legacy/              prototype during transition (deleted after M4)
 docs/                English public documentation
 ```

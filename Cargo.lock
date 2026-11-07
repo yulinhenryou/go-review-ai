@@ -541,6 +541,7 @@ dependencies = [
  "criterion",
  "encoding_rs",
  "proptest",
+ "serde_json",
  "thiserror",
 ]
 

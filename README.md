@@ -56,6 +56,7 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 | `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
 | `web/` | TypeScript + React + Vite app | Placeholder page |
 | `testdata/sgf/` | Public SGF test corpus with provenance | — |
+| `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust runner in M2; Python and WASM runners follow |
 | `config/project.json` | The single source of the provisional project name | — |
 | `legacy/` | The Go Review AI prototype | Runs and is tested in CI |
 | `docs/` | Vision, architecture, roadmap, decisions, migration, acceptance records | — |

@@ -1,0 +1,330 @@
+{
+  "comment": "Hand-written move sequences. Fields under 'expect' and 'final' were checked by hand; the transcripts in expected.json are generated from these inputs. Format: README.md.",
+  "cases": [
+    {
+      "name": "corner_capture",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B ba",
+        "W aa",
+        { "play": "B ab", "expect": "ok", "captured": ["aa"] },
+        "W pass"
+      ],
+      "final": {
+        "board": [".X...", "X....", ".....", ".....", "....."],
+        "captures": { "black": 0, "white": 1 },
+        "to_play": "B",
+        "consecutive_passes": 1
+      }
+    },
+    {
+      "name": "ko_recapture_rejected_then_legal_after_exchange",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db",
+        { "play": "B cb", "expect": "ok", "captured": ["bb"] },
+        { "play": "W bb", "expect": "ko_violation" },
+        "W ed",
+        "B de",
+        { "play": "W bb", "expect": "ok", "captured": ["cb"] }
+      ],
+      "final": {
+        "board": [".XO..", "XO.O.", ".XO..", "....O", "...XX"],
+        "captures": { "black": 1, "white": 1 },
+        "to_play": "B",
+        "ko_ban": "cb"
+      }
+    },
+    {
+      "name": "ko_recapture_applied_in_record_mode",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "record",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db",
+        "B cb",
+        { "play": "W bb", "expect": "ok", "captured": ["cb"], "violations": ["ko_violation"] }
+      ],
+      "final": {
+        "board": [".XO..", "XO.O.", ".XO..", ".....", "....X"],
+        "captures": { "black": 1, "white": 1 }
+      }
+    },
+    {
+      "name": "ko_recapture_is_superko_under_positional_superko",
+      "size": [5, 5],
+      "rules": "chinese-ogs",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db",
+        { "play": "B cb", "expect": "ok", "captured": ["bb"] },
+        { "play": "W bb", "expect": "superko_violation" }
+      ],
+      "final": {
+        "board": [".XO..", "X.XO.", ".XO..", ".....", "....X"],
+        "ko_ban": null,
+        "to_play": "W"
+      }
+    },
+    {
+      "name": "ko_recapture_after_two_passes_repeats_under_simple_ko",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db", "B cb",
+        "W pass",
+        "B pass",
+        { "play": "W bb", "expect": "ok", "captured": ["cb"], "repeated_position": true }
+      ],
+      "final": {
+        "board": [".XO..", "XO.O.", ".XO..", ".....", "....X"],
+        "consecutive_passes": 0
+      }
+    },
+    {
+      "name": "ko_recapture_after_two_passes_is_positional_superko",
+      "size": [5, 5],
+      "rules": "tromp-taylor",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db", "B cb",
+        "W pass",
+        "B pass",
+        { "play": "W bb", "expect": "superko_violation" }
+      ]
+    },
+    {
+      "name": "ko_recapture_after_two_passes_is_situational_superko",
+      "size": [5, 5],
+      "rules": "aga",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B ba", "W bb", "B ab", "W ca", "B bc", "W cc", "B ee", "W db", "B cb",
+        "W pass",
+        "B pass",
+        { "play": "W bb", "expect": "superko_violation" }
+      ]
+    },
+    {
+      "name": "single_stone_suicide_is_illegal_even_under_tromp_taylor",
+      "size": [5, 5],
+      "rules": "tromp-taylor",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B ba",
+        "W ee",
+        "B ab",
+        { "play": "W aa", "expect": "suicide" }
+      ]
+    },
+    {
+      "name": "single_stone_suicide_applied_in_record_mode",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "record",
+      "moves": [
+        "B ba",
+        "W ee",
+        "B ab",
+        { "play": "W aa", "expect": "ok", "suicided": ["aa"], "violations": ["suicide"] }
+      ],
+      "final": {
+        "board": [".X...", "X....", ".....", ".....", "....O"],
+        "captures": { "black": 0, "white": 1 },
+        "to_play": "B"
+      }
+    },
+    {
+      "name": "multi_stone_suicide_is_legal_under_tromp_taylor",
+      "size": [5, 5],
+      "rules": "tromp-taylor",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B ab",
+        "W aa",
+        "B bb",
+        "W ee",
+        "B ca",
+        { "play": "W ba", "expect": "ok", "suicided": ["aa", "ba"] }
+      ],
+      "final": {
+        "board": ["..X..", "XX...", ".....", ".....", "....O"],
+        "captures": { "black": 0, "white": 2 },
+        "to_play": "B"
+      }
+    },
+    {
+      "name": "multi_stone_suicide_is_illegal_under_japanese_rules",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B ab",
+        "W aa",
+        "B bb",
+        "W ee",
+        "B ca",
+        { "play": "W ba", "expect": "suicide" }
+      ]
+    },
+    {
+      "name": "out_of_turn_rejected_in_strict_mode",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B aa",
+        { "play": "B bb", "expect": "out_of_turn" }
+      ]
+    },
+    {
+      "name": "out_of_turn_applied_in_record_mode",
+      "size": [5, 5],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "record",
+      "moves": [
+        "B aa",
+        { "play": "B bb", "expect": "ok", "violations": ["out_of_turn"] }
+      ],
+      "final": {
+        "board": ["X....", ".X...", ".....", ".....", "....."],
+        "to_play": "W"
+      }
+    },
+    {
+      "name": "occupied_point_rejected_in_strict_mode",
+      "size": [5, 5],
+      "rules": "chinese",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B aa",
+        { "play": "W aa", "expect": "occupied" }
+      ]
+    },
+    {
+      "name": "occupied_point_rejected_in_record_mode",
+      "size": [5, 5],
+      "rules": "chinese",
+      "komi": 7.5,
+      "mode": "record",
+      "moves": [
+        "B aa",
+        { "play": "W aa", "expect": "occupied" }
+      ]
+    },
+    {
+      "name": "handicap_setup_with_white_to_move",
+      "size": [9, 9],
+      "rules": "japanese",
+      "komi": 0.5,
+      "mode": "strict",
+      "setup": { "black": ["cc", "gg"], "white": [], "to_play": "W" },
+      "moves": [
+        { "play": "W ee", "expect": "ok" },
+        { "play": "B cg", "expect": "ok" }
+      ],
+      "final": {
+        "board": [
+          ".........",
+          ".........",
+          "..X......",
+          ".........",
+          "....O....",
+          ".........",
+          "..X...X..",
+          ".........",
+          "........."
+        ],
+        "to_play": "W"
+      }
+    },
+    {
+      "name": "rectangular_board_capture",
+      "size": [7, 3],
+      "rules": "chinese",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B fa",
+        "W ga",
+        { "play": "B gb", "expect": "ok", "captured": ["ga"] }
+      ],
+      "final": {
+        "board": [".....X.", "......X", "......."],
+        "captures": { "black": 0, "white": 1 },
+        "to_play": "W"
+      }
+    },
+    {
+      "name": "two_passes_do_not_end_the_game",
+      "size": [3, 3],
+      "rules": "chinese",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        "B pass",
+        { "play": "W pass", "expect": "ok" },
+        { "play": "B bb", "expect": "ok" }
+      ],
+      "final": {
+        "board": ["...", ".X.", "..."],
+        "to_play": "W",
+        "consecutive_passes": 0
+      }
+    },
+    {
+      "name": "two_point_board_ko",
+      "size": [2, 1],
+      "rules": "japanese",
+      "komi": 6.5,
+      "mode": "strict",
+      "moves": [
+        "B aa",
+        { "play": "W ba", "expect": "ok", "captured": ["aa"] },
+        { "play": "B aa", "expect": "ko_violation" },
+        { "play": "B pass", "expect": "ok" }
+      ],
+      "final": {
+        "board": [".O"],
+        "captures": { "black": 1, "white": 0 },
+        "to_play": "W",
+        "ko_ban": null
+      }
+    },
+    {
+      "name": "one_point_board",
+      "size": [1, 1],
+      "rules": "chinese",
+      "komi": 7.5,
+      "mode": "strict",
+      "moves": [
+        { "play": "B aa", "expect": "suicide" },
+        { "play": "B pass", "expect": "ok" }
+      ],
+      "final": {
+        "board": ["."],
+        "to_play": "W",
+        "consecutive_passes": 1
+      }
+    }
+  ]
+}

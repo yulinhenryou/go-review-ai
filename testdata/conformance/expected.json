@@ -1,0 +1,5487 @@
+{
+  "games": {
+    "corner_capture": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W aa",
+          "position": {
+            "board": [
+              "OX...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf5989108ef55dcc249df2094b5fcfc7",
+            "stones_hash": "cf5989108ef55dcc249df2094b5fcfc7",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "aa"
+          ],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "436f953d0a26cfd6cf0765dd3b669838",
+            "stones_hash": "b993762584ab226aa36706be58f5c612",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W pass",
+          "position": {
+            "board": [
+              ".X...",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "b993762584ab226aa36706be58f5c612",
+            "stones_hash": "b993762584ab226aa36706be58f5c612",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "436f953d0a26cfd6cf0765dd3b669838",
+          "undone": "W pass"
+        },
+        {
+          "situation_hash": "cf5989108ef55dcc249df2094b5fcfc7",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W aa"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "handicap_setup_with_white_to_move": {
+      "start": {
+        "board": [
+          ".........",
+          ".........",
+          "..X......",
+          ".........",
+          ".........",
+          ".........",
+          "......X..",
+          ".........",
+          "........."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "5e965d33a39dbe1b884ae72548a4a054",
+        "stones_hash": "a46abe2b2d1053a7e42a84462b37fe7e",
+        "to_play": "W"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "W ee",
+          "position": {
+            "board": [
+              ".........",
+              ".........",
+              "..X......",
+              ".........",
+              "....O....",
+              ".........",
+              "......X..",
+              ".........",
+              "........."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "eb4f30f2165df6e8c521d1a9e044f60f",
+            "stones_hash": "eb4f30f2165df6e8c521d1a9e044f60f",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B cg",
+          "position": {
+            "board": [
+              ".........",
+              ".........",
+              "..X......",
+              ".........",
+              "....O....",
+              ".........",
+              "..X...X..",
+              ".........",
+              "........."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "596cbd59f062975d6663eea619257dac",
+            "stones_hash": "a3905e417eef7ae10a038dc57ab62386",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "eb4f30f2165df6e8c521d1a9e044f60f",
+          "undone": "B cg"
+        },
+        {
+          "situation_hash": "5e965d33a39dbe1b884ae72548a4a054",
+          "undone": "W ee"
+        }
+      ]
+    },
+    "ko_recapture_after_two_passes_is_positional_superko": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 2,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W bb",
+          "result": "superko_violation"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+          "undone": "B pass"
+        },
+        {
+          "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+          "undone": "W pass"
+        },
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "ko_recapture_after_two_passes_is_situational_superko": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 2,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W bb",
+          "result": "superko_violation"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+          "undone": "B pass"
+        },
+        {
+          "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+          "undone": "W pass"
+        },
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "ko_recapture_after_two_passes_repeats_under_simple_ko": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "bb",
+            "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 2,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "cb"
+          ],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 1,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "cb",
+            "situation_hash": "be4ecb9739f610090800b8d545a29779",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": true,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+          "undone": "B pass"
+        },
+        {
+          "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+          "undone": "W pass"
+        },
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "ko_recapture_applied_in_record_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "bb",
+            "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "cb"
+          ],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 1,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "cb",
+            "situation_hash": "be4ecb9739f610090800b8d545a29779",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": [
+            "ko_violation"
+          ]
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "ko_recapture_is_superko_under_positional_superko": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "6ac865ae44d6a9d9d8af7ce2a8f9acae",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W bb",
+          "result": "superko_violation"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "ko_recapture_rejected_then_legal_after_exchange": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".X...",
+              ".O...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "stones_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+            "stones_hash": "40f96d7b74244f7146360df45f3b33bf",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ca",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "cf716624e7957cea0997bd45022873db",
+            "stones_hash": "cf716624e7957cea0997bd45022873db",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".X...",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+            "stones_hash": "803023416570822bc6ff8314c09e2f24",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W cc",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "stones_hash": "dae2c56196b5c5af59514ce1b6148540",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ee",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO...",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9efee24672072a0981f30a23810c57c4",
+            "stones_hash": "6402015efc8ac7b5ed936940e29f09ee",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W db",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "stones_hash": "34c2081c945075471d13d8f26d0dbb23",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "bb"
+          ],
+          "move": "B cb",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              ".....",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "bb",
+            "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+            "stones_hash": "903486b6ca5b4465b4cf1f81cb6af284",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W bb",
+          "result": "ko_violation"
+        },
+        {
+          "captured": [],
+          "move": "W ed",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              "....O",
+              "....X"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "58c7d8057e4d5a27a49ddce826c6e2e0",
+            "stones_hash": "58c7d8057e4d5a27a49ddce826c6e2e0",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B de",
+          "position": {
+            "board": [
+              ".XO..",
+              "X.XO.",
+              ".XO..",
+              "....O",
+              "...XX"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "55742ab57b62a87869987dffc2df7fca",
+            "stones_hash": "af88c9adf5ef45c405f81e9ca14c21e0",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "cb"
+          ],
+          "move": "W bb",
+          "position": {
+            "board": [
+              ".XO..",
+              "XO.O.",
+              ".XO..",
+              "....O",
+              "...XX"
+            ],
+            "captures": {
+              "black": 1,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "cb",
+            "situation_hash": "81f2848c064211a8b937b9c82f84441d",
+            "stones_hash": "0b7e4707abe474e6ac24d9ef072b6847",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "55742ab57b62a87869987dffc2df7fca",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "58c7d8057e4d5a27a49ddce826c6e2e0",
+          "undone": "B de"
+        },
+        {
+          "situation_hash": "8cc4fb78cc3a7abbcc4f1cca116a475c",
+          "undone": "W ed"
+        },
+        {
+          "situation_hash": "34c2081c945075471d13d8f26d0dbb23",
+          "undone": "B cb"
+        },
+        {
+          "situation_hash": "9efee24672072a0981f30a23810c57c4",
+          "undone": "W db"
+        },
+        {
+          "situation_hash": "dae2c56196b5c5af59514ce1b6148540",
+          "undone": "B ee"
+        },
+        {
+          "situation_hash": "7accc059ebfd6f97aa9fe077a30d710e",
+          "undone": "W cc"
+        },
+        {
+          "situation_hash": "cf716624e7957cea0997bd45022873db",
+          "undone": "B bc"
+        },
+        {
+          "situation_hash": "ba058e63faa9a2cd2a566e973ca86d95",
+          "undone": "W ca"
+        },
+        {
+          "situation_hash": "01cf9e5acfec8d6ae29818f72b7550d2",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "multi_stone_suicide_is_illegal_under_japanese_rules": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".....",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9db5092ff2407c618b4e9ef01446a42a",
+            "stones_hash": "6749ea377ccd91dde72efd9377d5fa00",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W aa",
+          "position": {
+            "board": [
+              "O....",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+            "stones_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bb",
+          "position": {
+            "board": [
+              "O....",
+              "XX...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "378c09d46f36f418f57e3587489b67c8",
+            "stones_hash": "cd70eacce1bb19a4991e56e42b0839e2",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ee",
+          "position": {
+            "board": [
+              "O....",
+              "XX...",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "82556415daf6bcebb815030be07b3193",
+            "stones_hash": "82556415daf6bcebb815030be07b3193",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ca",
+          "position": {
+            "board": [
+              "O.X..",
+              "XX...",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "84c0caef4b84cc5929244890d0c0395b",
+            "stones_hash": "7e3c29f7c50921e545442bf3b3536771",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W ba",
+          "result": "suicide"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "82556415daf6bcebb815030be07b3193",
+          "undone": "B ca"
+        },
+        {
+          "situation_hash": "378c09d46f36f418f57e3587489b67c8",
+          "undone": "W ee"
+        },
+        {
+          "situation_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+          "undone": "B bb"
+        },
+        {
+          "situation_hash": "9db5092ff2407c618b4e9ef01446a42a",
+          "undone": "W aa"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ab"
+        }
+      ]
+    },
+    "multi_stone_suicide_is_legal_under_tromp_taylor": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".....",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "9db5092ff2407c618b4e9ef01446a42a",
+            "stones_hash": "6749ea377ccd91dde72efd9377d5fa00",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W aa",
+          "position": {
+            "board": [
+              "O....",
+              "X....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+            "stones_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bb",
+          "position": {
+            "board": [
+              "O....",
+              "XX...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "378c09d46f36f418f57e3587489b67c8",
+            "stones_hash": "cd70eacce1bb19a4991e56e42b0839e2",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ee",
+          "position": {
+            "board": [
+              "O....",
+              "XX...",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "82556415daf6bcebb815030be07b3193",
+            "stones_hash": "82556415daf6bcebb815030be07b3193",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ca",
+          "position": {
+            "board": [
+              "O.X..",
+              "XX...",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "84c0caef4b84cc5929244890d0c0395b",
+            "stones_hash": "7e3c29f7c50921e545442bf3b3536771",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ba",
+          "position": {
+            "board": [
+              "..X..",
+              "XX...",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 2
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "49c025e3749f9c586610ca47d4b70dc9",
+            "stones_hash": "49c025e3749f9c586610ca47d4b70dc9",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [
+            "ba",
+            "aa"
+          ],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "84c0caef4b84cc5929244890d0c0395b",
+          "undone": "W ba"
+        },
+        {
+          "situation_hash": "82556415daf6bcebb815030be07b3193",
+          "undone": "B ca"
+        },
+        {
+          "situation_hash": "378c09d46f36f418f57e3587489b67c8",
+          "undone": "W ee"
+        },
+        {
+          "situation_hash": "50b5e623cd5b2c60c47a1c27103190b8",
+          "undone": "B bb"
+        },
+        {
+          "situation_hash": "9db5092ff2407c618b4e9ef01446a42a",
+          "undone": "W aa"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ab"
+        }
+      ]
+    },
+    "occupied_point_rejected_in_record_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B aa",
+          "position": {
+            "board": [
+              "X....",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "2fc70dbb550e1135daff248595e98837",
+            "stones_hash": "d53beea3db83fc89b69f47e6f67ad61d",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W aa",
+          "result": "occupied"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B aa"
+        }
+      ]
+    },
+    "occupied_point_rejected_in_strict_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B aa",
+          "position": {
+            "board": [
+              "X....",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "2fc70dbb550e1135daff248595e98837",
+            "stones_hash": "d53beea3db83fc89b69f47e6f67ad61d",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W aa",
+          "result": "occupied"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B aa"
+        }
+      ]
+    },
+    "one_point_board": {
+      "start": {
+        "board": [
+          "."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "dee40ca2be3bc76d84656c1e613a9726",
+        "stones_hash": "dee40ca2be3bc76d84656c1e613a9726",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "move": "B aa",
+          "result": "suicide"
+        },
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              "."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "2418efba30b62ad1e8050f7d02a9c90c",
+            "stones_hash": "dee40ca2be3bc76d84656c1e613a9726",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "dee40ca2be3bc76d84656c1e613a9726",
+          "undone": "B pass"
+        }
+      ]
+    },
+    "out_of_turn_applied_in_record_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B aa",
+          "position": {
+            "board": [
+              "X....",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "2fc70dbb550e1135daff248595e98837",
+            "stones_hash": "d53beea3db83fc89b69f47e6f67ad61d",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bb",
+          "position": {
+            "board": [
+              "X....",
+              ".X...",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "b202015479ee24f1879b6e46aed0216d",
+            "stones_hash": "48fee24cf763c94debfb0d25cd437f47",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": [
+            "out_of_turn"
+          ]
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "2fc70dbb550e1135daff248595e98837",
+          "undone": "B bb"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B aa"
+        }
+      ]
+    },
+    "out_of_turn_rejected_in_strict_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B aa",
+          "position": {
+            "board": [
+              "X....",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "2fc70dbb550e1135daff248595e98837",
+            "stones_hash": "d53beea3db83fc89b69f47e6f67ad61d",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "B bb",
+          "result": "out_of_turn"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B aa"
+        }
+      ]
+    },
+    "rectangular_board_capture": {
+      "start": {
+        "board": [
+          ".......",
+          ".......",
+          "......."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "9ddc0f886ff193c5412701639e36fda8",
+        "stones_hash": "9ddc0f886ff193c5412701639e36fda8",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B fa",
+          "position": {
+            "board": [
+              ".....X.",
+              ".......",
+              "......."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "aa2971393369c5f730695a443f78500b",
+            "stones_hash": "50d59221bde4284b5c0939275ceb0e21",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ga",
+          "position": {
+            "board": [
+              ".....XO",
+              ".......",
+              "......."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "04fbde95f9bc072ea21b61f823c1a94b",
+            "stones_hash": "04fbde95f9bc072ea21b61f823c1a94b",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "ga"
+          ],
+          "move": "B gb",
+          "position": {
+            "board": [
+              ".....X.",
+              "......X",
+              "......."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "a9d3c3e02f167ace339cee1d74c5eb94",
+            "stones_hash": "532f20f8a19b97725ffc8d7e1756b5be",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "04fbde95f9bc072ea21b61f823c1a94b",
+          "undone": "B gb"
+        },
+        {
+          "situation_hash": "aa2971393369c5f730695a443f78500b",
+          "undone": "W ga"
+        },
+        {
+          "situation_hash": "9ddc0f886ff193c5412701639e36fda8",
+          "undone": "B fa"
+        }
+      ]
+    },
+    "single_stone_suicide_applied_in_record_mode": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ee",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+            "stones_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "X....",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0c4a1be4316b6a99ee0c3032f0159049",
+            "stones_hash": "f6b6f8fcbfe68725826c53519386ce63",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W aa",
+          "position": {
+            "board": [
+              ".X...",
+              "X....",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 1
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "f6b6f8fcbfe68725826c53519386ce63",
+            "stones_hash": "f6b6f8fcbfe68725826c53519386ce63",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [
+            "aa"
+          ],
+          "violations": [
+            "suicide"
+          ]
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "0c4a1be4316b6a99ee0c3032f0159049",
+          "undone": "W aa"
+        },
+        {
+          "situation_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W ee"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "single_stone_suicide_is_illegal_even_under_tromp_taylor": {
+      "start": {
+        "board": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "267f1916c70553c64380e890039b996d",
+        "stones_hash": "267f1916c70553c64380e890039b996d",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B ba",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+            "stones_hash": "f8a585043f63e07107c913bd2cbba57f",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W ee",
+          "position": {
+            "board": [
+              ".X...",
+              ".....",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+            "stones_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B ab",
+          "position": {
+            "board": [
+              ".X...",
+              "X....",
+              ".....",
+              ".....",
+              "....O"
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "0c4a1be4316b6a99ee0c3032f0159049",
+            "stones_hash": "f6b6f8fcbfe68725826c53519386ce63",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "W aa",
+          "result": "suicide"
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "b7800bdd042e453e26c24652e7c8ad0e",
+          "undone": "B ab"
+        },
+        {
+          "situation_hash": "0259661cb1ee0dcd6ba970de4f28fb55",
+          "undone": "W ee"
+        },
+        {
+          "situation_hash": "267f1916c70553c64380e890039b996d",
+          "undone": "B ba"
+        }
+      ]
+    },
+    "two_passes_do_not_end_the_game": {
+      "start": {
+        "board": [
+          "...",
+          "...",
+          "..."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+        "stones_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              "...",
+              "...",
+              "..."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "e11b5ab0bedf2fa49d5e4adc8c8bf9e8",
+            "stones_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "W pass",
+          "position": {
+            "board": [
+              "...",
+              "...",
+              "..."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 2,
+            "ko_ban": null,
+            "situation_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+            "stones_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [],
+          "move": "B bb",
+          "position": {
+            "board": [
+              "...",
+              ".X.",
+              "..."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "7cde565f923f1a60c03a001fb7b250b2",
+            "stones_hash": "8622b5471cb2f7dcac5a637cd4210e98",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+          "undone": "B bb"
+        },
+        {
+          "situation_hash": "e11b5ab0bedf2fa49d5e4adc8c8bf9e8",
+          "undone": "W pass"
+        },
+        {
+          "situation_hash": "1be7b9a83052c218f13e29bfef18a7c2",
+          "undone": "B pass"
+        }
+      ]
+    },
+    "two_point_board_ko": {
+      "start": {
+        "board": [
+          ".."
+        ],
+        "captures": {
+          "black": 0,
+          "white": 0
+        },
+        "consecutive_passes": 0,
+        "ko_ban": null,
+        "situation_hash": "4adde5ba3473598128e90d34e77dbebe",
+        "stones_hash": "4adde5ba3473598128e90d34e77dbebe",
+        "to_play": "B"
+      },
+      "steps": [
+        {
+          "captured": [],
+          "move": "B aa",
+          "position": {
+            "board": [
+              "X."
+            ],
+            "captures": {
+              "black": 0,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": null,
+            "situation_hash": "4365f117a6781b72b196c121710fafe4",
+            "stones_hash": "b999120f28f5f6ceddf6a242129cf1ce",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "captured": [
+            "aa"
+          ],
+          "move": "W ba",
+          "position": {
+            "board": [
+              ".O"
+            ],
+            "captures": {
+              "black": 1,
+              "white": 0
+            },
+            "consecutive_passes": 0,
+            "ko_ban": "aa",
+            "situation_hash": "86033d4ba15d74701169816206a37d4a",
+            "stones_hash": "5054d8475d93378fd5d4d8f808f0863e",
+            "to_play": "B"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        },
+        {
+          "move": "B aa",
+          "result": "ko_violation"
+        },
+        {
+          "captured": [],
+          "move": "B pass",
+          "position": {
+            "board": [
+              ".O"
+            ],
+            "captures": {
+              "black": 1,
+              "white": 0
+            },
+            "consecutive_passes": 1,
+            "ko_ban": null,
+            "situation_hash": "aaa83b5fd31eda33b9b4bb9b6b63d814",
+            "stones_hash": "5054d8475d93378fd5d4d8f808f0863e",
+            "to_play": "W"
+          },
+          "repeated_position": false,
+          "result": "ok",
+          "suicided": [],
+          "violations": []
+        }
+      ],
+      "undo": [
+        {
+          "situation_hash": "86033d4ba15d74701169816206a37d4a",
+          "undone": "B pass"
+        },
+        {
+          "situation_hash": "4365f117a6781b72b196c121710fafe4",
+          "undone": "W ba"
+        },
+        {
+          "situation_hash": "4adde5ba3473598128e90d34e77dbebe",
+          "undone": "B aa"
+        }
+      ]
+    }
+  },
+  "sgf": {
+    "handicap_setup_white_first": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": 2,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "W ee"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [
+                "cc",
+                "gg"
+              ],
+              "to_play": "W",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                ".........",
+                ".........",
+                "..X......",
+                ".........",
+                "....O....",
+                ".........",
+                "......X..",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "eb4f30f2165df6e8c521d1a9e044f60f",
+              "stones_hash": "eb4f30f2165df6e8c521d1a9e044f60f",
+              "to_play": "B"
+            },
+            "situation_hashes": [
+              "5e965d33a39dbe1b884ae72548a4a054",
+              "eb4f30f2165df6e8c521d1a9e044f60f"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "invalid_komi_and_missing_rules": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "invalid_komi",
+              "node": 0
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "B ee"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "....X....",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "035afbc813ba039423d34791066f83ce",
+              "stones_hash": "f9a618d09d37ee284fb324f265fcdde4",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "4746dceff708ec32fb7101533177514a",
+              "035afbc813ba039423d34791066f83ce"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "kejie_gbk_guessed": {
+      "encoding": "gb18030",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "malformed_result",
+              "node": null
+            },
+            {
+              "code": "first_variation_only",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": 0,
+            "info": {
+              "black_player": "柯洁",
+              "black_rank": "?",
+              "date": "2025-11-27",
+              "event": null,
+              "name": "第27届中国围甲联赛第11轮 深圳龙华VS河南丰博<绝艺讲解>",
+              "place": null,
+              "result_text": "黑胜白",
+              "round": null,
+              "white_player": "王泽锦",
+              "white_rank": "?"
+            },
+            "komi": 7.5,
+            "moves": [
+              "B pd",
+              "W dd",
+              "B qp",
+              "W dp",
+              "B cc",
+              "W dc",
+              "B cd",
+              "W de",
+              "B bf",
+              "W qc",
+              "B qd",
+              "W pc",
+              "B od",
+              "W nb",
+              "B nq",
+              "W pi",
+              "B pk",
+              "W mc",
+              "B mf",
+              "W ni",
+              "B oh",
+              "W oi",
+              "B nk",
+              "W qf",
+              "B pf",
+              "W qg",
+              "B qj",
+              "W qi",
+              "B kf",
+              "W le",
+              "B me",
+              "W ld",
+              "B lf",
+              "W li",
+              "B lk",
+              "W ji",
+              "B rc",
+              "W rb",
+              "B re",
+              "W sc",
+              "B if",
+              "W pp",
+              "B pq",
+              "W qq",
+              "B op",
+              "W po",
+              "B rq",
+              "W ql",
+              "B rj",
+              "W oo",
+              "B no",
+              "W nn",
+              "B mo",
+              "W qo",
+              "B qr",
+              "W pl",
+              "B ol",
+              "W om",
+              "B mn",
+              "W nl",
+              "B ok",
+              "W pn",
+              "B ml",
+              "W nm",
+              "B fq",
+              "W fo",
+              "B hi",
+              "W hh",
+              "B ih",
+              "W ii",
+              "B hj",
+              "W jg",
+              "B gh",
+              "W jf",
+              "B kh",
+              "W jh",
+              "B ki",
+              "W kj",
+              "B lj",
+              "W mj",
+              "B mk",
+              "W kg",
+              "B lh",
+              "W lg",
+              "B mh",
+              "W mg",
+              "B nh",
+              "W ng",
+              "B og",
+              "W nf",
+              "B of",
+              "W rd",
+              "B qe",
+              "W ne",
+              "B hg",
+              "W hp",
+              "B cq",
+              "W dq",
+              "B dr",
+              "W cp",
+              "B br",
+              "W bq",
+              "B cr",
+              "W oe",
+              "B pe",
+              "W mi",
+              "B jj",
+              "W kk",
+              "B kl",
+              "W jk",
+              "B ij"
+            ],
+            "rules": {
+              "button": false,
+              "friendly_pass_ok": true,
+              "ko": "simple",
+              "scoring": "area",
+              "suicide": "forbidden",
+              "tax": "none",
+              "white_handicap_bonus": "N"
+            },
+            "rules_text": "Chinese",
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              19,
+              19
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "...................",
+                ".............O...O.",
+                "..XO........O..OO.O",
+                "..XO.......O..XXXO.",
+                "...O.......OXOOXXX.",
+                ".X......XOXXXOXXO..",
+                ".......X.OOOOOX.O..",
+                "......X.XOXXXXX....",
+                ".......XOOXOOOOOO..",
+                ".......XXXOXO...XX.",
+                ".........OOXXXXX...",
+                "..........X.XOXOO..",
+                ".............OO....",
+                "............XO.O...",
+                ".....O......XXOOO..",
+                "..OO...O......XOX..",
+                ".OXO.X.......X.X.X.",
+                ".XXX............X..",
+                "..................."
+              ],
+              "captures": {
+                "black": 1,
+                "white": 2
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "064c4fa9979961c1b7f5351c8e37bbf2",
+              "stones_hash": "fcb0acb119148c7ddb95567feda4e5d8",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "b1f9f9b3a299fccd959395b699c7053c",
+              "983a2fe36a8429440c9db88974f2da51",
+              "40bd7ca04cb6bd563a9a94c2e25d76b6",
+              "7c4b0934aeeaab9e7d54984514925083",
+              "caa9c78e036a735b6361c4fd0f3aed38",
+              "982a2b170b722bcb4525dc3ba0d60377",
+              "487ff956c816b8c315a9f6a89c9de54e",
+              "3a725a78724d221333e2cf14ae04559d",
+              "b9b8e8a808644a111fe3aa7b64d4f7af",
+              "14228d1fba322a616454c40be303d468",
+              "2be180c10dad7b1461c58f321602648c",
+              "7eda2597ecc50e0b369f3b72e85df3a6",
+              "37056bca9b6bd2480199728d7d038384",
+              "2f3e657c616d1d4e8f9a1e848bb1bd43",
+              "2ba96dbdbc4f2e46792d1ad58f1b8e76",
+              "735fe1c5eda2e9091bb3537e222d0fd5",
+              "be993c81977813971487ad82ec95311e",
+              "b80d6813f6dd8038749ae2470a639137",
+              "b2f863c4652bc16633a9e1b09eab4b80",
+              "91075057d51818e72e765723dd0b26d2",
+              "163511b0180c8c7a1b77f71a4d88a6f5",
+              "2cdde70a2564f3e281c1a37a87faf5d5",
+              "241667cc16bf1b40165cd7ee3ab293d0",
+              "fc25ef04aecd51edf1601f7dc3308f24",
+              "9e234dce9259b385944ee731098dd44c",
+              "03fe50fd5ba2e6906646160f6cfaefe1",
+              "ddc5dbdcbd1579af9e0f2e843909fce7",
+              "ecadf6a899fbb7a2e627ad16848fd675",
+              "e49d78050839c2bc1f2bb54f6c4ea852",
+              "e60277a211cebf616785f8746a8054bd",
+              "d3f7591e102ca30072e704f2a8cdac85",
+              "79ef971576d6eb14b771fe811edfaf54",
+              "23b9f57cefe8c6363031db2a8769070e",
+              "0d061cd116b7a1a826f1443c82eff200",
+              "1d7c197c7425c18a4fb72e03cddbc31d",
+              "759f1ff67bf7d437410da7171285195e",
+              "3afd09380f78934057c0bdb3c57606c7",
+              "fd674f99c7b4b5b2c61fb257cef9eb60",
+              "20b74b8c180771ba3c15f7762d07665a",
+              "fa222357302a6acbc0f68c9f5d83dbcb",
+              "35579a67f3fabce501e64ee0ba25ab5b",
+              "9adf629f033a1912daaf07a2a691cca5",
+              "7bf435fdcaa72c2b8b38986a3d62a3eb",
+              "81d29df4d6db1d673ba51df8784f7aa7",
+              "00f811fdc7fb1c7d434893f52d94f169",
+              "a07ea4d7293b9664b79b6ee765e55a95",
+              "29d50d88f1d73944db0e77d08137f27c",
+              "b8c44e1e490865657d81b6f39c2c09a6",
+              "1b35b59045dbfb05e95a18df36cf0afb",
+              "4418c17975ca885769304194ce4eaf19",
+              "d0274ac73f571bfc2306f208d284ba73",
+              "81ab3ff7ac10defa43a5cb49428d36e2",
+              "b82f38a3b84e6d45fc7f7de03fd4b0a7",
+              "600870e21fef7a50280de31afa48388e",
+              "b5ef498f82dbd1f13ec90e1019ae8b42",
+              "0b3d61a8f6b69f3aa1c2edd9d317d492",
+              "ccfdd16e132c3b79a5ca7ce1e02623ce",
+              "953df51b024326ad0a9d723fbfa1a036",
+              "76877d07566896cdb85f078d0efa17bb",
+              "1cc3cb132299aa8827ffe816c23814c0",
+              "1be961956b8382a5629de5a3ea988867",
+              "e57ccc69a8c0b09113396f10c2d06657",
+              "fd6426532af861d08ceb34c4c9d95976",
+              "2bceaf0056f689347922ad9a26c8e9a6",
+              "721baf80bc66a1bc5d70d3b9f73f3b52",
+              "522a959c6e284f453f75b9a98e91dd93",
+              "b6ea54a51c9b8c49ebf23cea8e10158c",
+              "00f300ca7d4c4a38cf9dae3db85623f7",
+              "f9dda99f42a3c6c40370b3d46bb66efa",
+              "e84ede5f7928b1dffb52c5b13045ac83",
+              "e9bdf29637a4136d1e4ca48f863405fe",
+              "08355da68de1e0043554657e1d3b532a",
+              "81c63effd4d625e2a6cd919222fbce25",
+              "d6cb7bb309f784c4571e6b9b20839e9b",
+              "a682c3a678d094fb0266a6444d322236",
+              "9568bf705ef5c08fb45f713f324b4a97",
+              "c35297977d93d6f36ef4be9872cea080",
+              "75236c5f07d824b7eb60adb8ed75c163",
+              "4bc879e8f384feed4afcc2428fa0b6d0",
+              "2a4647727724f7f654b8aa29e76eddf2",
+              "b3f7627fed98d9272ce35e6f51419d30",
+              "a5588c61493d1a67e22f68e49625426e",
+              "305263e33166fe374499fb646ccab7f2",
+              "0a63edb2cdf2fba92d863366a784f461",
+              "673e722a44af682d0ff1d4158fbafc2f",
+              "43dd0e720f6fc4e8763d53ea56b4fc54",
+              "f85500a05f160e1fbcb2e0f8d4448fc2",
+              "b6c3a2082d80f29e1873f984b28336da",
+              "c7f35f4c91550b9eb31fa366c52a4a83",
+              "3320736c8e9756e2d3fc6fab2fa91f6b",
+              "707feb7204def28de5cf0e7d51a99820",
+              "5a6bb404cdef4fffe8942f0abdde44f9",
+              "a52cc2c9a433f6a9768f60f7c5f4725b",
+              "6ff46789729e369e0e4582bc7887dc22",
+              "c0d8c360f885a280c9a90e4518d6f17c",
+              "7390cf8a6fb3c9a7dc6384a09db2e88c",
+              "68e5055a6dd593127decba2cee2e71c1",
+              "d819016aaa70a2017805381cd07222ec",
+              "9760ed6f49439d25aebfd5f50e9a139c",
+              "c1ff53cd85c2c728997f135e7a4a0420",
+              "86f82ae8ba0f94dfdc056452568798b4",
+              "2b7d34f6e783a296fea2871d2521be65",
+              "c40d09e4b49d91c07fc8d7f3094ce679",
+              "22cf90f71bab23ef782e9cd5218a2357",
+              "0da5e1c259c049f00185dd7dd2f7203e",
+              "0a2bd3d692d5187a017f9241ff4573ad",
+              "affdaf305e70e08f3aecce65c4083d56",
+              "8d181072164dbc3c2ba398744802bff9",
+              "27291d955ac0bc4d7a9f7e93836602e9",
+              "706cf847f2b97fec254d89c1232bfe54",
+              "b718790a63ffa802a7981c94013cb972",
+              "064c4fa9979961c1b7f5351c8e37bbf2"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": [
+        {
+          "code": "encoding_guessed",
+          "offset": null
+        }
+      ]
+    },
+    "kejie_utf8": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "malformed_result",
+              "node": null
+            },
+            {
+              "code": "first_variation_only",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": 0,
+            "info": {
+              "black_player": "柯洁",
+              "black_rank": "?",
+              "date": "2025-11-27",
+              "event": null,
+              "name": "ç¬¬27å±ä¸­å½å´ç²èèµç¬¬11è½® æ·±å³é¾åVSæ²³åä¸°å<ç»èºè®²è§£>",
+              "place": null,
+              "result_text": "黑胜白",
+              "round": null,
+              "white_player": "王泽锦",
+              "white_rank": "?"
+            },
+            "komi": 7.5,
+            "moves": [
+              "B pd",
+              "W dd",
+              "B qp",
+              "W dp",
+              "B cc",
+              "W dc",
+              "B cd",
+              "W de",
+              "B bf",
+              "W qc",
+              "B qd",
+              "W pc",
+              "B od",
+              "W nb",
+              "B nq",
+              "W pi",
+              "B pk",
+              "W mc",
+              "B mf",
+              "W ni",
+              "B oh",
+              "W oi",
+              "B nk",
+              "W qf",
+              "B pf",
+              "W qg",
+              "B qj",
+              "W qi",
+              "B kf",
+              "W le",
+              "B me",
+              "W ld",
+              "B lf",
+              "W li",
+              "B lk",
+              "W ji",
+              "B rc",
+              "W rb",
+              "B re",
+              "W sc",
+              "B if",
+              "W pp",
+              "B pq",
+              "W qq",
+              "B op",
+              "W po",
+              "B rq",
+              "W ql",
+              "B rj",
+              "W oo",
+              "B no",
+              "W nn",
+              "B mo",
+              "W qo",
+              "B qr",
+              "W pl",
+              "B ol",
+              "W om",
+              "B mn",
+              "W nl",
+              "B ok",
+              "W pn",
+              "B ml",
+              "W nm",
+              "B fq",
+              "W fo",
+              "B hi",
+              "W hh",
+              "B ih",
+              "W ii",
+              "B hj",
+              "W jg",
+              "B gh",
+              "W jf",
+              "B kh",
+              "W jh",
+              "B ki",
+              "W kj",
+              "B lj",
+              "W mj",
+              "B mk",
+              "W kg",
+              "B lh",
+              "W lg",
+              "B mh",
+              "W mg",
+              "B nh",
+              "W ng",
+              "B og",
+              "W nf",
+              "B of",
+              "W rd",
+              "B qe",
+              "W ne",
+              "B hg",
+              "W hp",
+              "B cq",
+              "W dq",
+              "B dr",
+              "W cp",
+              "B br",
+              "W bq",
+              "B cr",
+              "W oe",
+              "B pe",
+              "W mi",
+              "B jj",
+              "W kk",
+              "B kl",
+              "W jk",
+              "B ij"
+            ],
+            "rules": {
+              "button": false,
+              "friendly_pass_ok": true,
+              "ko": "simple",
+              "scoring": "area",
+              "suicide": "forbidden",
+              "tax": "none",
+              "white_handicap_bonus": "N"
+            },
+            "rules_text": "Chinese",
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              19,
+              19
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "...................",
+                ".............O...O.",
+                "..XO........O..OO.O",
+                "..XO.......O..XXXO.",
+                "...O.......OXOOXXX.",
+                ".X......XOXXXOXXO..",
+                ".......X.OOOOOX.O..",
+                "......X.XOXXXXX....",
+                ".......XOOXOOOOOO..",
+                ".......XXXOXO...XX.",
+                ".........OOXXXXX...",
+                "..........X.XOXOO..",
+                ".............OO....",
+                "............XO.O...",
+                ".....O......XXOOO..",
+                "..OO...O......XOX..",
+                ".OXO.X.......X.X.X.",
+                ".XXX............X..",
+                "..................."
+              ],
+              "captures": {
+                "black": 1,
+                "white": 2
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "064c4fa9979961c1b7f5351c8e37bbf2",
+              "stones_hash": "fcb0acb119148c7ddb95567feda4e5d8",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "b1f9f9b3a299fccd959395b699c7053c",
+              "983a2fe36a8429440c9db88974f2da51",
+              "40bd7ca04cb6bd563a9a94c2e25d76b6",
+              "7c4b0934aeeaab9e7d54984514925083",
+              "caa9c78e036a735b6361c4fd0f3aed38",
+              "982a2b170b722bcb4525dc3ba0d60377",
+              "487ff956c816b8c315a9f6a89c9de54e",
+              "3a725a78724d221333e2cf14ae04559d",
+              "b9b8e8a808644a111fe3aa7b64d4f7af",
+              "14228d1fba322a616454c40be303d468",
+              "2be180c10dad7b1461c58f321602648c",
+              "7eda2597ecc50e0b369f3b72e85df3a6",
+              "37056bca9b6bd2480199728d7d038384",
+              "2f3e657c616d1d4e8f9a1e848bb1bd43",
+              "2ba96dbdbc4f2e46792d1ad58f1b8e76",
+              "735fe1c5eda2e9091bb3537e222d0fd5",
+              "be993c81977813971487ad82ec95311e",
+              "b80d6813f6dd8038749ae2470a639137",
+              "b2f863c4652bc16633a9e1b09eab4b80",
+              "91075057d51818e72e765723dd0b26d2",
+              "163511b0180c8c7a1b77f71a4d88a6f5",
+              "2cdde70a2564f3e281c1a37a87faf5d5",
+              "241667cc16bf1b40165cd7ee3ab293d0",
+              "fc25ef04aecd51edf1601f7dc3308f24",
+              "9e234dce9259b385944ee731098dd44c",
+              "03fe50fd5ba2e6906646160f6cfaefe1",
+              "ddc5dbdcbd1579af9e0f2e843909fce7",
+              "ecadf6a899fbb7a2e627ad16848fd675",
+              "e49d78050839c2bc1f2bb54f6c4ea852",
+              "e60277a211cebf616785f8746a8054bd",
+              "d3f7591e102ca30072e704f2a8cdac85",
+              "79ef971576d6eb14b771fe811edfaf54",
+              "23b9f57cefe8c6363031db2a8769070e",
+              "0d061cd116b7a1a826f1443c82eff200",
+              "1d7c197c7425c18a4fb72e03cddbc31d",
+              "759f1ff67bf7d437410da7171285195e",
+              "3afd09380f78934057c0bdb3c57606c7",
+              "fd674f99c7b4b5b2c61fb257cef9eb60",
+              "20b74b8c180771ba3c15f7762d07665a",
+              "fa222357302a6acbc0f68c9f5d83dbcb",
+              "35579a67f3fabce501e64ee0ba25ab5b",
+              "9adf629f033a1912daaf07a2a691cca5",
+              "7bf435fdcaa72c2b8b38986a3d62a3eb",
+              "81d29df4d6db1d673ba51df8784f7aa7",
+              "00f811fdc7fb1c7d434893f52d94f169",
+              "a07ea4d7293b9664b79b6ee765e55a95",
+              "29d50d88f1d73944db0e77d08137f27c",
+              "b8c44e1e490865657d81b6f39c2c09a6",
+              "1b35b59045dbfb05e95a18df36cf0afb",
+              "4418c17975ca885769304194ce4eaf19",
+              "d0274ac73f571bfc2306f208d284ba73",
+              "81ab3ff7ac10defa43a5cb49428d36e2",
+              "b82f38a3b84e6d45fc7f7de03fd4b0a7",
+              "600870e21fef7a50280de31afa48388e",
+              "b5ef498f82dbd1f13ec90e1019ae8b42",
+              "0b3d61a8f6b69f3aa1c2edd9d317d492",
+              "ccfdd16e132c3b79a5ca7ce1e02623ce",
+              "953df51b024326ad0a9d723fbfa1a036",
+              "76877d07566896cdb85f078d0efa17bb",
+              "1cc3cb132299aa8827ffe816c23814c0",
+              "1be961956b8382a5629de5a3ea988867",
+              "e57ccc69a8c0b09113396f10c2d06657",
+              "fd6426532af861d08ceb34c4c9d95976",
+              "2bceaf0056f689347922ad9a26c8e9a6",
+              "721baf80bc66a1bc5d70d3b9f73f3b52",
+              "522a959c6e284f453f75b9a98e91dd93",
+              "b6ea54a51c9b8c49ebf23cea8e10158c",
+              "00f300ca7d4c4a38cf9dae3db85623f7",
+              "f9dda99f42a3c6c40370b3d46bb66efa",
+              "e84ede5f7928b1dffb52c5b13045ac83",
+              "e9bdf29637a4136d1e4ca48f863405fe",
+              "08355da68de1e0043554657e1d3b532a",
+              "81c63effd4d625e2a6cd919222fbce25",
+              "d6cb7bb309f784c4571e6b9b20839e9b",
+              "a682c3a678d094fb0266a6444d322236",
+              "9568bf705ef5c08fb45f713f324b4a97",
+              "c35297977d93d6f36ef4be9872cea080",
+              "75236c5f07d824b7eb60adb8ed75c163",
+              "4bc879e8f384feed4afcc2428fa0b6d0",
+              "2a4647727724f7f654b8aa29e76eddf2",
+              "b3f7627fed98d9272ce35e6f51419d30",
+              "a5588c61493d1a67e22f68e49625426e",
+              "305263e33166fe374499fb646ccab7f2",
+              "0a63edb2cdf2fba92d863366a784f461",
+              "673e722a44af682d0ff1d4158fbafc2f",
+              "43dd0e720f6fc4e8763d53ea56b4fc54",
+              "f85500a05f160e1fbcb2e0f8d4448fc2",
+              "b6c3a2082d80f29e1873f984b28336da",
+              "c7f35f4c91550b9eb31fa366c52a4a83",
+              "3320736c8e9756e2d3fc6fab2fa91f6b",
+              "707feb7204def28de5cf0e7d51a99820",
+              "5a6bb404cdef4fffe8942f0abdde44f9",
+              "a52cc2c9a433f6a9768f60f7c5f4725b",
+              "6ff46789729e369e0e4582bc7887dc22",
+              "c0d8c360f885a280c9a90e4518d6f17c",
+              "7390cf8a6fb3c9a7dc6384a09db2e88c",
+              "68e5055a6dd593127decba2cee2e71c1",
+              "d819016aaa70a2017805381cd07222ec",
+              "9760ed6f49439d25aebfd5f50e9a139c",
+              "c1ff53cd85c2c728997f135e7a4a0420",
+              "86f82ae8ba0f94dfdc056452568798b4",
+              "2b7d34f6e783a296fea2871d2521be65",
+              "c40d09e4b49d91c07fc8d7f3094ce679",
+              "22cf90f71bab23ef782e9cd5218a2357",
+              "0da5e1c259c049f00185dd7dd2f7203e",
+              "0a2bd3d692d5187a017f9241ff4573ad",
+              "affdaf305e70e08f3aecce65c4083d56",
+              "8d181072164dbc3c2ba398744802bff9",
+              "27291d955ac0bc4d7a9f7e93836602e9",
+              "706cf847f2b97fec254d89c1232bfe54",
+              "b718790a63ffa802a7981c94013cb972",
+              "064c4fa9979961c1b7f5351c8e37bbf2"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "maruyama_ito_1976": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_gm",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": "Maruyama Toyoji",
+              "black_rank": "1p",
+              "date": "1976-01-28",
+              "event": "1st Kisei",
+              "name": null,
+              "place": null,
+              "result_text": "W+6.5",
+              "round": "1-dan Final",
+              "white_player": "Ito Yoji",
+              "white_rank": "1p"
+            },
+            "komi": 5.5,
+            "moves": [
+              "B dp",
+              "W qc",
+              "B dd",
+              "W pq",
+              "B po",
+              "W oo",
+              "B qq",
+              "W pn",
+              "B pp",
+              "W op",
+              "B oq",
+              "W pr",
+              "B qr",
+              "W ro",
+              "B or",
+              "W qp",
+              "B ps",
+              "W pq",
+              "B pd",
+              "W pc",
+              "B od",
+              "W re",
+              "B pg",
+              "W nb",
+              "B ld",
+              "W cj",
+              "B lq",
+              "W cg",
+              "B ce",
+              "W fc",
+              "B hd",
+              "W fe",
+              "B ec",
+              "W fb",
+              "B hf",
+              "W fg",
+              "B bg",
+              "W bf",
+              "B cf",
+              "W bh",
+              "B dg",
+              "W ch",
+              "B be",
+              "W ge",
+              "B he",
+              "W gh",
+              "B hh",
+              "W hi",
+              "B ih",
+              "W md",
+              "B me",
+              "W mc",
+              "B le",
+              "W pj",
+              "B cm",
+              "W ag",
+              "B eb",
+              "W dq",
+              "B cq",
+              "W eq",
+              "B cr",
+              "W ep",
+              "B do",
+              "W hq",
+              "B qh",
+              "W qi",
+              "B ri",
+              "W rj",
+              "B pi",
+              "W qj",
+              "B oi",
+              "W nk",
+              "B mj",
+              "W mk",
+              "B lj",
+              "W kr",
+              "B kq",
+              "W lr",
+              "B mr",
+              "W jq",
+              "B jp",
+              "W iq",
+              "B rp",
+              "W qo",
+              "B mp",
+              "W bl",
+              "B bm",
+              "W kc",
+              "B jb",
+              "W kb",
+              "B bk",
+              "W ck",
+              "B cl",
+              "W bj",
+              "B al",
+              "W jd",
+              "B je",
+              "W dr",
+              "B mn",
+              "W kd",
+              "B ke",
+              "W rg",
+              "B nm",
+              "W om",
+              "B gi",
+              "W io",
+              "B hb",
+              "W fi",
+              "B gj",
+              "W fj",
+              "B eh",
+              "W fh",
+              "B gk",
+              "W lo",
+              "B mo",
+              "W jk",
+              "B lk",
+              "W nj",
+              "B ni",
+              "W cp",
+              "B co",
+              "W il",
+              "B ij",
+              "W rh",
+              "B jo",
+              "W in",
+              "B go",
+              "W jn",
+              "B kn",
+              "W hk",
+              "B gm",
+              "W ip",
+              "B hj",
+              "W jj",
+              "B ji",
+              "W cs",
+              "B bs",
+              "W ds",
+              "B br",
+              "W rq",
+              "B rr",
+              "W sp",
+              "B ml",
+              "W nl",
+              "B ae",
+              "W el",
+              "B ei",
+              "W ej",
+              "B di",
+              "W ea",
+              "B da",
+              "W fa",
+              "B cb",
+              "W ln",
+              "B km",
+              "W ko",
+              "B af",
+              "W eg",
+              "B dh",
+              "W df",
+              "B ef",
+              "W dj",
+              "B de",
+              "W ci",
+              "B df",
+              "W dl",
+              "B fk",
+              "W ek",
+              "B jl",
+              "W kp",
+              "B im",
+              "W hm",
+              "B ik",
+              "W kl",
+              "B hl",
+              "W jm",
+              "B il",
+              "W ll",
+              "B gp",
+              "W gq",
+              "B mm",
+              "W lm",
+              "B kk",
+              "W np",
+              "B nq",
+              "W sr",
+              "B rs",
+              "W qg",
+              "B ph",
+              "W pf",
+              "B of",
+              "W pe",
+              "B oe",
+              "W qd",
+              "B ka",
+              "W lb",
+              "B bg",
+              "W ah",
+              "B oc",
+              "W ob",
+              "B oj",
+              "W ok",
+              "B hn",
+              "W ic",
+              "B hc",
+              "W ib",
+              "B ia",
+              "W jc",
+              "B ja",
+              "W la",
+              "B ha",
+              "W pp",
+              "B pr",
+              "W fp",
+              "B jr",
+              "W ir",
+              "B ls",
+              "W js",
+              "B nd",
+              "W fn",
+              "B aj",
+              "W ai",
+              "B ak",
+              "W dn",
+              "B cn",
+              "W gn",
+              "B ho",
+              "W gg",
+              "B hg",
+              "W id",
+              "B ie",
+              "W fl",
+              "B ed",
+              "W fd",
+              "B bf"
+            ],
+            "rules": {
+              "button": false,
+              "friendly_pass_ok": false,
+              "ko": "simple",
+              "scoring": "territory",
+              "suicide": "forbidden",
+              "tax": "seki",
+              "white_handicap_bonus": "0"
+            },
+            "rules_text": "Japanese",
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              19,
+              19
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "...XOO.XXXXO.......",
+                "..X.XO.XOXOO.OO....",
+                "....XO.XOOO.O.XOO..",
+                "...XXO.XOOOXOXXXO..",
+                "XXXX.OOXXXXXX.XO.O.",
+                "XXXXX..X......XO...",
+                "OXOXOOOX.......XOO.",
+                "OOOXXOOXX......XXO.",
+                "O.OXXOXO.X...XXXOX.",
+                "XOOOOOXXXO.XXOXOOO.",
+                "XXO.OXX.XOXXOOO....",
+                "X.XOOO.XXXOOXO.....",
+                ".XX...X.XO.OXXO....",
+                "..XO.OOXOO.OX..O...",
+                "..XX..XXO.OOX.O.OO.",
+                "..OXOOX.O.O.XOOOO.O",
+                "..XOO.OOOOXX.XXOXO.",
+                ".XXO....O.OOX.XXXXO",
+                ".XOO.....O.X...X.X."
+              ],
+              "captures": {
+                "black": 9,
+                "white": 8
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "8392bb57975c242c91fc64234a2c55aa",
+              "stones_hash": "796e584f19d1c990fd9c074029bf0b80",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "b1f9f9b3a299fccd959395b699c7053c",
+              "8106a36b0b9b98eaf6f2c13722304789",
+              "bec5aeb5bc04c99ff3638a0ed731f76d",
+              "b7b5a60f8d4b7d796094147eaaa8ac39",
+              "49381b468662513a22c5a1a0bad68836",
+              "da2e312d4192c286d55977104d6f5df9",
+              "4e11ba930b0f512d9f6fc48c51a54893",
+              "5e5d28cf1bbcfacb095e7dc96789605b",
+              "4645c2f599842b8a968c261d6c805f7a",
+              "91c5a9b21cf1f741aa3348cc4e4b7e51",
+              "c54e08e3b50945164c3b1656e9318349",
+              "e6c7d084803d4e393bd30fb49f9ec9e4",
+              "f0499d4e8d917288a704cad6744a3641",
+              "354dda786651d0e52c82c47188bbbc75",
+              "7628636a9f36a52cfed19a07416b96e0",
+              "23b352b8411ff6e1c3036bd618569f5a",
+              "21b9d02f19060cb50de6ee4993b62e30",
+              "4c16ac7eeb8a76e89df0967f974f1690",
+              "b29b1137e0a35aabdfa123a18731329f",
+              "9b58c76728be8f2246af0e9e6a04edf2",
+              "d287893a5f10536171a94761ff5a9dd0",
+              "cabc878ca5169c67ffaa2b6809e8a317",
+              "878695ba867cf1adf54a44d40adb1bb0",
+              "48acbc5cb1b766124e645e4cbbf450e9",
+              "4c3bb49d6c95551ab8d35a1dbf5e63dc",
+              "c8a77f71b7b563bab4a33f7e13627028",
+              "27fc42d740285df050779cec85d1dd7d",
+              "547746cfeb7668abcdfbf703620d4ff3",
+              "b898905b0e71277aa92537ed790d6048",
+              "5b3bae78f8934b663ef559a5d7e77ba8",
+              "c0b1bca5ba0f91b285f3de61d81901ed",
+              "a31d467ef9d2d4cb196546d6667d9147",
+              "10f19706a07983fab6ceb0796799bb96",
+              "4f226cb3235a8f93a3860ef14f0f6c04",
+              "6249054b317638d73c89c46a3d0d5354",
+              "0670362897733aa653ceb36883a73d14",
+              "3585c86420fde28c66e7d86fc0de7a1e",
+              "c6483dea61e15294c623092e6f03e7a6",
+              "9256f319c94602da5101b79fa75935f0",
+              "c9fa4d8f0e6612a7775824b4e35132f3",
+              "c3f769f62c5c9fa79e3dbf6566b4da19",
+              "8b2436f7275b082037397265685c7962",
+              "e69df3429a122c77031a5ef85074d389",
+              "9c73cefe5c5dc541aaeeaa23cd88b701",
+              "cb78cb998711953bb195c79a913472d0",
+              "9d71366d2231da100becfb9325211ab1",
+              "28eec1aaec1390a12d98e12f6dcccc1e",
+              "13ccbbc860978ecada8db48c7997fb2d",
+              "4ffe3f0f8444d73e608567cae0d3c797",
+              "5e6d48cfbfcfa02598a711afbb2005ee",
+              "80de1d909a4654a0413e0a8d08d40901",
+              "2ac6d39bfcbc1cb484a8f0febec60ad0",
+              "2033d84c6f4a5deac39bf3092a0ed067",
+              "4a1ee37c90a1bf713d0d9737c1cb216a",
+              "6fc57490140196a143d4bbccde9afb80",
+              "79c8ac9bf6e4cff3c0a2b8487116fab1",
+              "996eb0aa48914333631437567c8b027f",
+              "a928834711da38b1bcc0772411117bf0",
+              "e6516f42f2e907956a7a9acdcff94a80",
+              "56ad6b72354c36866f9318fdf1a519ad",
+              "612b6c4be8afe6567dedcb8c13b9560a",
+              "87e9f558479954797a0b80aa3b7f9324",
+              "f348f806aeeea5590aa2a83a36de70e4",
+              "568e7930c92a757eafe6460ac83c13cd",
+              "aad9da00298915219ebaaf2f9ee80b66",
+              "440487d7850c4c93f8bf9c4e573d7667",
+              "4c34097a14ce398d01b38417bffc0840",
+              "2e843bfa437165ff8c331e2110c50287",
+              "1ea447151ee4043e2d61b555713bd140",
+              "7f4aaed8744030a23aad2b607d9e3983",
+              "38fa5f2f28455237fadbf9193a164eb1",
+              "04396884b7ce6ba2335dde376e291e3a",
+              "45ede674ed73f012104af7860b70bb34",
+              "06bc9a4761c0c5a38765b02fcbe5b2b6",
+              "bf46842d7f2686a6461b22985a1d2aba",
+              "dec8bab7fb868fbd585f4af332d34198",
+              "d95cb51764adace05fe3f7b55ec923ee",
+              "a6f75cfbcb949fe26adc9a3c3a332f0b",
+              "858bc7d35036b675dfab3f242ec19d91",
+              "ac06e21fe3a80d0301865b670fc3e299",
+              "83d6f0407161875078a17ad6e38d6256",
+              "ad00e681218f2d8b157b26ffe9e97a77",
+              "21c75387ea24be423ad6c9ea7b12b5c0",
+              "426154030c0e86bdcf7bd9b57dae82cf",
+              "d3102c42d3bf626b129c8cde4b3ac5e7",
+              "787de52ada87a6405f412e5f6fb22f15",
+              "f994e99af81c5137580d897e8f47019c",
+              "3aed45ea710c9f27fc8e5b8eedd8549a",
+              "8a620af2725248007a2303362bab77cd",
+              "d2d500c2d3b53d78c28bb24d96329dd8",
+              "a4f4e2f03b84e2e560bcd591f1111a8c",
+              "ba795beae2c8b214ccea14d864683391",
+              "41b656750a4dc720d16928589edce993",
+              "7da3c054942025df66c14bb9b736eaf6",
+              "d70c140652fc02d7ca959fda58125ccd",
+              "e3b9f537e014f59ab282f813be8a96e7",
+              "97e83bccd93a72919eda926762807508",
+              "5d42f0748f10bb2d5e5d253344e3e30c",
+              "1f2d1c62c91f02dc6c56b4b05a6a61fc",
+              "7569aa76bdee3e99f3f65b2b96a86287",
+              "7315411635d1f4b8cd4bf29791666db2",
+              "805f0f7b836384f394ec7b0b068ce50c",
+              "724592f657c10baedb42966bec25f2b8",
+              "3f98035bc0fb600516df7988373acab8",
+              "dc228b4794d0d065a41d0c3a86617d35",
+              "d74b37f0fbe86cd8b83d40b702340e7e",
+              "9a12a54f95193bae54027ba2f939abd7",
+              "8e56040c96b775bb8a1be3cb17898d6c",
+              "d7a696d1a514f4f1423fed0f077f88ee",
+              "7c35f2a155630ca40611281ca7d49be6",
+              "65e7e72fe69e875f018586e7b87ad6d1",
+              "60c173d24bd1dd586340a52ef2183ba1",
+              "d4841d05b700cc9a6dfc13db54ddf430",
+              "d36ec89ebb0cdc69383018746877e018",
+              "e8463f08c383c0449c928705b1b70eb3",
+              "306177496422d75148e019ff742b869a",
+              "f715f604f56400bfca358caa563cc1bc",
+              "9ff6f08efab61502c48f05be89621bff",
+              "9415ae0382805a03a52933fdd86f3ff2",
+              "9efa602ccd4d1bbdeff39c5e33ef76cb",
+              "d9fd1909f280484aaa89eb521f22ea5f",
+              "e6c930811a0b95bc4d2cd5b4efc5b9c5",
+              "7399974e884217c327d689b0dbc52f92",
+              "c2cda1ed7c24de0037bba03854ce2d12",
+              "322f532ab4ff4fdd5d7e9e9dde0aeb4b",
+              "ae5b2bc39fd14ff4047d655253acae3a",
+              "dcd198f2235f86377a915b27a8b57493",
+              "a0bb51968992450699519faeb84cb7dc",
+              "7860bd764aa6e7807b7e7bc0d483849a",
+              "0c7a4e3aac9d2cafef4a7e4fc1adfa6e",
+              "a00025a2702fab1d7adfcf2bd9e802dc",
+              "776aa08b1c2f6eb3959b95d2695aedc2",
+              "4ce2b03bb55315b934335ce8317647b8",
+              "ad6a1f0b0f16e6d01f2b9d19aa79116c",
+              "bf29fd9533169697b50d6a2ffd3b5c4e",
+              "65498d2e19c1c6229bce414ba85df783",
+              "1d3c000af4f5d39d73f3babb1721fa7e",
+              "36eecf96407fae62e5c91f726f08aef5",
+              "2b819c69d7c84fa9437e2639e2bc6bf6",
+              "860482778a4479e061d9c576911a4d27",
+              "1151634246b41da2dfa0edc69a829081",
+              "8d3b281ef0b3dd5acb34d6ed0ea61012",
+              "d43649ec0384048e2d4f55f330afee1c",
+              "029cc0bf7f8aec6ad886ccaddfbe5ecc",
+              "05b66a393690c4479de4c118f71ec26b",
+              "c777f1908f05c9f3a9c029aa5a3416e8",
+              "9eaaa133112f8cd886924684a887d25b",
+              "9a804b1a0459c6e272a38f8d0d0ff1b4",
+              "97bee46d6fc7928a2300bd75a746ffaa",
+              "d9b9489c5d5f000eb75476a49b2415c6",
+              "95aed193951aff4adaa346dfec2c40d3",
+              "e526d23a096b3d6dd24647af1f55186a",
+              "23b9d6f4c505f84862b32f579d6f8b63",
+              "84d9a018e50c49cd425e800d5f556943",
+              "6b9427c15d14bcaf76c8f05a2bc8d908",
+              "f8bffaf2d607d0754f758d687af1c09c",
+              "aba75244aff10916c9d2e58a90d246eb",
+              "e99f3e4bee5ff150ea00bc1a55e8ab0e",
+              "7003cd2e67688875dc2d1558619a31af",
+              "3ba7d487e889cb8fb2755ee679d54de4",
+              "0bb4beed40a3a86230c0235ef94e48a9",
+              "e3b6608af8817c8ae334e32331660818",
+              "3bb968c21c05710f557ccac8e936a000",
+              "fce513003f8d0d0176ac7504ee27664d",
+              "cef3579b0c36f90d46af0d60b6669dcf",
+              "7162d85420d3bd07de68dd005aae9029",
+              "c563729864d3ed73564ea2765514a908",
+              "9d22e2d530b3301cf834803816e82ed9",
+              "462ae485659110153b9a6664aca222f3",
+              "d8b8a189a1272415d5631532f818cb03",
+              "b936e00b2df7b6b7b7c9bf6ada356f4c",
+              "6d0a7ad9e9dc71cc17d53aef22996d63",
+              "f9a683f844e81fcf23d9cacdbb081bfc",
+              "c0ebfa16413b0c72e96750f21bc8a8a2",
+              "cb7fa1173827c3570204f035aa984aa6",
+              "3163a243c4ab30bca4b4994b05c56f92",
+              "136ada4c169d983c90bbdd8e1a924dbb",
+              "b4fdeaa8a738071879a883ab6a58a5fc",
+              "8a5417a40c633ad1aa659ed71e21a767",
+              "7206312d5deb8905dee6f7647abeff7f",
+              "7259cdbc5452d6dc032e490de6d32ac2",
+              "486f0907a3748098301e7f1dd8c26efe",
+              "c4742246923e5f5397663f3991eec8c4",
+              "8c51663a20bff04a46ab29b2791557dd",
+              "be1d74733c9d01b3247ed94674d92614",
+              "e6ebf80b6d70c6fc46e090edd9efa7b7",
+              "b333edfe2a3bd016ee0098b074e69cd7",
+              "5f99f79451a83f7377b9b064136646ae",
+              "81a27cb5b71fa04c8ff088ef469555a8",
+              "de22b7ddad58ff526401d23625d23495",
+              "d1f257d51c6c20feee9f21072f78f9be",
+              "fbe608a3d55d9d8ce3c40070c30f2567",
+              "65542ea7e6c547cb67b3eb2f5ab10e3a",
+              "542dbedef72ebda393dff2ef7919a11a",
+              "34d022b5ab30e85bcc563819937a6ac6",
+              "72e0e4a0d277d8adc2cda547672d58ea",
+              "29140d746ab12cbb45ab36599bebb109",
+              "d38c79a9cad9097d476e09d15f57da45",
+              "df20919ae051d536491fd05f8c048a3d",
+              "96f9e85c3c0fb28e3adb06225da270e7",
+              "0a1e096f3053d47e23d4ad5ffbc883c4",
+              "b63d1ea69badc28a0c54c4d4d4c093c8",
+              "87a4c0f7e0389e7611d99eb6f407b049",
+              "87c14a7b17f446678176be38dbc2c259",
+              "90ac07584c0fd614dbd8ab196ba548d9",
+              "9452abe953788ab340f95adf4eec2bf5",
+              "7ff8e20569a69e95496761e3717474a0",
+              "5a784aad50fde297f3ff5279a3421893",
+              "874e6060f3f66433d63b8a87e2d0a3a5",
+              "4e5c56fa69f116a42cc1a033d1a86b69",
+              "0ab9a9dd28e0291f3904dcd190195107",
+              "5a8453846480dc3941ceb4d07dc30a42",
+              "bbaf04e6ad1de90010592b18e630650c",
+              "442369e76842c401e20693d7756874cf",
+              "ac8f33895404e3ff940dff06d598d199",
+              "b03b3a541eb6f97d280c63cd5b26d5ae",
+              "4ac74304bb54d52dcc3894ab15d3b43a",
+              "6e865fd95a33c9a4deffd0077e5938d6",
+              "001efb16ee99cfab9b25dcbd73350514",
+              "16fb320f072f652bb13755407e21d512",
+              "2816071c8514d319078364c774548c4d",
+              "a69805989bb95f92f7460208c5df6e27",
+              "b592e23bb58d32d656bd0492b3be7d4c",
+              "fc714ed5a6f266a7c63fd4b15b7e29bb",
+              "709866cc3a792d92b7a14c22eb4ffc02",
+              "a190e77ded419709811acafbbd797fa7",
+              "10b77653e73ef324ff9eef81a6a12060",
+              "ff36b8d0bf59f7c4e323febe6f643831",
+              "85c2a316044a87fb13bfb2a5dc0c62bb",
+              "3558e5b1221e8d9ca6f846cae91b686c",
+              "28d8c18db8b3eb0026418e8f19460e52",
+              "39ab593381b3f8a70fcd45a2637f789f",
+              "6b54a484399a25e3ae4becf9c7f11cb5",
+              "67dd4c01811df78a7424c31e40034c38",
+              "2e08dee0250a445cea4b0a53cdfb766d",
+              "8392bb57975c242c91fc64234a2c55aa"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "move_on_occupied_point": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "B aa",
+              "W bb",
+              "B bb"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "error": {
+              "code": "occupied",
+              "move_number": 3
+            }
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "not_sgf": {
+      "error": {
+        "code": "no_game",
+        "offset": 5
+      }
+    },
+    "tt_read_as_pass": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "tt_pass",
+              "node": 2
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": 6.5,
+            "moves": [
+              "B ee",
+              "W pass"
+            ],
+            "rules": {
+              "button": false,
+              "friendly_pass_ok": false,
+              "ko": "simple",
+              "scoring": "territory",
+              "suicide": "forbidden",
+              "tax": "seki",
+              "white_handicap_bonus": "0"
+            },
+            "rules_text": "Japanese",
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "....X....",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 1,
+              "ko_ban": null,
+              "situation_hash": "f9a618d09d37ee284fb324f265fcdde4",
+              "stones_hash": "f9a618d09d37ee284fb324f265fcdde4",
+              "to_play": "B"
+            },
+            "situation_hashes": [
+              "4746dceff708ec32fb7101533177514a",
+              "035afbc813ba039423d34791066f83ce",
+              "f9a618d09d37ee284fb324f265fcdde4"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "two_black_moves_in_a_row": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "B aa",
+              "B bb"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "X........",
+                ".X.......",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "d33bc4ad49e39b053f6a87859c3ce94a",
+              "stones_hash": "29c727b5c76e76b9530ae4e6ffafb760",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "4746dceff708ec32fb7101533177514a",
+              "4efec8426503aec1620ecd46a7054010",
+              "d33bc4ad49e39b053f6a87859c3ce94a"
+            ],
+            "warnings": [
+              {
+                "code": "out_of_turn",
+                "move_number": 2
+              }
+            ]
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "two_games_after_junk": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "B aa"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "X........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "4efec8426503aec1620ecd46a7054010",
+              "stones_hash": "b4022b5aeb8e437d0e6eae25c4961e3a",
+              "to_play": "W"
+            },
+            "situation_hashes": [
+              "4746dceff708ec32fb7101533177514a",
+              "4efec8426503aec1620ecd46a7054010"
+            ],
+            "warnings": []
+          }
+        },
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "W bb"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "W",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                ".........",
+                ".O.......",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "be2cc7b1078781291e200a1936b9a4e7",
+              "stones_hash": "be2cc7b1078781291e200a1936b9a4e7",
+              "to_play": "B"
+            },
+            "situation_hashes": [
+              "bdba3ff77985018e9711623052e40f60",
+              "be2cc7b1078781291e200a1936b9a4e7"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": [
+        {
+          "code": "junk_outside_tree",
+          "offset": 0
+        }
+      ]
+    },
+    "two_moves_in_one_node": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_error": {
+            "code": "two_moves_in_node",
+            "node": 1
+          }
+        }
+      ],
+      "sgf_warnings": []
+    },
+    "unclosed_tree": {
+      "encoding": "UTF-8",
+      "games": [
+        {
+          "extract_warnings": [
+            {
+              "code": "missing_rules",
+              "node": null
+            },
+            {
+              "code": "missing_komi",
+              "node": null
+            }
+          ],
+          "record": {
+            "handicap": null,
+            "info": {
+              "black_player": null,
+              "black_rank": null,
+              "date": null,
+              "event": null,
+              "name": null,
+              "place": null,
+              "result_text": null,
+              "round": null,
+              "white_player": null,
+              "white_rank": null
+            },
+            "komi": null,
+            "moves": [
+              "B aa",
+              "W bb"
+            ],
+            "rules": null,
+            "rules_text": null,
+            "setup": {
+              "black": [],
+              "to_play": "B",
+              "white": []
+            },
+            "size": [
+              9,
+              9
+            ]
+          },
+          "replay": {
+            "final": {
+              "board": [
+                "X........",
+                ".O.......",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                ".........",
+                "........."
+              ],
+              "captures": {
+                "black": 0,
+                "white": 0
+              },
+              "consecutive_passes": 0,
+              "ko_ban": null,
+              "situation_hash": "4d6830041b012e66eb3fa56fc358eb97",
+              "stones_hash": "4d6830041b012e66eb3fa56fc358eb97",
+              "to_play": "B"
+            },
+            "situation_hashes": [
+              "4746dceff708ec32fb7101533177514a",
+              "4efec8426503aec1620ecd46a7054010",
+              "4d6830041b012e66eb3fa56fc358eb97"
+            ],
+            "warnings": []
+          }
+        }
+      ],
+      "sgf_warnings": [
+        {
+          "code": "unclosed_tree",
+          "offset": 29
+        }
+      ]
+    }
+  },
+  "zobrist_version": 1
+}
