@@ -52,6 +52,17 @@ pub enum CoordError {
     OutOfRange(String),
 }
 
+impl CoordError {
+    /// Stable machine-readable code.
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::UnsupportedSize { .. } => "unsupported_size",
+            Self::Malformed(_) => "malformed_coordinate",
+            Self::OutOfRange(_) => "coordinate_out_of_range",
+        }
+    }
+}
+
 impl Point {
     /// The flat index of this point.
     pub const fn index(self) -> usize {
