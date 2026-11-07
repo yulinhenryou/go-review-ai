@@ -6,10 +6,9 @@
 // recorded in expected.json. Text forms: testdata/conformance/README.md.
 
 import { readFileSync } from 'node:fs'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   Game,
-  initSync,
   parseSgf,
   replaySgf,
   zobristVersion,
@@ -225,10 +224,6 @@ function runSgf(c: SgfCase): Json {
 }
 
 // --- Tests ---
-
-beforeAll(() => {
-  initSync({ module: readFileSync(new URL('./wasm/weiqi_wasm_bg.wasm', import.meta.url)) })
-})
 
 describe('conformance', () => {
   it('uses the Zobrist version of the transcripts', () => {

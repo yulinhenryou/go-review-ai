@@ -2,13 +2,8 @@
 // The weiqi-wasm binding: error shapes, input checks and the copy-out
 // boundary. Rule behavior is tested in Rust and by the conformance cases.
 
-import { readFileSync } from 'node:fs'
-import { beforeAll, describe, expect, it } from 'vitest'
-import { Game, initSync, parseSgf, replaySgf, type CoreError, type Move } from './wasm/weiqi_wasm.js'
-
-beforeAll(() => {
-  initSync({ module: readFileSync(new URL('./wasm/weiqi_wasm_bg.wasm', import.meta.url)) })
-})
+import { describe, expect, it } from 'vitest'
+import { Game, parseSgf, replaySgf, type CoreError, type Move } from './wasm/weiqi_wasm.js'
 
 function thrown(action: () => unknown): CoreError {
   try {
@@ -56,7 +51,9 @@ describe('Game', () => {
       expect([error.name, error.code], JSON.stringify(move)).toEqual([name, code])
     }
     expect(thrown(() => game.playAs('X' as 'B', 'pass', 'strict')).code).toBe('malformed_color')
-    expect(thrown(() => game.playAs('W', 'pass', 'lenient' as 'strict')).code).toBe('malformed_mode')
+    expect(thrown(() => game.playAs('W', 'pass', 'lenient' as 'strict')).code).toBe(
+      'malformed_mode',
+    )
     expect(game.position().situationHash).toBe(before)
   })
 
@@ -68,9 +65,13 @@ describe('Game', () => {
       expect(thrown(() => new Game(19, 19, 'chinese', komi)).code).toBe('invalid_komi')
     }
     const offBoard = { black: [{ x: 9, y: 0 }], white: [], toPlay: 'B' as const }
-    expect(thrown(() => Game.withSetup(9, 9, 'japanese', 0.5, offBoard)).code).toBe('setup_off_board')
+    expect(thrown(() => Game.withSetup(9, 9, 'japanese', 0.5, offBoard)).code).toBe(
+      'setup_off_board',
+    )
     const conflict = { black: [{ x: 0, y: 0 }], white: [{ x: 0, y: 0 }], toPlay: 'B' as const }
-    expect(thrown(() => Game.withSetup(9, 9, 'japanese', 0.5, conflict)).code).toBe('setup_conflict')
+    expect(thrown(() => Game.withSetup(9, 9, 'japanese', 0.5, conflict)).code).toBe(
+      'setup_conflict',
+    )
   })
 
   it('returns snapshots that later moves do not change', () => {
@@ -83,7 +84,9 @@ describe('Game', () => {
 })
 
 describe('SGF', () => {
-  const data = new TextEncoder().encode('(;FF[4]GM[1]SZ[9]RU[Japanese]KM[6.5]PB[A\\]B];B[ee];W[tt])')
+  const data = new TextEncoder().encode(
+    '(;FF[4]GM[1]SZ[9]RU[Japanese]KM[6.5]PB[A\\]B];B[ee];W[tt])',
+  )
 
   it('parses and replays', () => {
     const collection = parseSgf(data)
