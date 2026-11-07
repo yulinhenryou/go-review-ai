@@ -250,18 +250,21 @@ not edited after acceptance except for status.
   build times or dependency isolation require it.
 
 ### ADR-P11 Arena-based SGF tree *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`23ec86b`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** Nodes in a `Vec` addressed by `NodeId(u32)`; no `Rc<RefCell<…>>`.
   Simpler ownership, iterative traversal, trivial serialisation.
 
 ### ADR-P12 Replay modes `Strict` and `Record` *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`863ac83`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** Manual entry rejects illegal moves; imported records are replayed
   as recorded with structured warnings, and the API decides whether flagged
   games may be analysed.
 
 ### ADR-P13 Japanese scoring takes explicit life-and-death input *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`a62d6ad`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** The scorer stays deterministic and takes dead stones and seki as
   input; the product proposes them from KataGo ownership and the user confirms.
 
