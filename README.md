@@ -54,17 +54,18 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 | --- | --- | --- |
 | `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1 |
 | `crates/weiqi-py/` | Python binding (PyO3), module `weiqi_core` | Built in M2; scoring not exposed yet |
+| `crates/weiqi-wasm/` | WebAssembly binding (wasm-bindgen) for the web app | Built in M2; not used by the page yet |
 | `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
 | `web/` | TypeScript + React + Vite app | Placeholder page |
 | `testdata/sgf/` | Public SGF test corpus with provenance | — |
-| `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust and Python runners in M2; WASM runner follows |
+| `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust, Python and WASM runners (M2) |
 | `config/project.json` | The single source of the provisional project name | — |
 | `legacy/` | The Go Review AI prototype | Runs and is tested in CI |
 | `docs/` | Vision, architecture, roadmap, decisions, migration, acceptance records | — |
 
 The Rust core reaches Python through PyO3 (`uv sync` in `python/` builds it
-with maturin, so a Rust toolchain is required) and will reach the browser
-through WebAssembly (M2). Analysis uses the
+with maturin, so a Rust toolchain is required) and the browser through
+WebAssembly (`npm run wasm` in `web/` builds it into `web/src/wasm/`). Analysis uses the
 [KataGo](https://github.com/lightvector/KataGo) analysis engine (M3).
 
 ## Development
@@ -95,8 +96,15 @@ The binding's stub is checked against the built module from `python/`:
 uv run python -m mypy.stubtest weiqi_core --allowlist ../crates/weiqi-py/stubtest-allowlist.txt
 ```
 
+The web app needs the WASM build first, which needs the `wasm-bindgen` CLI at
+the same version as the crate:
+
 ```bash
-cd web && npm ci && npm run lint && npm run typecheck && npm test && npm run build
+cargo install wasm-bindgen-cli@0.2.130 --locked
+```
+
+```bash
+cd web && npm ci && npm run wasm && npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 The prototype keeps its own instructions in [legacy/README.md](legacy/README.md).

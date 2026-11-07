@@ -227,8 +227,9 @@ docs/                English public documentation
   M1 (2026-11-04); fuzzing runs from `crates/weiqi-core/fuzz/`, whose own
   `rust-toolchain.toml` selects nightly. maturin is not installed globally:
   uv fetches it as `crates/weiqi-py`'s build backend during `uv sync` in
-  `python/` (M2). wasm-bindgen tooling and Playwright are installed in the
-  milestone step that first needs them.
+  `python/` (M2). `wasm-bindgen-cli` 0.2.130 was installed with
+  `cargo install` into `~/.cargo/bin` (M2, 2026-11-07); agent shells may need
+  it on `PATH`. Playwright is installed in the step that first needs it.
 - `legacy/` uses its own `legacy/.venv` (Python 3.14, created with uv from
   `legacy/constraints.txt`); run its commands from inside `legacy/`.
 - Real KataGo 1.16.4 and three models are installed under `/opt/homebrew`

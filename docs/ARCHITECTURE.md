@@ -54,7 +54,7 @@ crates/
     tests/  benches/       Integration tests, proptest, criterion benchmarks
     fuzz/                  cargo-fuzz targets (own workspace, nightly toolchain)
   weiqi-py/                PyO3 bindings, built by maturin → Python module `weiqi_core`
-  weiqi-wasm/              wasm-bindgen bindings → JS/TS package for web/
+  weiqi-wasm/              wasm-bindgen bindings → JS/TS module in web/src/wasm/ (generated)
 python/
   pyproject.toml           uv project; distribution name = brand (see CLAUDE.md §6)
   src/weiqi/
@@ -265,11 +265,25 @@ are separate steps, so that rules and komi can be confirmed between them.
     Rust, so no Rust lifetime crosses the boundary.
   - `parse_sgf` borrows the immutable `bytes` argument for the duration of
     the call instead of copying it.
-- **WASM (`weiqi-wasm`, wasm-bindgen).** Exposes a JS-friendly subset (create
-  game, play, undo, snapshot, parse SGF, legal-move mask). TypeScript types are
-  generated. Bundle size is measured and recorded, not promised in advance.
-  Tooling choice (wasm-pack vs. the `wasm-bindgen` CLI directly) is decided in M2
-  after checking current maintenance status.
+- **WASM (`weiqi-wasm`, wasm-bindgen).** Exposes a JS-friendly subset: a
+  `Game` class (create, with setup, play, undo, snapshot) and two pure SGF
+  functions, `parseSgf` and `replaySgf` (ADR-P16). Built with the
+  `wasm-bindgen` CLI directly (`--target web`), pinned to the crate's exact
+  version 0.2.130, by `npm run wasm` in `web/`, which writes the generated
+  module to `web/src/wasm/` (not committed). The TypeScript types come from
+  wasm-bindgen: interfaces in a `typescript_custom_section` and
+  `unchecked_param_type`/`unchecked_return_type` on each export. Size is
+  measured, not promised (M2 acceptance record). A legal-move mask is not
+  built yet. Ownership at the boundary:
+  - `Game` is a handle: its Rust `Game` lives in WASM linear memory and JS
+    holds an index to it, so it must be released with `free()` or `using`.
+    wasm-bindgen checks borrows at run time, as PyO3 does.
+  - Everything else is a plain JS object or array, copied out of WASM memory
+    through serde DTOs (`serde-wasm-bindgen`), so it needs no `free()` and
+    can be kept in UI state. Hashes are hex strings.
+  - `parseSgf`/`replaySgf` take bytes that wasm-bindgen copies into WASM
+    memory for the call. `replaySgf` parses again rather than keeping a
+    handle between the two calls.
 - **Conformance:** one set of golden cases (JSON: input, expected positions,
   hashes, warnings) runs through Rust, Python and WASM in CI; any divergence fails.
   Cases and their hand-checked expectations are written by hand; the full

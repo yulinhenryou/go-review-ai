@@ -290,3 +290,20 @@ not edited after acceptance except for status.
   comparing transcripts; Python code is easier to type-check and index with
   tuples and ints. SGF ↔ point and GTP conversion stay in the core and will be
   exposed when the engine adapter needs them (M3).
+
+### ADR-P16 WASM binding shape *(M2)*
+- **Status:** Proposed 2026-11-07, built in M2 step 3; accepted when the owner
+  approves M2.
+- **Decision:** `weiqi-wasm` uses wasm-bindgen 0.2.130 (pinned with `=`, since
+  the CLI that generates the JS glue must match it) and the `wasm-bindgen` CLI
+  directly with `--target web`, not wasm-pack, so the build is one cargo
+  command plus one CLI call. Only `Game` is a handle; snapshots, effects and
+  SGF results are plain objects serialized from DTOs in the binding crate
+  with `serde-wasm-bindgen` (no serde in the core). The TypeScript interfaces
+  are written in the crate and emitted by wasm-bindgen, without tsify. Value
+  forms match ADR-P15 except points `{ x, y }`, hashes as hex strings and
+  camelCase field names. Errors are `Error`s with `name` and `code`. The
+  browser build uses the `wasm-release` profile (LTO, one codegen unit,
+  `opt-level = "s"`), chosen by measured size.
+- **Context:** Plain objects can sit in React state without manual memory
+  management; a handle per snapshot would need a `free()` per position.
