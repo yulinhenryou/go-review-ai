@@ -212,8 +212,8 @@ docs/                English public documentation
   missing data, both colors and pass; statistical code tested against known
   distributions.
 - **Frontend:** unit tests (Vitest) for state and rendering logic; browser
-  end-to-end tests (Playwright, decide in M2) for the main flows on desktop and
-  mobile widths.
+  end-to-end tests (Playwright with Chromium, `web/e2e/`, since M2) for the
+  main flows on desktop (1280 px) and mobile (390 px, touch) widths.
 - **Legacy:** `legacy/` tests keep passing in CI until `legacy/` is deleted.
 - Record acceptance evidence per milestone (commands, inputs, versions, results).
 
@@ -229,7 +229,9 @@ docs/                English public documentation
   uv fetches it as `crates/weiqi-py`'s build backend during `uv sync` in
   `python/` (M2). `wasm-bindgen-cli` 0.2.130 was installed with
   `cargo install` into `~/.cargo/bin` (M2, 2026-11-07); agent shells may need
-  it on `PATH`. Playwright is installed in the step that first needs it.
+  it on `PATH`. `@playwright/test` 1.64.1 is a pinned dev dependency of `web/`;
+  only the Chromium headless shell is installed locally (`npx playwright
+  install --only-shell chromium`, 2026-11-07), so tests run headless only.
 - `legacy/` uses its own `legacy/.venv` (Python 3.14, created with uv from
   `legacy/constraints.txt`); run its commands from inside `legacy/`.
 - Real KataGo 1.16.4 and three models are installed under `/opt/homebrew`
