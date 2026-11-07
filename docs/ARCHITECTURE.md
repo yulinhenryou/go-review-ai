@@ -500,11 +500,19 @@ Draft entities: `player`, `game` (source, SGF bytes hash, metadata, rules),
 
 ## 11. L7 — Frontend
 
-- **Stack:** TypeScript, React, Vite. Server state via a query cache library
-  (TanStack Query, decide in M2); local UI state kept minimal.
+- **Stack:** TypeScript, React, Vite. Server state via a query cache library;
+  local UI state kept minimal. M2 has no server calls, so the choice of
+  library (TanStack Query is the candidate) moves to the milestone that adds
+  the first API call.
+- **Core handles (M2):** components never hold a WASM handle in React state
+  directly. A plain TypeScript session object (`web/src/session/`) owns the
+  `Game` handle, returns plain snapshots, and frees the handle when a new game
+  replaces it; React state stores those snapshots.
 - **Board:** SVG rendering (crisp at any size, styleable, testable DOM);
   legality, captures and ko through the WASM core, so manual entry needs no
   server round-trip per stone (the prototype calls the server for every click).
+  The M2 board has no coordinate labels and is operated by pointer only;
+  labels and keyboard play on the board are open items for M4.
 - **Visualisation:** a clickable loss timeline that jumps to positions; an
   interactive profile (phase × situation grid with intervals, trends). Library
   choice (D3 modules rendered by React, or a higher-level library) decided in M4.

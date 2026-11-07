@@ -54,9 +54,9 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 | --- | --- | --- |
 | `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1 |
 | `crates/weiqi-py/` | Python binding (PyO3), module `weiqi_core` | Built in M2; scoring not exposed yet |
-| `crates/weiqi-wasm/` | WebAssembly binding (wasm-bindgen) for the web app | Built in M2; not used by the page yet |
+| `crates/weiqi-wasm/` | WebAssembly binding (wasm-bindgen) for the web app | Built in M2; used by the web app |
 | `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
-| `web/` | TypeScript + React + Vite app | Placeholder page |
+| `web/` | TypeScript + React + Vite app | M2 shell: manual entry and SGF replay through the WASM core |
 | `testdata/sgf/` | Public SGF test corpus with provenance | — |
 | `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust, Python and WASM runners (M2) |
 | `config/project.json` | The single source of the provisional project name | — |
