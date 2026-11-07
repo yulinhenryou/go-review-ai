@@ -27,6 +27,7 @@ jobs:
           python-version: "3.14"
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy -p weiqi-wasm --target wasm32-unknown-unknown -- -D warnings
       - run: cargo test --workspace
 
   # A short, time-boxed run on every push; longer runs are local and recorded
@@ -82,12 +83,23 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v7
+      # The WASM build (`npm run wasm`): rust-toolchain.toml adds the
+      # wasm32-unknown-unknown target; the CLI version must equal the
+      # wasm-bindgen crate's (=0.2.130 in crates/weiqi-wasm).
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install wasm-bindgen-cli@0.2.130 --locked
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      - run: npm run wasm
+      - name: WASM size in bytes (raw, gzip -9)
+        run: |
+          wc -c < src/wasm/weiqi_wasm_bg.wasm
+          gzip -9 -c src/wasm/weiqi_wasm_bg.wasm | wc -c
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
