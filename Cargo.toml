@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/weiqi-core"]
+members = ["crates/weiqi-core", "crates/weiqi-py", "crates/weiqi-wasm"]
 
 [workspace.package]
 edition = "2024"
@@ -14,3 +14,12 @@ missing_docs = "warn"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+
+# The browser build (`npm run wasm` in web/): smaller code at the cost of a
+# slower build. Measured in M2: 401,830 bytes instead of 450,449 with the
+# plain release profile.
+[profile.wasm-release]
+inherits = "release"
+lto = true
+codegen-units = 1
+opt-level = "s"

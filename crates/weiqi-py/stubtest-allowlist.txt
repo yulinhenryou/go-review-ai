@@ -1,0 +1,13 @@
+# Names in weiqi_core.pyi that exist only for type checkers. Checked with
+# `uv run python -m mypy.stubtest weiqi_core --allowlist ../crates/weiqi-py/stubtest-allowlist.txt`
+# from python/.
+
+# Type aliases; import them under `if TYPE_CHECKING:`.
+weiqi_core.Color
+weiqi_core.Mode
+weiqi_core.Move
+weiqi_core.Point
+# maturin's package wrapper: `__init__.py` re-exports the compiled
+# `weiqi_core.weiqi_core` and copies its `__all__`.
+weiqi_core.__all__
+weiqi_core.weiqi_core

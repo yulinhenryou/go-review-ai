@@ -1,6 +1,7 @@
 # SGF corpus provenance
 
-Public Go game records used by `crates/weiqi-core/tests/sgf_extract.rs`. Every
+Public Go game records used by `crates/weiqi-core/tests/sgf_extract.rs` and
+the conformance cases in `../conformance/`. Every
 file here may be published. A record's stored result, commentary and
 variations are test data, never analysis evidence. Private SGFs never go here.
 

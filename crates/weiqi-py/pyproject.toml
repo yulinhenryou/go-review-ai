@@ -1,0 +1,30 @@
+[project]
+# Brand-free like the crate (DECISIONS ADR-P01); the module is `weiqi_core`.
+name = "weiqi-core"
+version = "0.0.0"
+description = "Python bindings for the weiqi-core Go (Weiqi / Baduk) rules library."
+license = "Apache-2.0"
+requires-python = ">=3.14"
+
+[build-system]
+requires = ["maturin>=1.16.0,<2"]
+build-backend = "maturin"
+
+[tool.maturin]
+# Builds the cdylib in this directory; `weiqi_core.pyi` next to Cargo.toml is
+# packaged as the module's stub with a `py.typed` marker.
+module-name = "weiqi_core"
+profile = "release"
+locked = true
+
+[tool.uv]
+# uv rebuilds this path dependency only when one of these files changes.
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "Cargo.toml" },
+    { file = "weiqi_core.pyi" },
+    { file = "src/**/*.rs" },
+    { file = "../weiqi-core/Cargo.toml" },
+    { file = "../weiqi-core/src/**/*.rs" },
+    { file = "../../Cargo.lock" },
+]

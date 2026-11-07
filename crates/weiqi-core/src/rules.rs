@@ -202,6 +202,13 @@ pub struct Komi {
 #[error("komi {0} must be a finite multiple of 0.5 within -{MAX_KOMI}..={MAX_KOMI}")]
 pub struct InvalidKomi(pub f64);
 
+impl InvalidKomi {
+    /// Stable machine-readable code.
+    pub const fn code(&self) -> &'static str {
+        "invalid_komi"
+    }
+}
+
 impl Komi {
     /// Validates `points`; ported from the prototype's `validate_komi` (MIGRATION G03).
     pub fn new(points: f64) -> Result<Self, InvalidKomi> {

@@ -1,0 +1,136 @@
+{
+  "comment": "SGF inputs: corpus files from ../sgf (see its PROVENANCE.md) or inline text. 'rules' and 'komi' are the values a user confirmed for replay. Fields under 'expect' were checked by hand; the transcripts in expected.json are generated. Format: README.md.",
+  "cases": [
+    {
+      "name": "maruyama_ito_1976",
+      "file": "maruyama-ito-1976.sgf",
+      "rules": "japanese",
+      "komi": 5.5,
+      "expect": {
+        "encoding": "UTF-8",
+        "sgf_warnings": [],
+        "games": [
+          { "extract_warnings": ["missing_gm"], "moves": 235, "replay_warnings": [] }
+        ]
+      }
+    },
+    {
+      "name": "kejie_utf8",
+      "file": "kejie-2025-11-27.sgf",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "encoding": "UTF-8",
+        "sgf_warnings": [],
+        "games": [
+          {
+            "extract_warnings": ["first_variation_only", "malformed_result"],
+            "moves": 111,
+            "black_player": "柯洁",
+            "white_player": "王泽锦",
+            "replay_warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "kejie_gbk_guessed",
+      "file": "kejie-2025-11-27-gbk.sgf",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "encoding": "gb18030",
+        "sgf_warnings": ["encoding_guessed"],
+        "same_moves_as": "kejie_utf8",
+        "games": [
+          { "moves": 111, "black_player": "柯洁", "white_player": "王泽锦", "replay_warnings": [] }
+        ]
+      }
+    },
+    {
+      "name": "not_sgf",
+      "text": "hello",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": { "error": "no_game" }
+    },
+    {
+      "name": "tt_read_as_pass",
+      "text": "(;FF[4]GM[1]SZ[9]RU[Japanese]KM[6.5];B[ee];W[tt])",
+      "rules": "japanese",
+      "komi": 6.5,
+      "expect": {
+        "sgf_warnings": [],
+        "games": [{ "extract_warnings": ["tt_pass"], "moves": 2, "replay_warnings": [] }]
+      }
+    },
+    {
+      "name": "invalid_komi_and_missing_rules",
+      "text": "(;FF[4]GM[1]SZ[9]KM[NaN];B[ee])",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "games": [
+          { "extract_warnings": ["invalid_komi", "missing_rules"], "moves": 1, "replay_warnings": [] }
+        ]
+      }
+    },
+    {
+      "name": "two_games_after_junk",
+      "text": "junk (;FF[4]GM[1]SZ[9];B[aa]) (;FF[4]GM[1]SZ[9];W[bb])",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "sgf_warnings": ["junk_outside_tree"],
+        "games": [
+          { "extract_warnings": ["missing_komi", "missing_rules"], "moves": 1, "replay_warnings": [] },
+          { "extract_warnings": ["missing_komi", "missing_rules"], "moves": 1, "replay_warnings": [] }
+        ]
+      }
+    },
+    {
+      "name": "unclosed_tree",
+      "text": "(;FF[4]GM[1]SZ[9];B[aa];W[bb]",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "sgf_warnings": ["unclosed_tree"],
+        "games": [{ "moves": 2, "replay_warnings": [] }]
+      }
+    },
+    {
+      "name": "two_moves_in_one_node",
+      "text": "(;FF[4]GM[1]SZ[9];B[aa]W[bb])",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": { "games": [{ "extract_error": "two_moves_in_node" }] }
+    },
+    {
+      "name": "move_on_occupied_point",
+      "text": "(;FF[4]GM[1]SZ[9];B[aa];W[bb];B[bb])",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": { "games": [{ "moves": 3, "replay_error": "occupied" }] }
+    },
+    {
+      "name": "two_black_moves_in_a_row",
+      "text": "(;FF[4]GM[1]SZ[9];B[aa];B[bb])",
+      "rules": "chinese",
+      "komi": 7.5,
+      "expect": {
+        "games": [{ "moves": 2, "replay_warnings": [[2, "out_of_turn"]] }]
+      }
+    },
+    {
+      "name": "handicap_setup_white_first",
+      "text": "(;FF[4]GM[1]SZ[9]HA[2]AB[cc][gg]PL[W];W[ee])",
+      "rules": "japanese",
+      "komi": 0.5,
+      "expect": {
+        "games": [
+          { "extract_warnings": ["missing_komi", "missing_rules"], "moves": 1, "replay_warnings": [] }
+        ]
+      }
+    }
+  ]
+}

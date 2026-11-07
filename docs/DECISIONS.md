@@ -250,18 +250,21 @@ not edited after acceptance except for status.
   build times or dependency isolation require it.
 
 ### ADR-P11 Arena-based SGF tree *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`23ec86b`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** Nodes in a `Vec` addressed by `NodeId(u32)`; no `Rc<RefCell<…>>`.
   Simpler ownership, iterative traversal, trivial serialisation.
 
 ### ADR-P12 Replay modes `Strict` and `Record` *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`863ac83`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** Manual entry rejects illegal moves; imported records are replayed
   as recorded with structured warnings, and the API decides whether flagged
   games may be analysed.
 
 ### ADR-P13 Japanese scoring takes explicit life-and-death input *(M1)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-07: built in M1 (`a62d6ad`), which the owner
+  approved and merged on 2026-11-06.
 - **Decision:** The scorer stays deterministic and takes dead stones and seki as
   input; the product proposes them from KataGo ownership and the user confirms.
 
@@ -270,3 +273,37 @@ not edited after acceptance except for status.
 - **Decision:** Tag `v0.1.0-prototype` on `eb089bc` (latest prototype work, the
   head of `codex/m5-deployment`); keep `archive/prototype-2026-08-27` (on
   `7447f54`, before the prototype's own v1 milestones) unchanged.
+
+### ADR-P15 Python binding shape *(M2)*
+- **Status:** Proposed 2026-11-07, built in M2 step 2; accepted when the owner
+  approves M2.
+- **Decision:** `weiqi-py` uses PyO3 0.30.1 with the `abi3-py314` stable ABI
+  (one wheel per platform for Python 3.14 and later) and is packaged by maturin
+  as the brand-free distribution `weiqi-core`. `python/` depends on it as a uv
+  path source, so `uv sync` builds and installs the wheel. Values cross the
+  boundary as owned copies in Python-native forms: colors `"B"`/`"W"`, points
+  `(x, y)` tuples from the top left, moves a point or `"pass"`, hashes 128-bit
+  ints, rule components as strings. Errors are `CoreError` subclasses with the
+  core's `code`. The stub `weiqi_core.pyi` is written by hand and checked by
+  `mypy.stubtest` in CI.
+- **Context:** The conformance text forms (SGF letters, hex hashes) are for
+  comparing transcripts; Python code is easier to type-check and index with
+  tuples and ints. SGF ↔ point and GTP conversion stay in the core and will be
+  exposed when the engine adapter needs them (M3).
+
+### ADR-P16 WASM binding shape *(M2)*
+- **Status:** Proposed 2026-11-07, built in M2 step 3; accepted when the owner
+  approves M2.
+- **Decision:** `weiqi-wasm` uses wasm-bindgen 0.2.130 (pinned with `=`, since
+  the CLI that generates the JS glue must match it) and the `wasm-bindgen` CLI
+  directly with `--target web`, not wasm-pack, so the build is one cargo
+  command plus one CLI call. Only `Game` is a handle; snapshots, effects and
+  SGF results are plain objects serialized from DTOs in the binding crate
+  with `serde-wasm-bindgen` (no serde in the core). The TypeScript interfaces
+  are written in the crate and emitted by wasm-bindgen, without tsify. Value
+  forms match ADR-P15 except points `{ x, y }`, hashes as hex strings and
+  camelCase field names. Errors are `Error`s with `name` and `code`. The
+  browser build uses the `wasm-release` profile (LTO, one codegen unit,
+  `opt-level = "s"`), chosen by measured size.
+- **Context:** Plain objects can sit in React state without manual memory
+  management; a handle per snapshot would need a `free()` per position.

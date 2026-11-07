@@ -20,8 +20,14 @@ jobs:
       # rust-toolchain.toml pins the version, components and targets.
       - run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
+      # weiqi-py's build script needs an interpreter at least as new as its
+      # abi3-py314 floor.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy -p weiqi-wasm --target wasm32-unknown-unknown -- -D warnings
       - run: cargo test --workspace
 
   # A short, time-boxed run on every push; longer runs are local and recorded
@@ -40,11 +46,15 @@ jobs:
           workspaces: crates/weiqi-core/fuzz
       - run: cargo install cargo-fuzz@0.13.2 --locked
       - run: cargo fuzz build
+      # The SGF targets start from the public corpus. `game` reads bytes as
+      # moves, so SGF seeds only make its inputs long and slow; it starts empty.
       - name: Fuzz each target for 30 seconds
         run: |
           for target in decode parse round_trip game; do
             mkdir -p "corpus/$target"
-            cargo fuzz run "$target" "corpus/$target" ../../../testdata/sgf -- -max_total_time=30
+            seeds=../../../testdata/sgf
+            if [ "$target" = game ]; then seeds=; fi
+            cargo fuzz run "$target" "corpus/$target" $seeds -- -max_total_time=30
           done
 
   python:
@@ -54,11 +64,16 @@ jobs:
         working-directory: python
     steps:
       - uses: actions/checkout@v7
+      # uv builds the weiqi-core wheel from crates/weiqi-py with maturin and
+      # installs it, so the tests import the compiled module, not sources.
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
+      - run: uv run python -m mypy.stubtest weiqi_core --allowlist ../crates/weiqi-py/stubtest-allowlist.txt
       - run: uv run pytest
 
   web:
@@ -68,16 +83,41 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v7
+      # The WASM build (`npm run wasm`): rust-toolchain.toml adds the
+      # wasm32-unknown-unknown target; the CLI version must equal the
+      # wasm-bindgen crate's (=0.2.130 in crates/weiqi-wasm).
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install wasm-bindgen-cli@0.2.130 --locked
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      - run: npm run wasm
+      # -n keeps the file name and time stamp out of the gzip header, so the
+      # number matches docs/acceptance/M2.md.
+      - name: WASM size in bytes (raw, gzip -9 -n)
+        run: |
+          wc -c < src/wasm/weiqi_wasm_bg.wasm
+          gzip -9 -n -c < src/wasm/weiqi_wasm_bg.wasm | wc -c
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # Browser end-to-end tests against the build (desktop 1280 px and a
+      # 390 px touch phone). Headless runs need only the headless shell.
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 7
 
   # The prototype must stay green until it is removed at the end of M4.
   legacy:

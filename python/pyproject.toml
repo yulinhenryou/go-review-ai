@@ -7,7 +7,10 @@ description = "Go (Weiqi / Baduk) game review: a diagnosis and a training plan f
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    # The Rust rules core (crates/weiqi-py), built from source by uv.
+    "weiqi-core",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14"]
@@ -15,6 +18,9 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "weiqi"
+
+[tool.uv.sources]
+weiqi-core = { path = "../crates/weiqi-py" }
 
 [tool.ruff]
 line-length = 100
