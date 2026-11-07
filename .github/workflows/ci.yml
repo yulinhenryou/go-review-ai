@@ -104,6 +104,18 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # Browser end-to-end tests against the build (desktop 1280 px and a
+      # 390 px touch phone). Headless runs need only the headless shell.
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 7
 
   # The prototype must stay green until it is removed at the end of M4.
   legacy:
