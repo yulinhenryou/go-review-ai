@@ -52,16 +52,18 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 
 | Path | Contents | State |
 | --- | --- | --- |
-| `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1; no bindings yet |
+| `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1 |
+| `crates/weiqi-py/` | Python binding (PyO3), module `weiqi_core` | Built in M2; scoring not exposed yet |
 | `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
 | `web/` | TypeScript + React + Vite app | Placeholder page |
 | `testdata/sgf/` | Public SGF test corpus with provenance | — |
-| `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust runner in M2; Python and WASM runners follow |
+| `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust and Python runners in M2; WASM runner follows |
 | `config/project.json` | The single source of the provisional project name | — |
 | `legacy/` | The Go Review AI prototype | Runs and is tested in CI |
 | `docs/` | Vision, architecture, roadmap, decisions, migration, acceptance records | — |
 
-Planned bindings: the Rust core reaches Python through PyO3 and the browser
+The Rust core reaches Python through PyO3 (`uv sync` in `python/` builds it
+with maturin, so a Rust toolchain is required) and will reach the browser
 through WebAssembly (M2). Analysis uses the
 [KataGo](https://github.com/lightvector/KataGo) analysis engine (M3).
 
@@ -85,6 +87,12 @@ cd crates/weiqi-core/fuzz && cargo fuzz run parse -- -max_total_time=60
 
 ```bash
 cd python && uv sync && uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest
+```
+
+The binding's stub is checked against the built module from `python/`:
+
+```bash
+uv run python -m mypy.stubtest weiqi_core --allowlist ../crates/weiqi-py/stubtest-allowlist.txt
 ```
 
 ```bash

@@ -248,10 +248,23 @@ are separate steps, so that rules and komi can be confirmed between them.
 
 ## 4. Bindings
 
-- **Python (`weiqi-py`, PyO3 + maturin).** Exposes the API above as Python classes
-  with a hand-written `.pyi` stub checked by mypy. CPU-heavy calls such as batch
-  SGF parsing release the GIL. Built in development with `maturin develop`
-  through uv; wheels built in CI.
+- **Python (`weiqi-py`, PyO3 + maturin).** Exposes the API above, except
+  scoring for now, as the module `weiqi_core` with a hand-written `.pyi` stub
+  that `mypy.stubtest` checks against the built module (ADR-P15). `python/`
+  depends on it as a uv path source, so `uv sync` builds a wheel with maturin
+  and installs it; CI runs the Python tests against that wheel. `parse_sgf`
+  releases the GIL while it parses. Ownership at the boundary:
+  - `Game` owns its Rust `Game` inside the Python object. Rust's compile-time
+    borrow rules cannot see Python references, so PyO3 tracks borrows at run
+    time: a method taking `&mut self` (`play`, `undo`) raises instead of
+    running while another borrow of the same object is active.
+  - Every other class is `frozen` and owns a copy: `Position`, `MoveEffect`
+    and the warning classes copy their values out of the core; `SgfTree` and
+    `GameRecord` own the core's tree and record, moved in, and build new
+    Python lists on each attribute access. Nothing Python holds borrows from
+    Rust, so no Rust lifetime crosses the boundary.
+  - `parse_sgf` borrows the immutable `bytes` argument for the duration of
+    the call instead of copying it.
 - **WASM (`weiqi-wasm`, wasm-bindgen).** Exposes a JS-friendly subset (create
   game, play, undo, snapshot, parse SGF, legal-move mask). TypeScript types are
   generated. Bundle size is measured and recorded, not promised in advance.

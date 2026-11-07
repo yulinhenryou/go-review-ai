@@ -27,8 +27,9 @@ tools such as KaTrain. Fupan instead aims at four pillars (details in
 Non-goals: no playing engine, no neural-network training, no competition with
 Sabaki or KaTrain on board editing.
 
-**Current phase (2026-11-06): M0 and M1 merged to `main`; M2 (Python
-bindings, WASM build and web shell) not started.**
+**Current phase (2026-11-07): M0 and M1 merged to `main`; M2 (Python
+bindings, WASM build and web shell) in progress on branch
+`rebuild/m2-bindings-web`.**
 The plan is in [docs/ROADMAP.md](docs/ROADMAP.md),
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/MIGRATION.md](docs/MIGRATION.md)
 and [docs/DECISIONS.md](docs/DECISIONS.md); acceptance records live in
@@ -224,8 +225,10 @@ docs/                English public documentation
   `~/.zshrc`; non-interactive agent shells prefix commands with it). The
   nightly toolchain (minimal profile) and `cargo-fuzz` 0.13.2 were installed in
   M1 (2026-11-04); fuzzing runs from `crates/weiqi-core/fuzz/`, whose own
-  `rust-toolchain.toml` selects nightly. maturin, wasm-bindgen tooling and
-  Playwright are installed in the milestone that first needs them.
+  `rust-toolchain.toml` selects nightly. maturin is not installed globally:
+  uv fetches it as `crates/weiqi-py`'s build backend during `uv sync` in
+  `python/` (M2). wasm-bindgen tooling and Playwright are installed in the
+  milestone step that first needs them.
 - `legacy/` uses its own `legacy/.venv` (Python 3.14, created with uv from
   `legacy/constraints.txt`); run its commands from inside `legacy/`.
 - Real KataGo 1.16.4 and three models are installed under `/opt/homebrew`

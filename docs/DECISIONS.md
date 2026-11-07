@@ -273,3 +273,20 @@ not edited after acceptance except for status.
 - **Decision:** Tag `v0.1.0-prototype` on `eb089bc` (latest prototype work, the
   head of `codex/m5-deployment`); keep `archive/prototype-2026-08-27` (on
   `7447f54`, before the prototype's own v1 milestones) unchanged.
+
+### ADR-P15 Python binding shape *(M2)*
+- **Status:** Proposed 2026-11-07, built in M2 step 2; accepted when the owner
+  approves M2.
+- **Decision:** `weiqi-py` uses PyO3 0.30.1 with the `abi3-py314` stable ABI
+  (one wheel per platform for Python 3.14 and later) and is packaged by maturin
+  as the brand-free distribution `weiqi-core`. `python/` depends on it as a uv
+  path source, so `uv sync` builds and installs the wheel. Values cross the
+  boundary as owned copies in Python-native forms: colors `"B"`/`"W"`, points
+  `(x, y)` tuples from the top left, moves a point or `"pass"`, hashes 128-bit
+  ints, rule components as strings. Errors are `CoreError` subclasses with the
+  core's `code`. The stub `weiqi_core.pyi` is written by hand and checked by
+  `mypy.stubtest` in CI.
+- **Context:** The conformance text forms (SGF letters, hex hashes) are for
+  comparing transcripts; Python code is easier to type-check and index with
+  tuples and ints. SGF ↔ point and GTP conversion stay in the core and will be
+  exposed when the engine adapter needs them (M3).
