@@ -59,7 +59,7 @@ python/
   pyproject.toml           uv project; distribution name = brand (see CLAUDE.md §6)
   src/weiqi/
     engine/                L1: KataGo process, query model, cache, provenance
-    metrics/               L2
+    metrics/               L2: per-move loss, severity, mistake selection
     profile/               L3
     explain/               L4 (+ locale catalogs, glossary)
     training/              L5
@@ -401,7 +401,7 @@ Pure functions from `(Replay, [PositionEvaluation])` to `GameMetrics`. All
 values carry units, perspective and a definition id (e.g.
 `score_loss.sequential.v1`).
 
-### 6.1 Score loss — Proposal (ADR-P02)
+### 6.1 Score loss (ADR-P02)
 
 Two definitions, both computable from the same evaluations:
 
@@ -417,11 +417,11 @@ Two definitions, both computable from the same evaluations:
   a full search. Weakness: it compares two different searches, so it includes
   noise from both.
 
-Proposal: make **sequential** the primary `score_loss`, keep **same-root** as a
+Decision: **sequential** is the primary `score_loss`, **same-root** is a
 recorded diagnostic and as the bridge for comparison tests against the
 prototype. Both keep the prototype's conventions: `raw` retained, `score_loss =
-max(0, raw)`, negative raw differences flagged as search noise. The owner
-decides.
+max(0, raw)`, negative raw differences flagged as search noise. Accepted by
+the owner on 2026-11-09.
 
 ### 6.2 Other per-move metrics
 
@@ -438,7 +438,9 @@ decides.
   share of a game's total loss. Defined numerically and versioned; the
   prototype's heuristics (winrate cliff, clustering radius) are a reference only.
 - **Severity:** thresholds on `score_loss` from a calibration table selected by
-  the player's strength band (pillar 4). Defaults remain product settings.
+  the player's strength band (pillar 4). Until M5 the table has one default
+  band: 4.0 points mistake, 8.0 severe (ADR-P17). Defaults remain product
+  settings.
 
 ### 6.3 Phase and situation classification (v1)
 
@@ -573,8 +575,9 @@ engine queries above), `move_metric` (definition id, values), `label`
   The M2 board has no coordinate labels and is operated by pointer only;
   labels and keyboard play on the board are open items for M4.
 - **Visualisation:** a clickable loss timeline that jumps to positions; an
-  interactive profile (phase × situation grid with intervals, trends). Library
-  choice (D3 modules rendered by React, or a higher-level library) decided in M4.
+  interactive profile (phase × situation grid with intervals, trends). The M4
+  timeline is React SVG without a chart library (ADR-P18); the profile charts
+  revisit the choice in M5.
 - **Design:** restrained palette, generous whitespace, strict alignment grid;
   Baskerville-family serif for Latin display text and a matching CJK serif for
   Chinese headings, sans-serif body text; fonts self-hosted under open licences

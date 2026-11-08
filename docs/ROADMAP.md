@@ -10,7 +10,7 @@ name.*
 | M1 Rust rules engine and SGF parser | Done — [acceptance](acceptance/M1.md) |
 | M2 Python bindings, WASM build and web shell | Done — [acceptance](acceptance/M2.md) |
 | M3 KataGo adapter, cache and storage foundation | Done — [acceptance](acceptance/M3.md) |
-| M4 Single-game metrics, review page, comparison and legacy removal | Next |
+| M4 Single-game metrics, review page, comparison and legacy removal | In progress (branch `rebuild/m4-review`) |
 | M5–M8 | Not started |
 
 ## Rules for every milestone
@@ -178,6 +178,32 @@ Comparison suite (legacy vs new, same model, config and visits):
 - Checks: identical accept/reject decisions for inputs legacy supports; the new
   same-root diagnostic agrees with legacy loss within the envelope; top-mistake
   sets overlap within the envelope; every legacy warning type has an equivalent.
+
+Plan (approved by the owner on 2026-11-09, with ADR-P02, ADR-P17 and
+ADR-P18): one branch, `rebuild/m4-review`, merged through two pull requests;
+each step is its own commit.
+
+- **Pull request A — metrics and comparison.**
+  1. Per-move metrics: sequential and same-root score loss, winrate delta,
+     raw and clamped values, noise and missing-evidence flags, severity from
+     the calibration table, ranking (R01–R03, R05).
+  2. Same-root completion: a restricted search of the played move when it is
+     not among the candidates, cached like any other query (E04).
+  3. Ownership facts: chains exposed by the rules core, ownership delta, group
+     status and its changes, turning points v1 (R09).
+  4. Review result schema with coverage, locale catalogs, persisted runs and
+     metrics, and a CLI (R06–R08).
+  5. Comparison suite against legacy, noise envelope first.
+- **Pull request B — service, review page and legacy removal.**
+  6. API: games, analyses, persistent jobs with SSE progress and cancel
+     (A01–A06).
+  7. Web review page (F01–F07, the timeline per ADR-P18).
+  8. Playwright tests on desktop and mobile widths, one run against real
+     KataGo.
+  9. First labelling session: phase boundaries on the owner's games, which
+     stay outside Git.
+  10. Acceptance record, MIGRATION closed, owner approval, `legacy/` removed in
+      one commit.
 
 Acceptance:
 
