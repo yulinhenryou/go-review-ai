@@ -13,18 +13,24 @@ import hashlib
 import os
 import signal
 from collections.abc import Coroutine, Mapping
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 import pytest
 
 from weiqi.engine import (
     AnalysisRequest,
+    CachedAnalysis,
+    CachedAnalyzer,
     EngineSettings,
     EngineUnavailableError,
     GameAnalysis,
     KataGoEngine,
     TurnResult,
 )
+from weiqi.storage.database import connect
+from weiqi.storage.migrate import upgrade
+from weiqi.storage.results import SqlResultStore
 from weiqi.tools.record_engine import REPO_ROOT, load_record, request_for_record
 
 if TYPE_CHECKING:
@@ -146,21 +152,36 @@ def test_values_are_from_blacks_perspective_whoever_is_to_move(
     )
 
 
-def test_the_235_move_game_completes_with_provenance() -> None:
+def test_the_235_move_game_completes_and_then_comes_from_the_cache(tmp_path: Path) -> None:
+    """ROADMAP M3 acceptance 3 and 4: the whole game in one query with full
+    provenance, then the same game again with no engine query at all."""
     settings = EngineSettings.from_environment()
     request = long_request(visits=32)
+    database = connect(f"sqlite:///{tmp_path / 'cache.db'}")
+    upgrade(database)
     seen: list[int] = []
 
-    async def scenario() -> tuple[GameAnalysis, int, int]:
+    async def scenario() -> tuple[CachedAnalysis, CachedAnalysis, CachedAnalyzer, int, int]:
         async with KataGoEngine(settings) as engine:
-            analysis = await engine.analyze(request, on_turn=lambda r: seen.append(r.analysis.turn))
-            return analysis, engine.queries, engine.starts
+            analyzer = CachedAnalyzer(engine, SqlResultStore(database))
+            first = await analyzer.analyze(request, on_turn=lambda r: seen.append(r.analysis.turn))
+            queries_after_first = engine.queries
+            second = await analyzer.analyze(request)
+            return first, second, analyzer, queries_after_first, engine.queries
 
-    analysis, queries, starts = run(scenario())
-    assert (queries, starts) == (1, 1)  # one query for the whole game, one process
-    assert len(request.moves) == 235 and len(analysis.results) == 236
+    try:
+        first, second, analyzer, queries_after_first, queries = run(scenario())
+    finally:
+        database.dispose()
+    assert queries_after_first == 1  # one query for the whole game
+    assert first.engine_analysis is not None
+    assert len(request.moves) == 235 and len(first.results) == 236
     assert sorted(seen) == list(range(236))  # progress for every turn
-    check_traceable(analysis, settings)
+    check_traceable(first.engine_analysis, settings)
+    # The second pass: every turn from the store, no engine query.
+    assert queries == 1 and second.engine_analysis is None
+    assert (analyzer.misses, analyzer.hits) == (236, 236)
+    assert second.results == first.results
 
 
 def test_cancel_terminates_the_query_and_keeps_the_process() -> None:
