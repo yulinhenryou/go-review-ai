@@ -21,3 +21,12 @@ class EngineProtocolError(EngineError):
 
 class EngineUnavailableError(EngineError):
     """The engine cannot be started, or stopped while queries were pending."""
+
+
+class EngineRejectedError(EngineError):
+    """The engine refused a query, or warned that it cannot honour a setting
+    (rules, komi or override settings) that the results would depend on."""
+
+
+class EngineTimeoutError(EngineError):
+    """A query did not finish in time; it has been terminated."""

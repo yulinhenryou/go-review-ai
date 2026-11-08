@@ -3,6 +3,8 @@
 from weiqi.engine.errors import (
     EngineError,
     EngineProtocolError,
+    EngineRejectedError,
+    EngineTimeoutError,
     EngineUnavailableError,
     InvalidRequestError,
 )
@@ -23,6 +25,8 @@ __all__ = [
     "EngineError",
     "EngineIdentity",
     "EngineProtocolError",
+    "EngineRejectedError",
+    "EngineTimeoutError",
     "EngineUnavailableError",
     "InvalidRequestError",
     "RootInfo",
