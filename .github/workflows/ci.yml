@@ -59,6 +59,22 @@ jobs:
 
   python:
     runs-on: ubuntu-latest
+    # A throwaway PostgreSQL for the storage tests (ADR-P08); locally they
+    # run on SQLite only. Trust authentication: no password is stored here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRESQL_URL: postgresql+psycopg://postgres@localhost:5432/postgres
     defaults:
       run:
         working-directory: python

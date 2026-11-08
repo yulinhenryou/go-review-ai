@@ -55,10 +55,12 @@ More: [Vision](docs/VISION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 | `crates/weiqi-core/` | Rust rules core (rules, SGF, Zobrist hashing, scoring) | Implemented in M1 |
 | `crates/weiqi-py/` | Python binding (PyO3), module `weiqi_core` | Built in M2; scoring not exposed yet |
 | `crates/weiqi-wasm/` | WebAssembly binding (wasm-bindgen) for the web app | Built in M2; used by the web app |
-| `python/` | Python analysis and service layer, package `weiqi` | Skeleton |
+| `python/` | Python analysis and service layer, package `weiqi` | M3: KataGo adapter, analysis cache (SQLite / PostgreSQL), fixture recorder, benchmark |
 | `web/` | TypeScript + React + Vite app | M2 shell: manual entry and SGF replay through the WASM core |
 | `testdata/sgf/` | Public SGF test corpus with provenance | — |
 | `testdata/conformance/` | Golden cases shared by the Rust core and its bindings | Rust, Python and WASM runners (M2) |
+| `testdata/engine/` | Recorded real KataGo exchanges for replay tests | One short game (M3) |
+| `config/katago/` | KataGo analysis config (no model weights) | Copied from the prototype (M3) |
 | `config/project.json` | The single source of the provisional project name | — |
 | `legacy/` | The Go Review AI prototype | Runs and is tested in CI |
 | `docs/` | Vision, architecture, roadmap, decisions, migration, acceptance records | — |
@@ -116,7 +118,9 @@ M0 (archive, legacy move, monorepo skeleton, CI) is recorded in
 [docs/acceptance/M0.md](docs/acceptance/M0.md). M1 (Rust rules engine, scoring
 and SGF parser) is recorded in [docs/acceptance/M1.md](docs/acceptance/M1.md). M2 (Python and WebAssembly
 bindings, a web shell for manual entry and SGF replay, browser end-to-end
-tests) is recorded in [docs/acceptance/M2.md](docs/acceptance/M2.md). Progress continues milestone by
+tests) is recorded in [docs/acceptance/M2.md](docs/acceptance/M2.md). M3 (KataGo analysis engine
+adapter, analysis cache and storage, live tests and benchmarks) is recorded
+in [docs/acceptance/M3.md](docs/acceptance/M3.md). Progress continues milestone by
 milestone in the [roadmap](docs/ROADMAP.md); this README states only facts
 that have been tested.
 

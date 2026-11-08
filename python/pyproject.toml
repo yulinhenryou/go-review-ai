@@ -8,6 +8,8 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
+    "sqlalchemy>=2.1.8",
     # The Rust rules core (crates/weiqi-py), built from source by uv.
     "weiqi-core",
 ]
@@ -41,6 +43,7 @@ addopts = ["-ra", "--strict-markers"]
 [dependency-groups]
 dev = [
     "mypy>=2.4.1",
+    "psycopg[binary]>=3.3.8",
     "pytest>=9.2.0",
     "ruff>=0.17.3",
 ]

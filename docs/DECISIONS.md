@@ -180,7 +180,8 @@ not edited after acceptance except for status.
   M4 comparison uses the same-root value to compare with legacy fairly.
 
 ### ADR-P03 Cache key is the canonical query hash; Zobrist is a position index *(before M3)*
-- **Status:** Proposed. Amends the brief's "cache keyed by Zobrist hash".
+- **Status:** Accepted by the owner, 2026-11-08, at the start of M3. Amends the
+  brief's "cache keyed by Zobrist hash".
 - **Context:** KataGo's network input includes recent move history, and ko and
   superko depend on history, so equal stone arrangements reached by different
   orders can be analysed differently.
@@ -228,7 +229,9 @@ not edited after acceptance except for status.
   promised until the spike is recorded.
 
 ### ADR-P08 SQLAlchemy Core and Alembic for storage *(before M3)*
-- **Status:** Proposed.
+- **Status:** Accepted by the owner, 2026-11-08, at the start of M3. Local
+  development and tests use SQLite; PostgreSQL runs only as a CI service
+  container, so no local PostgreSQL install is needed.
 - **Decision:** SQL expressed through SQLAlchemy Core (not a heavy ORM), schema
   migrations through Alembic, tested on SQLite and PostgreSQL in CI.
 

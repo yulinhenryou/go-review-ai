@@ -65,8 +65,9 @@ python/
     training/              L5
     storage/               SQL schema, migrations, repositories
     api/                   L6: FastAPI app, routes, jobs
+    tools/                 Developer tools: fixture recording, benchmarks
     project.py             Reads config/project.json (brand lives there only)
-  tests/
+  tests/                   Unit and replay tests; tests/live/ is opt-in real KataGo
 web/                       Vite + React + TypeScript
 config/
   project.json             name, slug, tagline (the single runtime brand source)
@@ -249,7 +250,8 @@ are separate steps, so that rules and komi can be confirmed between them.
 ## 4. Bindings
 
 - **Python (`weiqi-py`, PyO3 + maturin).** Exposes the API above, except
-  scoring for now, as the module `weiqi_core` with a hand-written `.pyi` stub
+  scoring for now, plus GTP vertex conversion (`to_gtp`, `from_gtp`) for the
+  engine adapter, as the module `weiqi_core` with a hand-written `.pyi` stub
   that `mypy.stubtest` checks against the built module (ADR-P15). `python/`
   depends on it as a uv path source, so `uv sync` builds a wheel with maturin
   and installs it; CI runs the Python tests against that wheel. `parse_sgf`
@@ -308,7 +310,19 @@ Uses the KataGo **analysis engine** JSON-lines protocol
   action for that query id and resolves the waiter as cancelled.
 - **Timeouts:** per query and per job; on timeout the query is terminated.
 - **Failure:** if the process exits, pending queries fail with
-  `engine_unavailable`, and the supervisor restarts it with backoff.
+  `engine_unavailable`, and the supervisor (`KataGoEngine`) starts a new
+  process on the next call, waiting with exponential backoff after failed
+  starts. Restarting lazily keeps one code path for start-up errors, which
+  reach the caller instead of a background task. Any
+  protocol violation (malformed JSON, an unknown id or turn, a missing
+  final-result marker, a duplicate reply, a line over 4 MiB) fails every
+  pending query with `EngineProtocolError` and stops the process, since the
+  stream can no longer be trusted. An engine `error` fails only its query;
+  a `warning` about `rules`, `komi` or `overrideSettings` fails and
+  terminates its query, and other warnings are kept with the replies.
+- **Working directory:** each process runs in an empty temporary
+  directory, removed on close, so the engine never writes into the
+  repository.
 - **Readiness:** `query_version` and `query_models` at start-up; the model file
   and config are SHA-256 hashed.
 
@@ -326,7 +340,7 @@ Fields consumed: `rootInfo` (`scoreLead`, `winrate`, `visits`,
 `winrate`, `prior`, `pv`), and `ownership` when requested. Missing fields stay
 `None`; non-finite values are protocol errors (as in the prototype).
 
-### 5.3 Cache and reproducibility — Proposal (ADR-P03)
+### 5.3 Cache and reproducibility (ADR-P03)
 
 KataGo's neural-network input includes recent move history, and its search
 uses that history for ko/superko. Two games reaching the same stones by
@@ -345,16 +359,41 @@ different orders can therefore produce slightly different outputs. So:
   exactly; values agree within search noise, because multi-threaded search is
   not bit-for-bit deterministic.
 
-The owner's brief specified "cache keyed by Zobrist hash". This proposal keeps
+The owner's brief specified "cache keyed by Zobrist hash". ADR-P03 keeps
 Zobrist hashing central but separates *exact reuse* from *position lookup* for
 the reason above.
 
+Implemented in M3 step 5: `CachedAnalyzer` (`weiqi/engine/cached.py`) asks
+the engine for its identity, computes every requested turn's `query_key`,
+loads the stored ones from a `ResultStore`, sends only the missing turns as
+one query, and stores the answer when the query completes (a cancelled or
+failed query stores nothing). It counts hits and misses. The engine layer
+defines the `ResultStore` interface; `weiqi/storage/results.py` implements
+it in SQL (§10.3), so the engine layer never imports the database.
+`AnalysisRequest.hashes` gives each turn's `stones_hash` and
+`situation_hash` from the core's replay.
+
 ### 5.4 Recorded responses
 
-A recording mode stores sanitized query/response pairs as test fixtures (only
-public or synthetic games, no absolute paths), following the prototype's
-`tests/fixtures/katago_real_short.json` approach. Replay tests use them for
-deterministic coverage; live tests are opt-in.
+`EngineProcess` and `KataGoEngine` accept an optional transcript callback
+that sees every message sent and every JSON object received, in order,
+including replies the process ignores. `python -m weiqi.tools.record_engine`
+uses it to store one real exchange as a fixture in `testdata/engine/`,
+following the prototype's `tests/fixtures/katago_real_short.json`:
+
+- Only records in `testdata/sgf/` that `PROVENANCE.md` lists can be recorded,
+  so private games never become fixtures.
+- Query ids are renumbered (`id-1`, ...), the loaded model's `name` is reduced
+  to its file name, and the recorder refuses to write a fixture that still
+  contains a local path.
+- The fixture stores the input, the recording machine, the engine identity,
+  the exchange, and each turn's normalised result and `query_key`.
+
+Replay tests check that today's code sends the recorded query and turns the
+recorded replies into exactly the recorded results, both through the parser
+alone and through the whole client with the fake engine playing the
+exchange back. Live tests in `python/tests/live/` run against the real
+engine only with `RUN_KATAGO_INTEGRATION=1`.
 
 ## 6. L2 — Metrics (single game)
 
@@ -485,18 +524,38 @@ later without changing the API.
 
 SQLite first; the schema is written for PostgreSQL portability:
 
-- SQLAlchemy Core with Alembic migrations (proposal ADR-P08); no
+- SQLAlchemy Core with Alembic migrations (ADR-P08); no
   SQLite-only features; text UUIDs; UTC timestamps; JSON in `TEXT` columns
   that map to `JSONB` later; large numeric arrays (ownership) as compressed
   BLOB/`bytea`.
 - Migrations are tested against both SQLite and PostgreSQL in CI once the
-  schema exists (from M3).
+  schema exists (from M3): the CI `python` job starts a PostgreSQL service
+  container and sets `TEST_POSTGRESQL_URL`; locally the storage tests run on
+  SQLite only.
+- SQLAlchemy runs synchronously; repositories offer async methods that run
+  each call in a worker thread (`asyncio.to_thread`), so the event loop never
+  waits on the database and no async database drivers are needed.
+- The schema lives in `weiqi/storage/schema.py`; migrations in
+  `weiqi/storage/migrations/` are applied with
+  `python -m weiqi.storage.migrate upgrade <url>`. A test compares the
+  migrated database with the schema module, so the two cannot drift.
 
-Draft entities: `player`, `game` (source, SGF bytes hash, metadata, rules),
-`analysis_run` (engine identity, settings), `position_eval` (`query_key`,
-`stones_hash`, turn, root values, candidates JSON, ownership blob), `move_metric`
-(definition id, values), `label` (classifier and owner gold labels), `exercise`,
-`review_log`, `job`.
+M3 tables (the analysis cache):
+
+- `engine_identity`: version, model name and SHA-256, config SHA-256,
+  overrides; keyed by a hash of all of them.
+- `engine_query`: one engine query: its identity, turn count and elapsed time.
+- `position_eval`: one analysed turn, keyed by `query_key`: the producing
+  query, turn, `stones_hash` (indexed) and `situation_hash` as 32-digit hex,
+  player to move, visits asked, root visits, winrate and score lead (BLACK),
+  candidates as JSON, ownership as zlib-compressed little-endian float64,
+  engine warnings, and an encoding version. Every number round-trips exactly.
+  When two queries store the same key, the first result is kept.
+
+Draft entities for later milestones: `player`, `game` (source, SGF bytes
+hash, metadata, rules), `analysis_run` (a review job's settings over the
+engine queries above), `move_metric` (definition id, values), `label`
+(classifier and owner gold labels), `exercise`, `review_log`, `job`.
 
 ## 11. L7 — Frontend
 

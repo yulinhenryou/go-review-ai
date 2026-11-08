@@ -27,8 +27,9 @@ tools such as KaTrain. Fupan instead aims at four pillars (details in
 Non-goals: no playing engine, no neural-network training, no competition with
 Sabaki or KaTrain on board editing.
 
-**Current phase (2026-11-07): M0, M1 and M2 merged to `main`; M3 (KataGo
-adapter, cache and storage foundation) is next.**
+**Current phase (2026-11-08): M0, M1 and M2 merged to `main`; M3 (KataGo
+adapter, cache and storage foundation) complete on branch
+`rebuild/m3-engine`, acceptance recorded, awaiting review and merge.**
 The plan is in [docs/ROADMAP.md](docs/ROADMAP.md),
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/MIGRATION.md](docs/MIGRATION.md)
 and [docs/DECISIONS.md](docs/DECISIONS.md); acceptance records live in
@@ -233,5 +234,10 @@ docs/                English public documentation
   install --only-shell chromium`, 2026-11-07), so tests run headless only.
 - `legacy/` uses its own `legacy/.venv` (Python 3.14, created with uv from
   `legacy/constraints.txt`); run its commands from inside `legacy/`.
-- Real KataGo 1.16.4 and three models are installed under `/opt/homebrew`
-  locally; weights are never committed.
+- Real KataGo is installed with Homebrew under `/opt/homebrew` (Metal
+  backend) with three models; weights are never committed. It was upgraded
+  from 1.16.4 to 1.18.2 on 2026-11-08 at the owner's request (Homebrew also
+  added `abseil` and `protobuf`); the 1.16.4 keg is kept in the Cellar as a
+  fallback (installed with `HOMEBREW_NO_INSTALL_CLEANUP=1`). Both versions
+  ship the same b18 model (SHA-256 `9d7a6afe…`). The live tests use
+  `KATAGO_MODEL_PATH=/opt/homebrew/share/katago/kata1-b18c384nbt-s9996604416-d4316597426.bin.gz`.

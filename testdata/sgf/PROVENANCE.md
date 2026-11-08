@@ -1,8 +1,8 @@
 # SGF corpus provenance
 
-Public Go game records used by `crates/weiqi-core/tests/sgf_extract.rs` and
-the conformance cases in `../conformance/`. Every
-file here may be published. A record's stored result, commentary and
+Public Go game records used by `crates/weiqi-core/tests/sgf_extract.rs`,
+the conformance cases in `../conformance/` and the engine fixtures in
+`../engine/`. Every file here may be published. A record's stored result, commentary and
 variations are test data, never analysis evidence. Private SGFs never go here.
 
 | File | SHA-256 | Source | Changes |
@@ -10,6 +10,7 @@ variations are test data, never analysis evidence. Private SGFs never go here.
 | `kejie-2025-11-27.sgf` | `a79b780a…c8521db` | Prototype `legacy/samples/test_game_kejie.sgf` | None (byte-identical copy) |
 | `kejie-2025-11-27-gbk.sgf` | `4ba3419e…4067d5f` | Derived from `kejie-2025-11-27.sgf` | `GN` repaired, `CA` removed, GBK-encoded (below) |
 | `maruyama-ito-1976.sgf` | `9b4ed82c…bd738ba` | Prototype `legacy/samples/benchmark_pro_game.sgf` | None (byte-identical copy) |
+| `synthetic-short.sgf` | `61a66daa…eab41744` | Written for this project (M3) | — |
 
 Full hashes: `shasum -a 256 testdata/sgf/*.sgf`.
 
@@ -49,3 +50,11 @@ komi 5.5, `RE[W+6.5]`. It originates from
 normalised it with sgfmill for its M2 benchmark, adding `SZ[19]`,
 `RU[Japanese]`, `FF[4]` and `CA[UTF-8]`; the moves and komi are as upstream. `RU[Japanese]` is the prototype's benchmark choice,
 not a verified historical rule. The file has no `GM`.
+
+## `synthetic-short.sgf`
+
+A synthetic six-move record written for the M3 engine fixtures: four
+opening moves (Black Q16, White D16, Black R4, White D17) and then two
+passes, Japanese rules, komi 6.5. It is not a real game. It mirrors the
+prototype's `samples/sample_game.sgf` main line and its pass test, so the
+recorded engine fixture covers a pass and the position after the game ends.

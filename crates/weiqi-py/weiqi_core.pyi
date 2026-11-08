@@ -16,6 +16,12 @@ type Mode = Literal["strict", "record"]
 ZOBRIST_VERSION: Final[int]
 MAX_BOARD_SIZE: Final[int]
 
+def to_gtp(move_: Move, width: int, height: int) -> str:
+    """The GTP vertex of `move_`, e.g. "Q16" or "pass"; columns skip I."""
+
+def from_gtp(vertex: str, width: int, height: int) -> Move:
+    """The move a GTP vertex names; raises `CoreError` if it is malformed or off the board."""
+
 class CoreError(ValueError):
     """Invalid input; `code` is the core's stable machine-readable code."""
 
