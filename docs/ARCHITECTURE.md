@@ -309,7 +309,10 @@ Uses the KataGo **analysis engine** JSON-lines protocol
   action for that query id and resolves the waiter as cancelled.
 - **Timeouts:** per query and per job; on timeout the query is terminated.
 - **Failure:** if the process exits, pending queries fail with
-  `engine_unavailable`, and the supervisor restarts it with backoff. Any
+  `engine_unavailable`, and the supervisor (`KataGoEngine`) starts a new
+  process on the next call, waiting with exponential backoff after failed
+  starts. Restarting lazily keeps one code path for start-up errors, which
+  reach the caller instead of a background task. Any
   protocol violation (malformed JSON, an unknown id or turn, a missing
   final-result marker, a duplicate reply, a line over 4 MiB) fails every
   pending query with `EngineProtocolError` and stops the process, since the
