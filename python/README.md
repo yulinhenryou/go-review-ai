@@ -13,7 +13,9 @@ analyses a whole game per query. It needs a local KataGo:
 `KATAGO_MODEL_PATH` (required), `KATAGO_PATH` and `KATAGO_CONFIG_PATH`
 (default `config/katago/analysis.cfg`). `weiqi.tools.record_engine` records
 a public record's real engine exchange as a test fixture (see
-`../testdata/engine/README.md`). `weiqi.storage` keeps analysed turns in
+`../testdata/engine/README.md`), and `weiqi.tools.benchmark` times a
+whole-game analysis with a cold and a warm engine process
+(`docs/acceptance/M3.md` records how it was run). `weiqi.storage` keeps analysed turns in
 SQLite or PostgreSQL (SQLAlchemy Core and Alembic) so that `CachedAnalyzer`
 asks the engine only for turns it has not stored; create or update a
 database with `uv run python -m weiqi.storage.migrate upgrade sqlite:///weiqi.db`.
