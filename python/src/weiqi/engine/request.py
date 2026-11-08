@@ -62,7 +62,8 @@ def _whole_number(value: object, name: str, low: int, high: int) -> int:
     return value
 
 
-def _canonical_json(document: object) -> str:
+def canonical_json(document: object) -> str:
+    """The one JSON text of `document` that the project hashes."""
     return json.dumps(
         document, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
     )
@@ -92,6 +93,9 @@ class AnalysisRequest:
     override_settings: tuple[tuple[str, JsonScalar], ...] = ()
     players: tuple[Color, ...] = field(init=False, repr=False, compare=False)
     """The player to move at each turn 0..len(moves), from the core's replay."""
+    hashes: tuple[tuple[int, int], ...] = field(init=False, repr=False, compare=False)
+    """`(stones_hash, situation_hash)` of each turn 0..len(moves), from the
+    core (ZOBRIST_VERSION); a position index, never a cache key (ADR-P03)."""
 
     def __post_init__(self) -> None:
         if isinstance(self.komi, bool) or not isinstance(self.komi, int | float):
@@ -106,7 +110,9 @@ class AnalysisRequest:
         if type(self.include_ownership) is not bool:
             raise InvalidRequestError("invalid_ownership_flag", "include_ownership must be a bool")
         set_(self, "override_settings", check_settings(self.override_settings))
-        set_(self, "players", self._replay())
+        players, hashes = self._replay()
+        set_(self, "players", players)
+        set_(self, "hashes", hashes)
 
         turns = tuple(self.analyze_turns)
         set_(self, "analyze_turns", turns)
@@ -120,10 +126,11 @@ class AnalysisRequest:
                 "invalid_turns", f"analyze_turns must be increasing turns in 0..{last}"
             )
 
-    def _replay(self) -> tuple[Color, ...]:
+    def _replay(self) -> tuple[tuple[Color, ...], tuple[tuple[int, int], ...]]:
         """Replays the game in the core's record mode and returns who is to
-        move at each turn. Record mode applies recorded rule violations (as
-        KataGo does) but rejects occupied or off-board points."""
+        move at each turn and each turn's position hashes. Record mode
+        applies recorded rule violations (as KataGo does) but rejects
+        occupied or off-board points."""
         try:
             game = weiqi_core.Game(
                 self.width,
@@ -135,12 +142,16 @@ class AnalysisRequest:
                 ),
             )
             players = [game.to_play]
+            position = game.position()
+            hashes = [(position.stones_hash, position.situation_hash)]
             for color, move in self.moves:
                 game.play_as(color, move, "record")
                 players.append(game.to_play)
+                position = game.position()
+                hashes.append((position.stones_hash, position.situation_hash))
         except weiqi_core.CoreError as error:
             raise InvalidRequestError(error.code, str(error)) from error
-        return tuple(players)
+        return tuple(players), tuple(hashes)
 
     def _gtp(self, move: Move) -> str:
         return weiqi_core.to_gtp(move, self.width, self.height)
@@ -177,7 +188,7 @@ class AnalysisRequest:
         left out: two games with the same opening share keys for those turns.
         """
         _whole_number(turn, "turn", 0, len(self.moves))
-        return _canonical_json(
+        return canonical_json(
             {
                 "format": QUERY_KEY_VERSION,
                 "engine": identity.key_fields(),

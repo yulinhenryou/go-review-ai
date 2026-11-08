@@ -180,6 +180,24 @@ def test_a_transposition_is_a_different_query() -> None:
     assert request(moves=swapped).query_key(IDENTITY, 4) != request().query_key(IDENTITY, 4)
 
 
+def test_a_transposition_shares_the_stones_hash() -> None:
+    # ...but the position index finds it (ADR-P03).
+    swapped: tuple[tuple[Color, Move], ...] = (MOVES[2], MOVES[1], MOVES[0], MOVES[3])
+    original, transposed = request().hashes, request(moves=swapped).hashes
+    assert len(original) == len(MOVES) + 1
+    assert transposed[4][0] == original[4][0]
+    assert transposed[1][0] != original[1][0]
+
+
+def test_identity_key_covers_every_field() -> None:
+    key = IDENTITY.identity_key()
+    assert len(key) == 64 and key == replace(IDENTITY).identity_key()
+    # The model name is not part of query keys, but an identity row records it.
+    renamed = replace(IDENTITY, model_name="other-name")
+    assert renamed.key_fields() == IDENTITY.key_fields()
+    assert renamed.identity_key() != key
+
+
 def test_query_key_turn_must_exist() -> None:
     with pytest.raises(InvalidRequestError):
         request().query_key(IDENTITY, 5)

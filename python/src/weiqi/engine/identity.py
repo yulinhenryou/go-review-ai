@@ -6,11 +6,12 @@ No field holds a file path, so provenance never reveals the local file system
 
 from __future__ import annotations
 
+import hashlib
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 from weiqi.engine.errors import InvalidRequestError
-from weiqi.engine.request import JsonScalar, check_settings
+from weiqi.engine.request import JsonScalar, canonical_json, check_settings
 
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
@@ -48,3 +49,10 @@ class EngineIdentity:
             "config_sha256": self.config_sha256,
             "overrides": dict(self.overrides),
         }
+
+    def identity_key(self) -> str:
+        """SHA-256 of every field, including the model name: one stored
+        identity row per distinct engine as it reported itself."""
+        document = asdict(self)
+        document["overrides"] = [list(item) for item in self.overrides]
+        return hashlib.sha256(canonical_json(document).encode("utf-8")).hexdigest()
