@@ -1,0 +1,472 @@
+{
+ "format": 1,
+ "note": "Whole-game analysis of testdata/sgf/maruyama-ito-1976.sgf by weiqi.tools.benchmark; see docs/acceptance/M3.md.",
+ "katago_1_18_2": {
+  "format": 1,
+  "date": "2026-11-08",
+  "machine": {
+   "system": "Darwin 27.2.0",
+   "machine": "arm64",
+   "cpu": "Apple M4",
+   "memory_bytes": 17179869184,
+   "python": "3.14.4"
+  },
+  "game": {
+   "sgf": "testdata/sgf/maruyama-ito-1976.sgf",
+   "sgf_sha256": "9b4ed82c58f994180df7638967ec68af55b13304ed4bf8c4b5d386ee2bd738ba"
+  },
+  "runs": [
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.7241675830446184,
+    "total_seconds": 71.7084339580033,
+    "analysis_seconds": 70.98426495795138,
+    "engine_peak_rss_bytes": 875020288,
+    "worker_peak_rss_bytes": 34996224,
+    "repeat": 1
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 73.77604354196228,
+    "cache_seconds": 0.037625832948833704,
+    "engine_peak_rss_bytes": 874790912,
+    "worker_peak_rss_bytes": 79314944,
+    "repeat": 1
+   },
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.9314528340473771,
+    "total_seconds": 78.96685866708867,
+    "analysis_seconds": 78.0354046249995,
+    "engine_peak_rss_bytes": 988971008,
+    "worker_peak_rss_bytes": 34177024,
+    "repeat": 2
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 85.63102791691199,
+    "cache_seconds": 0.022607708000577986,
+    "engine_peak_rss_bytes": 873644032,
+    "worker_peak_rss_bytes": 79806464,
+    "repeat": 2
+   },
+   {
+    "mode": "cold",
+    "visits": 200,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "startup_seconds": 0.708703999989666,
+    "total_seconds": 432.1152207910782,
+    "analysis_seconds": 431.4065155000426,
+    "engine_peak_rss_bytes": 987611136,
+    "worker_peak_rss_bytes": 34390016,
+    "repeat": 1
+   },
+   {
+    "mode": "warm",
+    "visits": 200,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "analysis_seconds": 428.6918865831103,
+    "cache_seconds": 0.028114749933592975,
+    "engine_peak_rss_bytes": 873676800,
+    "worker_peak_rss_bytes": 81461248,
+    "repeat": 1
+   },
+   {
+    "mode": "cold",
+    "visits": 200,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "startup_seconds": 1.1007927500177175,
+    "total_seconds": 475.3696728339419,
+    "analysis_seconds": 474.26887833396904,
+    "engine_peak_rss_bytes": 873480192,
+    "worker_peak_rss_bytes": 35258368,
+    "repeat": 2
+   },
+   {
+    "mode": "warm",
+    "visits": 200,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "analysis_seconds": 412.07314429199323,
+    "cache_seconds": 0.046783957979641855,
+    "engine_peak_rss_bytes": 875020288,
+    "worker_peak_rss_bytes": 81870848,
+    "repeat": 2
+   }
+  ]
+ },
+ "katago_1_16_4": {
+  "format": 1,
+  "date": "2026-11-08",
+  "machine": {
+   "system": "Darwin 27.2.0",
+   "machine": "arm64",
+   "cpu": "Apple M4",
+   "memory_bytes": 17179869184,
+   "python": "3.14.4"
+  },
+  "game": {
+   "sgf": "testdata/sgf/maruyama-ito-1976.sgf",
+   "sgf_sha256": "9b4ed82c58f994180df7638967ec68af55b13304ed4bf8c4b5d386ee2bd738ba"
+  },
+  "runs": [
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.780250999960117,
+    "total_seconds": 59.316329917055555,
+    "analysis_seconds": 58.53607687505428,
+    "engine_peak_rss_bytes": 741441536,
+    "worker_peak_rss_bytes": 35061760,
+    "repeat": 1
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 57.47395945794415,
+    "cache_seconds": 0.0238012500340119,
+    "engine_peak_rss_bytes": 869892096,
+    "worker_peak_rss_bytes": 83476480,
+    "repeat": 1
+   },
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.632987166987732,
+    "total_seconds": 60.76569354208186,
+    "analysis_seconds": 60.13270504202228,
+    "engine_peak_rss_bytes": 868286464,
+    "worker_peak_rss_bytes": 35520512,
+    "repeat": 2
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 63.95985137496609,
+    "cache_seconds": 0.014212707988917828,
+    "engine_peak_rss_bytes": 869351424,
+    "worker_peak_rss_bytes": 82821120,
+    "repeat": 2
+   },
+   {
+    "mode": "cold",
+    "visits": 200,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "startup_seconds": 0.64757620904129,
+    "total_seconds": 395.66815454198513,
+    "analysis_seconds": 395.02057712490205,
+    "engine_peak_rss_bytes": 868319232,
+    "worker_peak_rss_bytes": 34553856,
+    "repeat": 1
+   },
+   {
+    "mode": "warm",
+    "visits": 200,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 201,
+    "analysis_seconds": 401.7323299999116,
+    "cache_seconds": 0.023178708041086793,
+    "engine_peak_rss_bytes": 868139008,
+    "worker_peak_rss_bytes": 78381056,
+    "repeat": 1
+   },
+   {
+    "mode": "cold",
+    "visits": 200,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 201,
+    "startup_seconds": 0.6617260000202805,
+    "total_seconds": 370.18071183306165,
+    "analysis_seconds": 369.51898466597777,
+    "engine_peak_rss_bytes": 869728256,
+    "worker_peak_rss_bytes": 35520512,
+    "repeat": 2
+   },
+   {
+    "mode": "warm",
+    "visits": 200,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 200,
+    "analysis_seconds": 380.7739033329999,
+    "cache_seconds": 0.02382745803333819,
+    "engine_peak_rss_bytes": 871055360,
+    "worker_peak_rss_bytes": 83230720,
+    "repeat": 2
+   }
+  ]
+ },
+ "alternating_32_visits": {
+  "date": "2026-11-08",
+  "order": "1.16.4, 1.18.2, 1.16.4, 1.18.2 (cold then warm each)",
+  "runs": [
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 33,
+    "startup_seconds": 0.6648801659466699,
+    "total_seconds": 81.78419041598681,
+    "analysis_seconds": 81.11930825002491,
+    "engine_peak_rss_bytes": 868450304,
+    "worker_peak_rss_bytes": 34095104,
+    "repeat": 1,
+    "sequence": 1
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 77.12504295806866,
+    "cache_seconds": 0.0230058750603348,
+    "engine_peak_rss_bytes": 868843520,
+    "worker_peak_rss_bytes": 86097920,
+    "repeat": 1,
+    "sequence": 1
+   },
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.7199562500463799,
+    "total_seconds": 75.38280966703314,
+    "analysis_seconds": 74.66285225003958,
+    "engine_peak_rss_bytes": 875429888,
+    "worker_peak_rss_bytes": 34603008,
+    "repeat": 1,
+    "sequence": 2
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 73.24364645802416,
+    "cache_seconds": 0.014215708943083882,
+    "engine_peak_rss_bytes": 865730560,
+    "worker_peak_rss_bytes": 85000192,
+    "repeat": 1,
+    "sequence": 2
+   },
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.6326432919595391,
+    "total_seconds": 74.0237322920002,
+    "analysis_seconds": 73.39108774997294,
+    "engine_peak_rss_bytes": 868663296,
+    "worker_peak_rss_bytes": 37568512,
+    "repeat": 1,
+    "sequence": 3
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.16.4",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 73.97626954200678,
+    "cache_seconds": 0.014253167086280882,
+    "engine_peak_rss_bytes": 871776256,
+    "worker_peak_rss_bytes": 84754432,
+    "repeat": 1,
+    "sequence": 3
+   },
+   {
+    "mode": "cold",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "startup_seconds": 0.7159835840575397,
+    "total_seconds": 74.2286933750147,
+    "analysis_seconds": 73.5127086249413,
+    "engine_peak_rss_bytes": 990265344,
+    "worker_peak_rss_bytes": 37601280,
+    "repeat": 1,
+    "sequence": 4
+   },
+   {
+    "mode": "warm",
+    "visits": 32,
+    "identity": {
+     "version": "1.18.2",
+     "model_name": "kata1-b18c384nbt-s9996604416-d4316597426",
+     "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+     "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3"
+    },
+    "positions": 236,
+    "root_visits_min": 32,
+    "analysis_seconds": 73.69476458290592,
+    "cache_seconds": 0.014432333991862833,
+    "engine_peak_rss_bytes": 873742336,
+    "worker_peak_rss_bytes": 84705280,
+    "repeat": 1,
+    "sequence": 4
+   }
+  ]
+ }
+}
