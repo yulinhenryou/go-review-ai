@@ -309,7 +309,16 @@ Uses the KataGo **analysis engine** JSON-lines protocol
   action for that query id and resolves the waiter as cancelled.
 - **Timeouts:** per query and per job; on timeout the query is terminated.
 - **Failure:** if the process exits, pending queries fail with
-  `engine_unavailable`, and the supervisor restarts it with backoff.
+  `engine_unavailable`, and the supervisor restarts it with backoff. Any
+  protocol violation (malformed JSON, an unknown id or turn, a missing
+  final-result marker, a duplicate reply, a line over 4 MiB) fails every
+  pending query with `EngineProtocolError` and stops the process, since the
+  stream can no longer be trusted. An engine `error` fails only its query;
+  a `warning` about `rules`, `komi` or `overrideSettings` fails and
+  terminates its query, and other warnings are kept with the replies.
+- **Working directory:** each process runs in an empty temporary
+  directory, removed on close, so the engine never writes into the
+  repository.
 - **Readiness:** `query_version` and `query_models` at start-up; the model file
   and config are SHA-256 hashed.
 
