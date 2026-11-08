@@ -65,8 +65,9 @@ python/
     training/              L5
     storage/               SQL schema, migrations, repositories
     api/                   L6: FastAPI app, routes, jobs
+    tools/                 Developer tools: fixture recording, benchmarks
     project.py             Reads config/project.json (brand lives there only)
-  tests/
+  tests/                   Unit and replay tests; tests/live/ is opt-in real KataGo
 web/                       Vite + React + TypeScript
 config/
   project.json             name, slug, tagline (the single runtime brand source)
@@ -364,10 +365,25 @@ the reason above.
 
 ### 5.4 Recorded responses
 
-A recording mode stores sanitized query/response pairs as test fixtures (only
-public or synthetic games, no absolute paths), following the prototype's
-`tests/fixtures/katago_real_short.json` approach. Replay tests use them for
-deterministic coverage; live tests are opt-in.
+`EngineProcess` and `KataGoEngine` accept an optional transcript callback
+that sees every message sent and every JSON object received, in order,
+including replies the process ignores. `python -m weiqi.tools.record_engine`
+uses it to store one real exchange as a fixture in `testdata/engine/`,
+following the prototype's `tests/fixtures/katago_real_short.json`:
+
+- Only records in `testdata/sgf/` that `PROVENANCE.md` lists can be recorded,
+  so private games never become fixtures.
+- Query ids are renumbered (`id-1`, ...), the loaded model's `name` is reduced
+  to its file name, and the recorder refuses to write a fixture that still
+  contains a local path.
+- The fixture stores the input, the recording machine, the engine identity,
+  the exchange, and each turn's normalised result and `query_key`.
+
+Replay tests check that today's code sends the recorded query and turns the
+recorded replies into exactly the recorded results, both through the parser
+alone and through the whole client with the fake engine playing the
+exchange back. Live tests in `python/tests/live/` run against the real
+engine only with `RUN_KATAGO_INTEGRATION=1`.
 
 ## 6. L2 — Metrics (single game)
 
