@@ -20,7 +20,10 @@ SQLite or PostgreSQL (SQLAlchemy Core and Alembic) so that `CachedAnalyzer`
 asks the engine only for turns it has not stored; create or update a
 database with `uv run python -m weiqi.storage.migrate upgrade sqlite:///weiqi.db`.
 The storage tests use SQLite, and also PostgreSQL when `TEST_POSTGRESQL_URL`
-names a database they may empty (CI provides one). It depends on `weiqi-core`, the Rust rules core's
+names a database they may empty (CI provides one). `weiqi.metrics` computes
+per-move score loss and winrate change from stored evaluations (the sequential
+and same-root definitions of ADR-P02), severity from a calibration table
+(ADR-P17) and the ranked mistake list. It depends on `weiqi-core`, the Rust rules core's
 binding in `../crates/weiqi-py`, which `uv sync` builds with maturin (a Rust
 toolchain is required).
 
