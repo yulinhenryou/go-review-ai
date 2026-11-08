@@ -13,7 +13,12 @@ analyses a whole game per query. It needs a local KataGo:
 `KATAGO_MODEL_PATH` (required), `KATAGO_PATH` and `KATAGO_CONFIG_PATH`
 (default `config/katago/analysis.cfg`). `weiqi.tools.record_engine` records
 a public record's real engine exchange as a test fixture (see
-`../testdata/engine/README.md`). It depends on `weiqi-core`, the Rust rules core's
+`../testdata/engine/README.md`). `weiqi.storage` keeps analysed turns in
+SQLite or PostgreSQL (SQLAlchemy Core and Alembic) so that `CachedAnalyzer`
+asks the engine only for turns it has not stored; create or update a
+database with `uv run python -m weiqi.storage.migrate upgrade sqlite:///weiqi.db`.
+The storage tests use SQLite, and also PostgreSQL when `TEST_POSTGRESQL_URL`
+names a database they may empty (CI provides one). It depends on `weiqi-core`, the Rust rules core's
 binding in `../crates/weiqi-py`, which `uv sync` builds with maturin (a Rust
 toolchain is required).
 

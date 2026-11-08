@@ -340,7 +340,7 @@ Fields consumed: `rootInfo` (`scoreLead`, `winrate`, `visits`,
 `winrate`, `prior`, `pv`), and `ownership` when requested. Missing fields stay
 `None`; non-finite values are protocol errors (as in the prototype).
 
-### 5.3 Cache and reproducibility — Proposal (ADR-P03)
+### 5.3 Cache and reproducibility (ADR-P03)
 
 KataGo's neural-network input includes recent move history, and its search
 uses that history for ko/superko. Two games reaching the same stones by
@@ -359,9 +359,19 @@ different orders can therefore produce slightly different outputs. So:
   exactly; values agree within search noise, because multi-threaded search is
   not bit-for-bit deterministic.
 
-The owner's brief specified "cache keyed by Zobrist hash". This proposal keeps
+The owner's brief specified "cache keyed by Zobrist hash". ADR-P03 keeps
 Zobrist hashing central but separates *exact reuse* from *position lookup* for
 the reason above.
+
+Implemented in M3 step 5: `CachedAnalyzer` (`weiqi/engine/cached.py`) asks
+the engine for its identity, computes every requested turn's `query_key`,
+loads the stored ones from a `ResultStore`, sends only the missing turns as
+one query, and stores the answer when the query completes (a cancelled or
+failed query stores nothing). It counts hits and misses. The engine layer
+defines the `ResultStore` interface; `weiqi/storage/results.py` implements
+it in SQL (§10.3), so the engine layer never imports the database.
+`AnalysisRequest.hashes` gives each turn's `stones_hash` and
+`situation_hash` from the core's replay.
 
 ### 5.4 Recorded responses
 
@@ -514,18 +524,38 @@ later without changing the API.
 
 SQLite first; the schema is written for PostgreSQL portability:
 
-- SQLAlchemy Core with Alembic migrations (proposal ADR-P08); no
+- SQLAlchemy Core with Alembic migrations (ADR-P08); no
   SQLite-only features; text UUIDs; UTC timestamps; JSON in `TEXT` columns
   that map to `JSONB` later; large numeric arrays (ownership) as compressed
   BLOB/`bytea`.
 - Migrations are tested against both SQLite and PostgreSQL in CI once the
-  schema exists (from M3).
+  schema exists (from M3): the CI `python` job starts a PostgreSQL service
+  container and sets `TEST_POSTGRESQL_URL`; locally the storage tests run on
+  SQLite only.
+- SQLAlchemy runs synchronously; repositories offer async methods that run
+  each call in a worker thread (`asyncio.to_thread`), so the event loop never
+  waits on the database and no async database drivers are needed.
+- The schema lives in `weiqi/storage/schema.py`; migrations in
+  `weiqi/storage/migrations/` are applied with
+  `python -m weiqi.storage.migrate upgrade <url>`. A test compares the
+  migrated database with the schema module, so the two cannot drift.
 
-Draft entities: `player`, `game` (source, SGF bytes hash, metadata, rules),
-`analysis_run` (engine identity, settings), `position_eval` (`query_key`,
-`stones_hash`, turn, root values, candidates JSON, ownership blob), `move_metric`
-(definition id, values), `label` (classifier and owner gold labels), `exercise`,
-`review_log`, `job`.
+M3 tables (the analysis cache):
+
+- `engine_identity`: version, model name and SHA-256, config SHA-256,
+  overrides; keyed by a hash of all of them.
+- `engine_query`: one engine query: its identity, turn count and elapsed time.
+- `position_eval`: one analysed turn, keyed by `query_key`: the producing
+  query, turn, `stones_hash` (indexed) and `situation_hash` as 32-digit hex,
+  player to move, visits asked, root visits, winrate and score lead (BLACK),
+  candidates as JSON, ownership as zlib-compressed little-endian float64,
+  engine warnings, and an encoding version. Every number round-trips exactly.
+  When two queries store the same key, the first result is kept.
+
+Draft entities for later milestones: `player`, `game` (source, SGF bytes
+hash, metadata, rules), `analysis_run` (a review job's settings over the
+engine queries above), `move_metric` (definition id, values), `label`
+(classifier and owner gold labels), `exercise`, `review_log`, `job`.
 
 ## 11. L7 — Frontend
 
