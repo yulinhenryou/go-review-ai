@@ -6,6 +6,12 @@ each test can provoke one protocol situation; in every mode a query whose id
 starts with "hang" is not answered until it is terminated, and the action
 "fake_stats" reports what the fake has seen, including its command line.
 
+Mode "replay" is different: it plays back the recorded real exchange in the
+fixture named by `FAKE_KATAGO_REPLAY` (see `testdata/engine/README.md`).
+Each incoming message must equal the next recorded one apart from its id;
+the recorded replies follow with the caller's id put back. A mismatch is
+answered with an engine error, so the caller's test fails.
+
 Run as `python fake_katago.py MODE [KATAGO ARGUMENTS...]`.
 """
 
@@ -14,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 
 MODE = sys.argv[1] if len(sys.argv) > 1 else "normal"
 ARGS = sys.argv[2:]
@@ -104,7 +111,34 @@ def analyse(query: dict[str, object]) -> None:
             send(final(query, turn))
 
 
+def replay(path: str) -> None:
+    exchange = json.loads(Path(path).read_text())["exchange"]
+    # Each sent message with the replies recorded after it.
+    steps: list[tuple[dict[str, object], list[dict[str, object]]]] = []
+    for entry in exchange:
+        if entry["direction"] == "sent":
+            steps.append((entry["message"], []))
+        else:
+            steps[-1][1].append(entry["message"])
+    ids: dict[object, object] = {}
+    for line, (sent, replies) in zip(sys.stdin, steps, strict=False):
+        query = json.loads(line)
+        if {k: v for k, v in query.items() if k != "id"} != {
+            k: v for k, v in sent.items() if k != "id"
+        }:
+            send({"error": "replay mismatch", "field": "replay", "id": query.get("id")})
+            continue
+        ids[sent["id"]] = query["id"]
+        for reply in replies:
+            send({**reply, "id": ids.get(reply["id"], reply["id"])})
+    for _ in sys.stdin:  # anything after the recording: never answered
+        pass
+
+
 def main() -> None:
+    if MODE == "replay":
+        replay(os.environ["FAKE_KATAGO_REPLAY"])
+        return
     for line in sys.stdin:
         query = json.loads(line)
         action = query.get("action")
