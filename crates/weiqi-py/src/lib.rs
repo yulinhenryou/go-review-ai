@@ -179,6 +179,38 @@ fn moves_object<'py>(
         .collect()
 }
 
+// --- GTP vertices (the notation KataGo speaks) ---
+
+/// Formats a move as a GTP vertex such as `"Q16"`, or `"pass"`.
+///
+/// Raises `CoreError` for a bad board size or a malformed move, and
+/// `IllegalMoveError` (`off_board`) for a point outside the board.
+#[pyfunction]
+fn to_gtp(move_: &Bound<'_, PyAny>, width: i64, height: i64) -> PyResult<String> {
+    let size = board_size(move_.py(), width, height)?;
+    let mv = parse_move(size, move_)?;
+    // `parse_move` only returns points on `size`, so formatting cannot fail.
+    Ok(size.to_gtp(mv).expect("move is on this board"))
+}
+
+/// Parses a GTP vertex such as `"Q16"` or `"pass"` (any letter case).
+///
+/// Raises `CoreError` with `malformed_coordinate` or
+/// `coordinate_out_of_range`.
+#[pyfunction]
+fn from_gtp<'py>(
+    py: Python<'py>,
+    vertex: &str,
+    width: i64,
+    height: i64,
+) -> PyResult<Bound<'py, PyAny>> {
+    let size = board_size(py, width, height)?;
+    let mv = size
+        .parse_gtp(vertex)
+        .map_err(|error| core_error(py, error.code(), error))?;
+    move_object(py, size, mv)
+}
+
 /// The `weiqi_core` module.
 #[pymodule]
 fn weiqi_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -190,6 +222,8 @@ fn weiqi_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("SgfError", py.get_type::<SgfError>())?;
     m.add("ExtractError", py.get_type::<ExtractError>())?;
     m.add("ReplayError", py.get_type::<ReplayError>())?;
+    m.add_function(wrap_pyfunction!(to_gtp, m)?)?;
+    m.add_function(wrap_pyfunction!(from_gtp, m)?)?;
     game::register(m)?;
     sgf::register(m)?;
     Ok(())

@@ -252,3 +252,49 @@ def test_exception_hierarchy() -> None:
     for error_type in (core.IllegalMoveError, core.SgfError, core.ExtractError, core.ReplayError):
         assert issubclass(error_type, core.CoreError)
     assert issubclass(core.CoreError, ValueError)
+
+
+# GTP vertices, the notation KataGo uses. The 19x19 pairs are the
+# prototype's test_coordinate_mapping (MIGRATION E08); "I" is never a column.
+@pytest.mark.parametrize(
+    ("vertex", "point"),
+    [("A19", (0, 0)), ("T1", (18, 18)), ("Q16", (15, 3)), ("H19", (7, 0)), ("J19", (8, 0))],
+)
+def test_gtp_vertices_round_trip(vertex: str, point: Point) -> None:
+    assert core.to_gtp(point, 19, 19) == vertex
+    assert core.from_gtp(vertex, 19, 19) == point
+    assert core.from_gtp(vertex.lower(), 19, 19) == point
+
+
+def test_gtp_pass_and_rectangular_boards() -> None:
+    assert core.to_gtp("pass", 19, 19) == "pass"
+    assert core.from_gtp("PASS", 9, 9) == "pass"
+    # Rows count from the bottom of the board's own height.
+    assert core.to_gtp((2, 0), 5, 3) == "C3"
+    assert core.from_gtp("C1", 5, 3) == (2, 2)
+
+
+@pytest.mark.parametrize(
+    ("vertex", "code"),
+    [
+        ("I4", "malformed_coordinate"),
+        ("Q0", "malformed_coordinate"),
+        ("Q016", "malformed_coordinate"),
+        ("", "malformed_coordinate"),
+        ("Q20", "coordinate_out_of_range"),
+        ("Z19", "coordinate_out_of_range"),
+    ],
+)
+def test_gtp_rejects_bad_vertices(vertex: str, code: str) -> None:
+    with pytest.raises(core.CoreError) as error:
+        core.from_gtp(vertex, 19, 19)
+    assert error.value.code == code
+
+
+def test_gtp_formatting_checks_the_board() -> None:
+    with pytest.raises(core.IllegalMoveError) as off_board:
+        core.to_gtp((9, 0), 9, 9)
+    assert off_board.value.code == "off_board"
+    with pytest.raises(core.CoreError) as size:
+        core.to_gtp("pass", 26, 26)
+    assert size.value.code == "unsupported_size"

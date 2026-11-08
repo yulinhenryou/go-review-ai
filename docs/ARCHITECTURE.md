@@ -249,7 +249,8 @@ are separate steps, so that rules and komi can be confirmed between them.
 ## 4. Bindings
 
 - **Python (`weiqi-py`, PyO3 + maturin).** Exposes the API above, except
-  scoring for now, as the module `weiqi_core` with a hand-written `.pyi` stub
+  scoring for now, plus GTP vertex conversion (`to_gtp`, `from_gtp`) for the
+  engine adapter, as the module `weiqi_core` with a hand-written `.pyi` stub
   that `mypy.stubtest` checks against the built module (ADR-P15). `python/`
   depends on it as a uv path source, so `uv sync` builds a wheel with maturin
   and installs it; CI runs the Python tests against that wheel. `parse_sgf`
