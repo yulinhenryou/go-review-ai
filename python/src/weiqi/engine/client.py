@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Final, Literal
 
 from weiqi.engine.errors import EngineProtocolError, EngineUnavailableError
 from weiqi.engine.identity import EngineIdentity
-from weiqi.engine.process import EngineProcess, EngineReply, new_query_id
+from weiqi.engine.process import EngineProcess, EngineReply, Transcript, new_query_id
 from weiqi.engine.response import TurnAnalysis, parse_turn
 from weiqi.engine.settings import EngineSettings, restart_delay
 
@@ -125,10 +125,14 @@ def _identity(
 
 
 class KataGoEngine:
-    """A supervised KataGo analysis engine. Use `async with KataGoEngine(...)`."""
+    """A supervised KataGo analysis engine. Use `async with KataGoEngine(...)`.
 
-    def __init__(self, settings: EngineSettings) -> None:
+    `transcript`, if given, is handed to every process this engine starts
+    (see `weiqi.engine.process.Transcript`)."""
+
+    def __init__(self, settings: EngineSettings, *, transcript: Transcript | None = None) -> None:
         self._settings = settings
+        self._transcript = transcript
         self._process: EngineProcess | None = None
         self._identity: EngineIdentity | None = None
         self._lock = asyncio.Lock()
@@ -261,7 +265,9 @@ class KataGoEngine:
             "-override-config",
             _override_text(BASE_OVERRIDES),
         ]
-        process = await EngineProcess.start(command, max_in_flight=settings.max_in_flight)
+        process = await EngineProcess.start(
+            command, max_in_flight=settings.max_in_flight, transcript=self._transcript
+        )
         try:
             identity = _identity(
                 await process.request("query_version"),

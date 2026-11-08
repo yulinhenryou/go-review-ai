@@ -8,7 +8,7 @@ import asyncio
 import os
 import signal
 import sys
-from collections.abc import Coroutine
+from collections.abc import Coroutine, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -22,7 +22,7 @@ from weiqi.engine import (
     EngineUnavailableError,
     parse_turn,
 )
-from weiqi.engine.process import EngineProcess, EngineReply
+from weiqi.engine.process import LINE_LIMIT, EngineProcess, EngineReply
 
 if TYPE_CHECKING:
     from weiqi_core import Color, Move
@@ -44,8 +44,12 @@ def run[T](coroutine: Coroutine[object, object, T]) -> T:
     return asyncio.run(asyncio.wait_for(coroutine, 20))
 
 
-async def start(mode: str = "normal", **options: int) -> EngineProcess:
-    return await EngineProcess.start([sys.executable, str(FAKE), mode], **options)
+async def start(
+    mode: str = "normal", *, max_in_flight: int = 1, line_limit: int = LINE_LIMIT
+) -> EngineProcess:
+    return await EngineProcess.start(
+        [sys.executable, str(FAKE), mode], max_in_flight=max_in_flight, line_limit=line_limit
+    )
 
 
 async def stats(engine: EngineProcess) -> dict[str, object]:
@@ -247,3 +251,30 @@ def test_query_ids_cannot_be_reused() -> None:
                 await task
 
     run(scenario())
+
+
+def test_the_transcript_sees_every_message_in_order() -> None:
+    seen: list[tuple[str, object, object]] = []
+
+    def transcript(direction: str, message: Mapping[str, object]) -> None:
+        seen.append((direction, message.get("id"), message.get("turnNumber")))
+
+    async def scenario() -> None:
+        engine = await EngineProcess.start([sys.executable, str(FAKE)], transcript=transcript)
+        async with engine:
+            await engine.analyze(REQUEST.to_query("q1"), timeout=5)
+            task = asyncio.create_task(engine.analyze(REQUEST.to_query("hang-6")))
+            await asyncio.sleep(0.2)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            await stats(engine)  # the terminate's late replies arrive before this answer
+
+    run(scenario())
+    assert seen[:5] == [("sent", "q1", None)] + [("received", "q1", t) for t in (3, 2, 1, 0)]
+    assert seen[5] == ("sent", "hang-6", None)
+    assert seen[6][0] == "sent"  # the terminate
+    # Replies the process ignores are still in the transcript.
+    assert [s for s in seen if s[1] == "hang-6" and s[0] == "received"] == [
+        ("received", "hang-6", t) for t in (0, 1, 2, 3)
+    ]

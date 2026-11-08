@@ -13,6 +13,10 @@ fails with `EngineUnavailableError`. Restarting is the supervisor's job.
 
 Cancelling or timing out an analysis sends KataGo's `terminate` action for
 that query. Its late replies, which may carry partial results, are ignored.
+
+An optional transcript callback sees every message written and every JSON
+object read, in order. It exists for recording public test fixtures and for
+live tests that check what the engine actually said.
 """
 
 from __future__ import annotations
@@ -25,7 +29,7 @@ import uuid
 from asyncio.subprocess import PIPE
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Final
+from typing import Final, Literal
 
 from weiqi.engine.errors import (
     EngineError,
@@ -40,6 +44,10 @@ LINE_LIMIT: Final = 4 * 1024 * 1024
 
 FATAL_WARNING_FIELDS: Final = frozenset({"rules", "komi", "overrideSettings"})
 """Fields whose warnings mean the results would not answer the request."""
+
+type Transcript = Callable[[Literal["sent", "received"], Mapping[str, object]], None]
+"""Sees each message sent to and each JSON object received from the engine.
+It runs inside the reader and writer, so it must be quick and must not raise."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,8 +97,10 @@ class EngineProcess:
         process: asyncio.subprocess.Process,
         workdir: tempfile.TemporaryDirectory[str],
         max_in_flight: int,
+        transcript: Transcript | None = None,
     ) -> None:
         self._process = process
+        self._transcript = transcript
         self._workdir = workdir
         self._slots = asyncio.Semaphore(max_in_flight)
         self._send_lock = asyncio.Lock()
@@ -105,7 +115,12 @@ class EngineProcess:
 
     @classmethod
     async def start(
-        cls, command: Sequence[str], *, max_in_flight: int = 1, line_limit: int = LINE_LIMIT
+        cls,
+        command: Sequence[str],
+        *,
+        max_in_flight: int = 1,
+        line_limit: int = LINE_LIMIT,
+        transcript: Transcript | None = None,
     ) -> EngineProcess:
         """Starts `command` in an empty temporary working directory, so the
         engine cannot write files into the repository."""
@@ -122,7 +137,7 @@ class EngineProcess:
             raise EngineUnavailableError(
                 "engine_unavailable", "the engine could not be started"
             ) from error
-        return cls(process, workdir, max_in_flight)
+        return cls(process, workdir, max_in_flight, transcript)
 
     @property
     def pid(self) -> int:
@@ -230,6 +245,8 @@ class EngineProcess:
         stdin = self._process.stdin
         assert stdin is not None  # started with stdin=PIPE
         line = json.dumps(message, allow_nan=False, separators=(",", ":")) + "\n"
+        if self._transcript is not None:
+            self._transcript("sent", message)
         # If the process is gone, the reader reports the exit.
         with contextlib.suppress(ConnectionError, RuntimeError):
             stdin.write(line.encode("utf-8"))
@@ -284,6 +301,8 @@ class EngineProcess:
             raise EngineProtocolError("invalid_json", "an engine reply is not JSON") from None
         if not isinstance(message, dict):
             raise EngineProtocolError("invalid_json", "an engine reply is not a JSON object")
+        if self._transcript is not None:
+            self._transcript("received", message)
         query_id = message.get("id")
         if isinstance(query_id, str) and query_id in self._ignored:
             return
