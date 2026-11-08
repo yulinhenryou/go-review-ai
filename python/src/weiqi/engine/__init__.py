@@ -1,5 +1,6 @@
 """L1 engine adapter: KataGo analysis requests, responses and provenance."""
 
+from weiqi.engine.client import GameAnalysis, KataGoEngine, TurnResult
 from weiqi.engine.errors import (
     EngineError,
     EngineProtocolError,
@@ -18,6 +19,7 @@ from weiqi.engine.response import (
     score_for,
     winrate_for,
 )
+from weiqi.engine.settings import EngineSettings
 
 __all__ = [
     "AnalysisRequest",
@@ -26,11 +28,15 @@ __all__ = [
     "EngineIdentity",
     "EngineProtocolError",
     "EngineRejectedError",
+    "EngineSettings",
     "EngineTimeoutError",
     "EngineUnavailableError",
+    "GameAnalysis",
     "InvalidRequestError",
+    "KataGoEngine",
     "RootInfo",
     "TurnAnalysis",
+    "TurnResult",
     "parse_turn",
     "score_for",
     "winrate_for",

@@ -4,9 +4,9 @@ Test double only (MIGRATION E10): every number it reports is a fixed
 placeholder, never Go analysis. The first argument picks a misbehaviour so
 each test can provoke one protocol situation; in every mode a query whose id
 starts with "hang" is not answered until it is terminated, and the action
-"fake_stats" reports what the fake has seen.
+"fake_stats" reports what the fake has seen, including its command line.
 
-Run as `python fake_katago.py MODE`.
+Run as `python fake_katago.py MODE [KATAGO ARGUMENTS...]`.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import os
 import sys
 
 MODE = sys.argv[1] if len(sys.argv) > 1 else "normal"
+ARGS = sys.argv[2:]
 terminated: list[str] = []
 hanging: dict[str, list[int]] = {}
 
@@ -46,12 +47,17 @@ def final(query: dict[str, object], turn: int) -> dict[str, object]:
 def analyse(query: dict[str, object]) -> None:
     query_id = str(query["id"])
     turns = [int(t) for t in query.get("analyzeTurns", [])]  # type: ignore[attr-defined]
-    if query_id.startswith("hang"):
+    if query_id.startswith("hang") or MODE == "hang_all":
         hanging[query_id] = turns
         return
     match MODE:
         case "crash":
             sys.exit(3)
+        case "wrong_player":
+            reply = final(query, turns[0])
+            reply["rootInfo"] = {"currentPlayer": "X"}
+            send(reply)
+            return
         case "garbage":
             sys.stdout.write("this is not json\n")
             sys.stdout.flush()
@@ -103,11 +109,13 @@ def main() -> None:
         query = json.loads(line)
         action = query.get("action")
         if action == "query_version":
-            send({**query, "version": "1.16.4", "git_hash": "<omitted>"})
+            version = "not a version!" if MODE == "bad_version" else "1.16.4"
+            send({**query, "version": version, "git_hash": "<omitted>"})
         elif action == "query_models":
-            send({**query, "models": [{"name": "fake.bin.gz", "internalName": "fake-model"}]})
+            model = {"name": "fake.bin.gz", "internalName": "fake-model"}
+            send({**query, "models": [model, model] if MODE == "two_models" else [model]})
         elif action == "fake_stats":
-            send({**query, "terminated": terminated, "cwd": os.getcwd()})
+            send({**query, "terminated": terminated, "cwd": os.getcwd(), "argv": ARGS})
         elif action == "terminate":
             target = str(query["terminateId"])
             terminated.append(target)
