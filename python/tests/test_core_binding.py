@@ -298,3 +298,20 @@ def test_gtp_formatting_checks_the_board() -> None:
     with pytest.raises(core.CoreError) as size:
         core.to_gtp("pass", 26, 26)
     assert size.value.code == "unsupported_size"
+
+
+def test_chains_are_owned_copies_in_row_major_order() -> None:
+    game = core.Game(9, 9, core.Rules.from_name("chinese"), 7.5)
+    for move in [(0, 0), (1, 0), (0, 1), (8, 8), (2, 2)]:
+        game.play(move)
+    chains = game.chains()
+    assert [(c.color, c.stones, c.liberties) for c in chains] == [
+        ("B", [(0, 0), (0, 1)], [(1, 1), (0, 2)]),
+        ("W", [(1, 0)], [(2, 0), (1, 1)]),
+        ("B", [(2, 2)], [(2, 1), (1, 2), (3, 2), (2, 3)]),
+        ("W", [(8, 8)], [(8, 7), (7, 8)]),
+    ]
+    # Playing on does not change chains already returned.
+    game.play((1, 1))
+    assert chains[0].liberties == [(1, 1), (0, 2)]
+    assert len(game.chains()[0].liberties) == 1

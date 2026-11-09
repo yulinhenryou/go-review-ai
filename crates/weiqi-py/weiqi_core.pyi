@@ -121,6 +121,19 @@ class Position:
         """128-bit hash of the stones, player to move and ko ban."""
 
 @final
+class Chain:
+    """Connected stones of one color, as an owned copy."""
+
+    @property
+    def color(self) -> Color: ...
+    @property
+    def stones(self) -> list[Point]:
+        """Row-major order."""
+    @property
+    def liberties(self) -> list[Point]:
+        """Empty points next to the chain, row-major order."""
+
+@final
 class MoveEffect:
     """What an applied move changed."""
 
@@ -155,6 +168,8 @@ class Game:
     def move_count(self) -> int: ...
     def moves(self) -> list[tuple[Color, Move]]: ...
     def position(self) -> Position: ...
+    def chains(self) -> list[Chain]:
+        """Every chain, ordered by its first stone in row-major order."""
     def play(self, move: Move) -> MoveEffect:
         """Plays `move` for the player to move; raises `IllegalMoveError`."""
     def play_as(self, color: Color, move: Move, mode: Mode = "strict") -> MoveEffect:

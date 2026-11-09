@@ -9,7 +9,7 @@
 //! Two consecutive passes do not end the game here: the core only counts them
 //! ([`Game::consecutive_passes`]) and the product layer decides what follows.
 
-use crate::board::{Board, Cell, Color, IllegalPlacement, Placement};
+use crate::board::{Board, Cell, Chain, Color, IllegalPlacement, Placement};
 use crate::coord::{BoardSize, Move, Point};
 use crate::rules::{KoRule, Komi, Rules};
 use crate::zobrist::{self, Hash128};
@@ -351,6 +351,11 @@ impl Game {
     /// The starting stones and first player.
     pub fn setup(&self) -> &Setup {
         &self.setup
+    }
+
+    /// Every chain in the current position; see [`Board::chains`].
+    pub fn chains(&self) -> Vec<Chain> {
+        self.board.chains()
     }
 
     /// The current board.

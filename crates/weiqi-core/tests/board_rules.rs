@@ -227,6 +227,40 @@ fn chain_reports_stones_and_unique_liberties() {
 }
 
 #[test]
+fn chains_partition_the_stones_in_index_order() {
+    let board = Board::from_diagram(
+        "
+        XX.O
+        X.OO
+        .X..
+        O..X
+        ",
+    )
+    .unwrap();
+    let chains = board.chains();
+    let stones: Vec<Vec<&str>> = vec![
+        vec!["aa", "ba", "ab"],
+        vec!["da", "cb", "db"],
+        vec!["bc"],
+        vec!["ad"],
+        vec!["dd"],
+    ];
+    assert_eq!(chains.len(), stones.len());
+    for (chain, expected) in chains.iter().zip(&stones) {
+        let expected: Vec<Point> = expected.iter().map(|p| point(&board, p)).collect();
+        assert_eq!(chain.stones, expected);
+        // Each listed chain is exactly what `chain` finds from its first stone.
+        assert_eq!(Some(chain), board.chain(chain.stones[0]).as_ref());
+    }
+    assert_eq!(chains[1].color, Color::White);
+    assert!(
+        Board::new(BoardSize::square(9).unwrap())
+            .chains()
+            .is_empty()
+    );
+}
+
+#[test]
 fn rectangular_boards_capture_along_both_edges() {
     let mut board = Board::new(BoardSize::new(5, 2).unwrap());
     let rule = SuicideRule::Forbidden;

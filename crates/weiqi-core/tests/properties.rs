@@ -98,6 +98,20 @@ fn play_checked(
             placed[1] - now.captures.white as usize
         );
 
+        // Chains partition the stones: each stone in exactly one chain of its
+        // color, and every chain left on the board has a liberty.
+        let mut covered = vec![0u8; board.cells().len()];
+        for chain in game.chains() {
+            prop_assert!(!chain.liberties.is_empty());
+            for stone in &chain.stones {
+                prop_assert_eq!(board.get(*stone), Some(Cell::from(chain.color)));
+                covered[stone.index()] += 1;
+            }
+        }
+        for (cell, count) in board.cells().iter().zip(&covered) {
+            prop_assert_eq!(*count, u8::from(*cell != Cell::Empty));
+        }
+
         // Under superko no legal placement recreates an earlier position.
         // This compares the cells themselves, so it does not rely on hashing.
         if let Some(key) = superko_key(&now) {

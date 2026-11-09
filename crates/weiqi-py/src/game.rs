@@ -17,6 +17,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCaptures>()?;
     m.add_class::<PyPosition>()?;
     m.add_class::<PyMoveEffect>()?;
+    m.add_class::<PyChain>()?;
     m.add_class::<PyGame>()?;
     Ok(())
 }
@@ -232,6 +233,14 @@ impl PyPosition {
     }
 }
 
+/// Connected stones of one color, as an owned copy.
+#[pyclass(name = "Chain", module = "weiqi_core", frozen, get_all)]
+pub(crate) struct PyChain {
+    color: &'static str,
+    stones: Vec<(u8, u8)>,
+    liberties: Vec<(u8, u8)>,
+}
+
 /// What an applied move changed.
 #[pyclass(name = "MoveEffect", module = "weiqi_core", frozen, get_all)]
 pub(crate) struct PyMoveEffect {
@@ -324,6 +333,21 @@ impl PyGame {
     /// A snapshot of the current position.
     fn position(&self) -> PyPosition {
         PyPosition::from_core(&self.inner.position())
+    }
+
+    /// Every chain in the current position, ordered by its first stone in
+    /// row-major order; stones and liberties are row-major too.
+    fn chains(&self) -> Vec<PyChain> {
+        let size = self.inner.board().size();
+        self.inner
+            .chains()
+            .into_iter()
+            .map(|chain| PyChain {
+                color: color_text(chain.color),
+                stones: points_xy(size, &chain.stones),
+                liberties: points_xy(size, &chain.liberties),
+            })
+            .collect()
     }
 
     /// Plays `move` for the player to move, rejecting any rule violation.
