@@ -24,8 +24,20 @@ names a database they may empty (CI provides one). `weiqi.metrics` computes
 per-move score loss and winrate change from stored evaluations (the sequential
 and same-root definitions of ADR-P02), severity from a calibration table
 (ADR-P17), the ranked mistake list, ownership changes, group status
-changes (with chains from the rules core) and turning points; `weiqi.review` runs the restricted
-searches of played moves that the same-root values need. It depends on `weiqi-core`, the Rust rules core's
+changes (with chains from the rules core) and turning points. `weiqi.review`
+reviews one game: it checks the input (one game, confirmed rules and komi),
+runs the whole-game analysis and the restricted searches of played moves, and
+builds the `review.v1` result; `weiqi.explain` renders it as a report in
+Chinese or English from the locale catalogs, and `weiqi.storage.reviews`
+stores games, runs and per-move metrics. The command line does all of it
+(it migrates the database first and needs the KataGo environment above):
+
+```bash
+uv run python -m weiqi.review ../testdata/sgf/sample-game.sgf --database sqlite:///weiqi.db
+uv run python -m weiqi.review game.sgf --database sqlite:///weiqi.db --rules chinese --komi 7.5 --locale en --format json --output review.json
+```
+
+It depends on `weiqi-core`, the Rust rules core's
 binding in `../crates/weiqi-py`, which `uv sync` builds with maturin (a Rust
 toolchain is required).
 

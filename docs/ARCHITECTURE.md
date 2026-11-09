@@ -482,6 +482,47 @@ non-experimental.
 | Endgame | Endgame phase, no group status change, local ownership change only |
 | Other | None of the above |
 
+### 6.4 Review result (`review.v1`, M4)
+
+`weiqi.review` turns one SGF game into one result document. It sits above
+the engine and metrics layers and is the only part of a review that talks to
+the engine:
+
+1. **Input** (`read_game`, `confirm`): exactly one game per file; rules and
+   komi are the caller's, else the record's when `RU` names a known rule set
+   and `KM` is present; anything missing raises `metadata_unconfirmed` with
+   the field (ADR-010). Replaying the record in the rules core rejects
+   impossible moves before the engine is asked anything.
+2. **Evidence** (`review_game`): one whole-game query with ownership, then
+   the restricted searches of played moves (§5.2), all through the cached
+   analyzer, so a repeated review asks the engine nothing.
+3. **Result** (`build_result`): codes and numbers only, no sentences, as
+   canonical JSON (sorted keys, no NaN). It holds the game metadata (with
+   `record_status`), engine provenance, a `method` block (metric
+   definitions, perspectives, thresholds, `thresholds_calibrated: false`),
+   coverage (moves with score, winrate and ownership evidence, the numbers
+   of the moves without, whether the final position was evaluated), the
+   chronological timeline with Black-perspective chart values, the ranked
+   mistakes, turning points, the final position's candidates, and warning
+   codes. The result is `partial` when any of that evidence is missing; a
+   partial result never reads as "no mistakes". `warnings` concern the
+   primary evidence; `diagnostic_warnings` hold the same-root flags, which
+   concern only the diagnostic values (without played-move searches every
+   same-root value is missing while the primary evidence is complete).
+
+`weiqi.explain` renders a result as a plain-text report in `zh-CN` or `en`
+(§8), and `python -m weiqi.review` runs all of this from the command line and
+stores the run (§10.3).
+
+First real run (2026-11-09, one run each, the owner's Apple M4, KataGo 1.18.2,
+b18 model, 200 visits, `python -m weiqi.review` with an empty SQLite
+database): the 235-move game needed 236 turns plus 25 played-move searches and
+took 5 min 29 s; the same command again took 1.5 s, all 261 turns from the
+cache. The result was complete; its largest sequential loss was 3.5 points
+(move 8), so no move reached the default 4-point line, and 104 moves carried
+the search-noise flag. On the synthetic `m3-mistake.sgf` the three first-line
+Black moves were the three mistakes found (12.5, 11.9 and 8.9 points).
+
 ## 7. L3 — Diagnosis and profile (many games)
 
 - **Unit of analysis is the game**, because moves within a game are correlated.
@@ -511,6 +552,14 @@ non-experimental.
 4. *Optional LLM polishing (later):* input is the fact list only; output is
    rejected if it contains any coordinate, number or move sequence not present
    in the facts. The template text is always available as the fallback.
+
+M4 builds the catalog part: `weiqi/explain/locales/zh-CN.json` and `en.json`
+map codes (colours, rule sets, severities, group statuses, winrate bands,
+flags, input warnings) and report templates to text. Both have exactly the
+same keys and placeholders (tested); a code without its own entry is shown
+through a fallback entry that names the code, never dropped. The plain-text
+report (`render_report`) only rewords and reorders what the result holds.
+Fact-combination templates and the glossary come with the classifiers.
 
 ## 9. L5 — Training
 
@@ -582,10 +631,21 @@ M3 tables (the analysis cache):
   (GTP vertex or "pass", `NULL` for a free search); the position index lists
   free searches only.
 
-Draft entities for later milestones: `player`, `game` (source, SGF bytes
-hash, metadata, rules), `analysis_run` (a review job's settings over the
-engine queries above), `move_metric` (definition id, values), `label`
-(classifier and owner gold labels), `exercise`, `review_log`, `job`.
+M4 tables (migration 0003, the reviews):
+
+- `game`: one SGF file as uploaded (bytes), a text id, unique by SHA-256, so
+  the same file is stored once however often it is reviewed.
+- `review_run`: one review of a game: engine identity, confirmed rules and
+  komi, the review settings as JSON, schema version, status and the whole
+  result document, exactly as `ReviewResult.to_json` wrote it.
+- `move_metric`: two rows per move of a run, one per score-loss definition
+  (raw and clamped loss, winrate change, flags; severity for the primary
+  definition only), indexed by definition and severity. It is written from
+  the same result in the same transaction, so it never disagrees with the
+  document; profiles (M5) aggregate it in SQL.
+
+Draft entities for later milestones: `player`, `label` (classifier and owner
+gold labels), `exercise`, `review_log`, `job`.
 
 ## 11. L7 — Frontend
 
