@@ -492,7 +492,9 @@ the engine:
    komi are the caller's, else the record's when `RU` names a known rule set
    and `KM` is present; anything missing raises `metadata_unconfirmed` with
    the field (ADR-010). Replaying the record in the rules core rejects
-   impossible moves before the engine is asked anything.
+   impossible moves before the engine is asked anything, and a record whose
+   move breaks the selected rules (ko, superko, suicide, out of turn) or a
+   game without moves is refused with the code and move number (ADR-P19).
 2. **Evidence** (`review_game`): one whole-game query with ownership, then
    the restricted searches of played moves (§5.2), all through the cached
    analyzer, so a repeated review asks the engine nothing.
@@ -522,6 +524,13 @@ cache. The result was complete; its largest sequential loss was 3.5 points
 (move 8), so no move reached the default 4-point line, and 104 moves carried
 the search-noise flag. On the synthetic `m3-mistake.sgf` the three first-line
 Black moves were the three mistakes found (12.5, 11.9 and 8.9 points).
+
+The comparison with the prototype (ROADMAP M4) passed on 2026-11-09: the
+same-root diagnostic agrees with the prototype's loss within the
+prototype's own run-to-run noise, and both refuse the same inputs except
+nine the new review supports and the prototype did not. Data, method and
+results: `testdata/comparison/README.md`; the checks re-run from the
+recorded files in `python/tests/test_compare_legacy.py`.
 
 ## 7. L3 — Diagnosis and profile (many games)
 

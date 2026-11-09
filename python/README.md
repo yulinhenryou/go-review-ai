@@ -37,6 +37,9 @@ uv run python -m weiqi.review ../testdata/sgf/sample-game.sgf --database sqlite:
 uv run python -m weiqi.review game.sgf --database sqlite:///weiqi.db --rules chinese --komi 7.5 --locale en --format json --output review.json
 ```
 
+`weiqi.tools.compare_legacy` compares the new review with the prototype's
+exported runs (see `../testdata/comparison/README.md`).
+
 It depends on `weiqi-core`, the Rust rules core's
 binding in `../crates/weiqi-py`, which `uv sync` builds with maturin (a Rust
 toolchain is required).

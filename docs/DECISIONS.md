@@ -338,3 +338,24 @@ not edited after acceptance except for status.
 - **Consequences:** No new dependency and full control of styling and
   interaction; the choice is revisited for the M5 profile charts, which are
   richer.
+
+### ADR-P19 Reviews refuse records that break the rules, and empty games *(M4)*
+- **Status:** Accepted 2026-11-09 by the owner, during the M4 comparison with
+  the prototype.
+- **Context:** ADR-P12 replays imported records as recorded and left to the
+  product whether a flagged game may be analysed. The comparison found that
+  the review accepted a ko recaptured at once, a suicide and two moves of one
+  colour in a row, without telling the user. Measured with KataGo 1.18.2:
+  the engine analyses the ko and out-of-turn records but refuses the suicide
+  (`engine_rejected`), which the command line then reported as an engine
+  error. The prototype refused all three, and refused games without moves.
+- **Decision:** Before the engine starts, a review refuses a game without
+  moves (`no_moves`) and a record whose move breaks the selected rules, with
+  the rules core's code (`ko_violation`, `superko_violation`, `suicide`,
+  `out_of_turn`) and the move number. A legal repetition
+  (`repeated_position`) and play after two passes are not refused.
+- **Alternatives:** Review what KataGo accepts and report the violation by
+  move, refusing only suicide.
+- **Consequences:** Positions that cannot arise in a legal game never feed a
+  loss. Records with server-side quirks must be corrected before review; the
+  rules core still replays them for display (ADR-P12).

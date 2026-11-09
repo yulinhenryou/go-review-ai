@@ -72,7 +72,8 @@ pointing to `CLAUDE.md`, the new README and documents, and the new skeleton.
 Delete in one commit only when all of the following hold (see ROADMAP M4):
 
 1. Every item in §4 marked Port or Rewrite is Done or explicitly Dropped.
-2. The comparison suite (ROADMAP M4) passes against the legacy pipeline.
+2. The comparison suite (ROADMAP M4) passes against the legacy pipeline
+   (passed on 2026-11-09, M4 step 5: `testdata/comparison/README.md`).
 3. The new web review page covers the legacy browser workflow.
 4. The owner approves.
 
