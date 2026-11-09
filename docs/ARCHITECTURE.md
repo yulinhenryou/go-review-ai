@@ -340,6 +340,16 @@ Fields consumed: `rootInfo` (`scoreLead`, `winrate`, `visits`,
 `winrate`, `prior`, `pv`), and `ownership` when requested. Missing fields stay
 `None`; non-finite values are protocol errors (as in the prototype).
 
+A restricted search (M4, MIGRATION E04) is a request with `allow_move` set:
+one analysed turn, no ownership, and `allowMoves` limiting the root's first
+move to the move played there (`untilDepth` 1), so the played move gets the
+whole budget when the free search gave it no value. The restriction is part
+of the search fields and therefore of `query_key`; free searches send no
+`allowMoves` and keep their keys. `weiqi.metrics.played_moves_to_search`
+chooses the turns (the played move missing from the candidates, or without a
+score lead or visits, as in the prototype), and `weiqi.review` sends them
+together through the cached analyzer.
+
 ### 5.3 Cache and reproducibility (ADR-P03)
 
 KataGo's neural-network input includes recent move history, and its search
@@ -552,7 +562,10 @@ M3 tables (the analysis cache):
   player to move, visits asked, root visits, winrate and score lead (BLACK),
   candidates as JSON, ownership as zlib-compressed little-endian float64,
   engine warnings, and an encoding version. Every number round-trips exactly.
-  When two queries store the same key, the first result is kept.
+  When two queries store the same key, the first result is kept. Migration
+  0002 (M4) adds `allow_move`, the move a restricted search was limited to
+  (GTP vertex or "pass", `NULL` for a free search); the position index lists
+  free searches only.
 
 Draft entities for later milestones: `player`, `game` (source, SGF bytes
 hash, metadata, rules), `analysis_run` (a review job's settings over the
