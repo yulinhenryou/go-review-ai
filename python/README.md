@@ -23,7 +23,8 @@ The storage tests use SQLite, and also PostgreSQL when `TEST_POSTGRESQL_URL`
 names a database they may empty (CI provides one). `weiqi.metrics` computes
 per-move score loss and winrate change from stored evaluations (the sequential
 and same-root definitions of ADR-P02), severity from a calibration table
-(ADR-P17) and the ranked mistake list; `weiqi.review` runs the restricted
+(ADR-P17), the ranked mistake list, ownership changes, group status
+changes (with chains from the rules core) and turning points; `weiqi.review` runs the restricted
 searches of played moves that the same-root values need. It depends on `weiqi-core`, the Rust rules core's
 binding in `../crates/weiqi-py`, which `uv sync` builds with maturin (a Rust
 toolchain is required).

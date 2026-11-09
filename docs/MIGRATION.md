@@ -125,8 +125,8 @@ Source paths are pre-M0 locations. Targets use the layout in ARCHITECTURE §2.
 | R06 | `src/review_result.py` schema 3.0: coverage (missing move numbers, partial vs complete), method block, timeline vs ranked selection, black-perspective chart fields | `weiqi/metrics/result.py` | Rewrite | Keep the concepts; remove embedded Chinese strings | Planned |
 | R07 | `src/report_writer.py` templates and `QUALITY_NOTES` | `weiqi/explain/locales/zh-CN` + `en` | Port | Text becomes catalog entries keyed by codes | Planned |
 | R08 | `src/analyzer.py`, `src/review_service.py`, `src/main.py` | `weiqi/review/` + CLI | Rewrite | Keep a CLI as a development entry point | Planned |
-| R09 | Retired `src/key_points.py` (history only): turning points via winrate cliff, near-losing transition, clustering radius | `weiqi/metrics/turning_points.py` | Reference | Redefine numerically and version it; do not copy thresholds | Planned |
-| R10 | Retired `src/classifier.py`, `chinese_explanations.py`, `user_facing_labels.py` (history only) | — | Drop | Inferred causes from distance, move number and candidate rank; not engine-backed | Planned |
+| R09 | Retired `src/key_points.py` (history only): turning points via winrate cliff, near-losing transition, clustering radius | `weiqi/metrics/turning_points.py` | Reference | Redefine numerically and version it; do not copy thresholds | Done in M4 step 3 (`weiqi.metrics.turning_points`, `turning_points.v1`: winrate bands crossed against the mover; no prototype threshold copied) |
+| R10 | Retired `src/classifier.py`, `chinese_explanations.py`, `user_facing_labels.py` (history only) | — | Drop | Inferred causes from distance, move number and candidate rank; not engine-backed | Dropped (M4 step 3: replaced by engine-backed facts, ownership and group status changes in `weiqi.metrics.ownership`; no inferred causes are carried over) |
 
 ### 4.4 API, jobs and service
 

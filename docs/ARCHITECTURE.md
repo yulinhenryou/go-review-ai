@@ -237,6 +237,7 @@ game.play(mv) / game.play_as(color, mv, mode) -> Result<MoveEffect, IllegalMove>
 game.undo() -> Option<(Color, Move)>
 game.position() -> Position { size, cells, to_play, ko_ban, captures,
                               consecutive_passes, stones_hash, situation_hash }
+game.chains() -> Vec<Chain { color, stones, liberties }>   (M4)
 game.replay(&moves, mode) -> Result<Replay { game, positions, warnings }, ReplayError>
 game.score(&marks) / score(&board, captures, &marks, &terms) -> Result<Score, ScoreError>
 sgf::parse(bytes) -> Result<Collection { games: Vec<SgfTree>, encoding, warnings }, SgfError>
@@ -439,14 +440,28 @@ the owner on 2026-11-09.
   perspective. Never used alone for severity.
 - **Ownership delta:** per point, `ownership(after) − ownership(before)`, mover's
   perspective.
-- **Group status change:** for each chain (from the rules core) compute mean
-  ownership; classify `alive` / `dead` / `unsettled` with versioned thresholds;
-  emit a `GroupStatusChange` fact when the class changes between before and
-  after the move, or between the played line and the best line's PV end.
-- **Turning points:** moves where the mover's winrate or score crosses defined
-  bands (e.g. from "winning" to "losing" territory) or that carry the largest
-  share of a game's total loss. Defined numerically and versioned; the
-  prototype's heuristics (winrate cliff, clustering radius) are a reference only.
+- **Group status change** (`group_status.v1`, M4): for each chain on the board
+  before the move (from the rules core, `Game.chains()`), the mean ownership
+  of its stones in its own color's perspective is classified `alive` (≥ 0.6),
+  `dead` (≤ −0.6) or `unsettled`, once with the ownership before the move and
+  once after, on the same stones; a `GroupStatusChange` is emitted when the
+  class changes or the move captures the chain. The thresholds are
+  uncalibrated settings until owner-labelled positions exist. On the first
+  real run (the 235-move game at 32 visits, one run) all 178 changes were of
+  chains of one to three stones, many of them alternating between `alive`
+  and `unsettled`; these are facts about the engine's view, and filtering by
+  chain size belongs to the classifiers of §6.3. The comparison
+  between the played line and the best line's PV end needs a search of the PV
+  end position and is not built yet.
+- **Turning points** (`turning_points.v1`, M4): Black's root winrate falls into
+  three bands (Black ahead ≥ 0.7, White ahead ≤ 0.3, close between); a move is
+  a turning point when the band after it is worse for the mover than the band
+  before and the mover's winrate fell by at least 10 percentage points in
+  that move (without this, a winrate hovering near a limit made turning points
+  of moves that changed it by 1 to 9 points on the 235-move game at 32
+  visits). Each one carries its share of the mover's total primary loss. The
+  limits are uncalibrated settings; the prototype's heuristics (winrate cliff,
+  clustering radius) were a reference only.
 - **Severity:** thresholds on `score_loss` from a calibration table selected by
   the player's strength band (pillar 4). Until M5 the table has one default
   band: 4.0 points mistake, 8.0 severe (ADR-P17). Defaults remain product
