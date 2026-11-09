@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import io
+import json
 import os
 import signal
 from collections.abc import Coroutine, Mapping
@@ -28,6 +30,9 @@ from weiqi.engine import (
     KataGoEngine,
     TurnResult,
 )
+from weiqi.metrics import move_metrics, played_moves_to_search
+from weiqi.review import search_played_moves
+from weiqi.review.cli import main
 from weiqi.storage.database import connect
 from weiqi.storage.migrate import upgrade
 from weiqi.storage.results import SqlResultStore
@@ -182,6 +187,70 @@ def test_the_235_move_game_completes_and_then_comes_from_the_cache(tmp_path: Pat
     assert queries == 1 and second.engine_analysis is None
     assert (analyzer.misses, analyzer.hits) == (236, 236)
     assert second.results == first.results
+
+
+def test_a_restricted_search_answers_only_the_played_move(tmp_path: Path) -> None:
+    """MIGRATION E04: `allowMoves` with `untilDepth` 1 makes KataGo search
+    only the played move at the root, passes included; the searches are
+    stored, complete every same-root value, and are reused."""
+    settings = EngineSettings.from_environment()
+    request = short_request(visits=32)
+    database = connect(f"sqlite:///{tmp_path / 'cache.db'}")
+    upgrade(database)
+
+    async def scenario() -> tuple[CachedAnalysis, tuple[CachedAnalysis, ...], int, int]:
+        async with KataGoEngine(settings) as engine:
+            analyzer = CachedAnalyzer(engine, SqlResultStore(database))
+            free = await analyzer.analyze(request)
+            searches = await asyncio.gather(
+                *(
+                    analyzer.analyze(request.played_move_search(turn))
+                    for turn in range(len(request.moves))
+                )
+            )
+            again = await search_played_moves(analyzer, free)
+            return free, tuple(searches), engine.queries, len(again)
+
+    try:
+        free, searches, queries, needed = run(scenario())
+    finally:
+        database.dispose()
+    assert queries == 1 + len(request.moves)
+    assert needed == len(played_moves_to_search(free))  # all from the store
+    for search in searches:
+        (turn,) = search.request.analyze_turns
+        (result,) = search.results
+        candidates = result.analysis.candidates
+        assert [c.move for c in candidates] == [request.moves[turn][1]]
+        assert candidates[0].score_lead_black is not None
+        assert candidates[0].visits is not None and candidates[0].visits > 0
+    for item in move_metrics(free, searches):
+        assert item.same_root.raw_score_loss is not None
+        assert "separate_search" in item.same_root.flags
+    assert [item.move for item in move_metrics(free)][-2:] == ["pass", "pass"]
+
+
+def test_the_review_command_finds_the_planted_mistakes(tmp_path: Path) -> None:
+    """MIGRATION R08: the CLI end to end. The synthetic game's Black moves
+    are first-line moves (A19, B19, C19) that any search judges as large
+    losses; the second run asks the engine nothing."""
+    database = f"sqlite:///{tmp_path / 'weiqi.db'}"
+    args = [str(REPO_ROOT / "testdata" / "sgf" / "m3-mistake.sgf"), "--database", database]
+    outputs = []
+    for _ in range(2):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        assert (
+            main([*args, "--visits", "32", "--format", "json"], stdout=stdout, stderr=stderr) == 0
+        )
+        outputs.append((json.loads(stdout.getvalue()), stderr.getvalue()))
+    (result, first_log), (again, second_log) = outputs
+    assert result["status"] == "complete"
+    assert result["engine"]["version"] and len(result["engine"]["model_sha256"]) == 64
+    mistakes = {m["move_number"] for m in result["mistakes"]}
+    assert 1 in mistakes  # A19 as the first move
+    assert {m["color"] for m in result["mistakes"]} == {"B"}
+    assert " 0 from the cache" in first_log and " 0 turns from the engine" in second_log
+    assert again["timeline"] == result["timeline"]
 
 
 def test_cancel_terminates_the_query_and_keeps_the_process() -> None:

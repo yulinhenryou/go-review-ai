@@ -11,6 +11,15 @@ Tables (M3, the analysis cache):
 - `engine_query`: one analysis query sent to that engine, with its timing.
 - `position_eval`: one analysed turn, keyed by `query_key` (ADR-P03), with
   the position's `stones_hash` as an index for finding it across games.
+
+M4 adds `position_eval.allow_move`: the move a restricted search was limited
+to (GTP vertex or "pass"), `NULL` for a free search, and the reviews:
+
+- `game`: one SGF file as uploaded, keyed by a text id, unique by its SHA-256.
+- `review_run`: one review of a game: engine identity, confirmed rules and
+  komi, the review settings, and the whole result as canonical JSON.
+- `move_metric`: one row per run, move and score-loss definition, so
+  profiles can aggregate losses in SQL without reading result documents.
 """
 
 from __future__ import annotations
@@ -22,6 +31,7 @@ from sqlalchemy import (
     DateTime,
     Double,
     ForeignKey,
+    Index,
     Integer,
     LargeBinary,
     MetaData,
@@ -93,4 +103,44 @@ position_eval = Table(
     Column("engine_warnings", Text, nullable=False),
     Column("encoding", Integer, nullable=False),
     _created_at(),
+    Column("allow_move", String(8)),
 )
+
+game = Table(
+    "game",
+    metadata,
+    Column("game_id", String(32), primary_key=True),
+    Column("sgf_sha256", String(64), nullable=False, unique=True),
+    Column("sgf", LargeBinary, nullable=False),
+    _created_at(),
+)
+
+review_run = Table(
+    "review_run",
+    metadata,
+    Column("run_id", String(32), primary_key=True),
+    Column("game_id", String(32), ForeignKey("game.game_id"), nullable=False, index=True),
+    Column("identity_key", String(64), ForeignKey("engine_identity.identity_key"), nullable=False),
+    Column("rules", String(20), nullable=False),
+    Column("komi", Double, nullable=False),
+    Column("settings", Text, nullable=False),
+    Column("schema_version", String(20), nullable=False),
+    Column("status", String(10), nullable=False),
+    Column("result", Text, nullable=False),
+    _created_at(),
+)
+
+move_metric = Table(
+    "move_metric",
+    metadata,
+    Column("run_id", String(32), ForeignKey("review_run.run_id"), primary_key=True),
+    Column("move_number", Integer, primary_key=True),
+    Column("definition", String(40), primary_key=True),
+    Column("color", String(1), nullable=False),
+    Column("raw_score_loss", Double),
+    Column("score_loss", Double),
+    Column("winrate_delta_pp", Double),
+    Column("severity", String(10)),
+    Column("flags", Text, nullable=False),
+)
+Index("ix_move_metric_definition_severity", move_metric.c.definition, move_metric.c.severity)

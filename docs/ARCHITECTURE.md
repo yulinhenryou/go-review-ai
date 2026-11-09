@@ -59,7 +59,7 @@ python/
   pyproject.toml           uv project; distribution name = brand (see CLAUDE.md §6)
   src/weiqi/
     engine/                L1: KataGo process, query model, cache, provenance
-    metrics/               L2
+    metrics/               L2: per-move loss, severity, mistake selection
     profile/               L3
     explain/               L4 (+ locale catalogs, glossary)
     training/              L5
@@ -237,6 +237,7 @@ game.play(mv) / game.play_as(color, mv, mode) -> Result<MoveEffect, IllegalMove>
 game.undo() -> Option<(Color, Move)>
 game.position() -> Position { size, cells, to_play, ko_ban, captures,
                               consecutive_passes, stones_hash, situation_hash }
+game.chains() -> Vec<Chain { color, stones, liberties }>   (M4)
 game.replay(&moves, mode) -> Result<Replay { game, positions, warnings }, ReplayError>
 game.score(&marks) / score(&board, captures, &marks, &terms) -> Result<Score, ScoreError>
 sgf::parse(bytes) -> Result<Collection { games: Vec<SgfTree>, encoding, warnings }, SgfError>
@@ -340,6 +341,16 @@ Fields consumed: `rootInfo` (`scoreLead`, `winrate`, `visits`,
 `winrate`, `prior`, `pv`), and `ownership` when requested. Missing fields stay
 `None`; non-finite values are protocol errors (as in the prototype).
 
+A restricted search (M4, MIGRATION E04) is a request with `allow_move` set:
+one analysed turn, no ownership, and `allowMoves` limiting the root's first
+move to the move played there (`untilDepth` 1), so the played move gets the
+whole budget when the free search gave it no value. The restriction is part
+of the search fields and therefore of `query_key`; free searches send no
+`allowMoves` and keep their keys. `weiqi.metrics.played_moves_to_search`
+chooses the turns (the played move missing from the candidates, or without a
+score lead or visits, as in the prototype), and `weiqi.review` sends them
+together through the cached analyzer.
+
 ### 5.3 Cache and reproducibility (ADR-P03)
 
 KataGo's neural-network input includes recent move history, and its search
@@ -401,7 +412,7 @@ Pure functions from `(Replay, [PositionEvaluation])` to `GameMetrics`. All
 values carry units, perspective and a definition id (e.g.
 `score_loss.sequential.v1`).
 
-### 6.1 Score loss — Proposal (ADR-P02)
+### 6.1 Score loss (ADR-P02)
 
 Two definitions, both computable from the same evaluations:
 
@@ -417,11 +428,11 @@ Two definitions, both computable from the same evaluations:
   a full search. Weakness: it compares two different searches, so it includes
   noise from both.
 
-Proposal: make **sequential** the primary `score_loss`, keep **same-root** as a
+Decision: **sequential** is the primary `score_loss`, **same-root** is a
 recorded diagnostic and as the bridge for comparison tests against the
 prototype. Both keep the prototype's conventions: `raw` retained, `score_loss =
-max(0, raw)`, negative raw differences flagged as search noise. The owner
-decides.
+max(0, raw)`, negative raw differences flagged as search noise. Accepted by
+the owner on 2026-11-09.
 
 ### 6.2 Other per-move metrics
 
@@ -429,16 +440,32 @@ decides.
   perspective. Never used alone for severity.
 - **Ownership delta:** per point, `ownership(after) − ownership(before)`, mover's
   perspective.
-- **Group status change:** for each chain (from the rules core) compute mean
-  ownership; classify `alive` / `dead` / `unsettled` with versioned thresholds;
-  emit a `GroupStatusChange` fact when the class changes between before and
-  after the move, or between the played line and the best line's PV end.
-- **Turning points:** moves where the mover's winrate or score crosses defined
-  bands (e.g. from "winning" to "losing" territory) or that carry the largest
-  share of a game's total loss. Defined numerically and versioned; the
-  prototype's heuristics (winrate cliff, clustering radius) are a reference only.
+- **Group status change** (`group_status.v1`, M4): for each chain on the board
+  before the move (from the rules core, `Game.chains()`), the mean ownership
+  of its stones in its own color's perspective is classified `alive` (≥ 0.6),
+  `dead` (≤ −0.6) or `unsettled`, once with the ownership before the move and
+  once after, on the same stones; a `GroupStatusChange` is emitted when the
+  class changes or the move captures the chain. The thresholds are
+  uncalibrated settings until owner-labelled positions exist. On the first
+  real run (the 235-move game at 32 visits, one run) all 178 changes were of
+  chains of one to three stones, many of them alternating between `alive`
+  and `unsettled`; these are facts about the engine's view, and filtering by
+  chain size belongs to the classifiers of §6.3. The comparison
+  between the played line and the best line's PV end needs a search of the PV
+  end position and is not built yet.
+- **Turning points** (`turning_points.v1`, M4): Black's root winrate falls into
+  three bands (Black ahead ≥ 0.7, White ahead ≤ 0.3, close between); a move is
+  a turning point when the band after it is worse for the mover than the band
+  before and the mover's winrate fell by at least 10 percentage points in
+  that move (without this, a winrate hovering near a limit made turning points
+  of moves that changed it by 1 to 9 points on the 235-move game at 32
+  visits). Each one carries its share of the mover's total primary loss. The
+  limits are uncalibrated settings; the prototype's heuristics (winrate cliff,
+  clustering radius) were a reference only.
 - **Severity:** thresholds on `score_loss` from a calibration table selected by
-  the player's strength band (pillar 4). Defaults remain product settings.
+  the player's strength band (pillar 4). Until M5 the table has one default
+  band: 4.0 points mistake, 8.0 severe (ADR-P17). Defaults remain product
+  settings.
 
 ### 6.3 Phase and situation classification (v1)
 
@@ -454,6 +481,56 @@ non-experimental.
 | Invasion / reduction | Move placed where the opponent's prior ownership ≥ t, with no friendly stone nearby |
 | Endgame | Endgame phase, no group status change, local ownership change only |
 | Other | None of the above |
+
+### 6.4 Review result (`review.v1`, M4)
+
+`weiqi.review` turns one SGF game into one result document. It sits above
+the engine and metrics layers and is the only part of a review that talks to
+the engine:
+
+1. **Input** (`read_game`, `confirm`): exactly one game per file; rules and
+   komi are the caller's, else the record's when `RU` names a known rule set
+   and `KM` is present; anything missing raises `metadata_unconfirmed` with
+   the field (ADR-010). Replaying the record in the rules core rejects
+   impossible moves before the engine is asked anything, and a record whose
+   move breaks the selected rules (ko, superko, suicide, out of turn) or a
+   game without moves is refused with the code and move number (ADR-P19).
+2. **Evidence** (`review_game`): one whole-game query with ownership, then
+   the restricted searches of played moves (§5.2), all through the cached
+   analyzer, so a repeated review asks the engine nothing.
+3. **Result** (`build_result`): codes and numbers only, no sentences, as
+   canonical JSON (sorted keys, no NaN). It holds the game metadata (with
+   `record_status`), engine provenance, a `method` block (metric
+   definitions, perspectives, thresholds, `thresholds_calibrated: false`),
+   coverage (moves with score, winrate and ownership evidence, the numbers
+   of the moves without, whether the final position was evaluated), the
+   chronological timeline with Black-perspective chart values, the ranked
+   mistakes, turning points, the final position's candidates, and warning
+   codes. The result is `partial` when any of that evidence is missing; a
+   partial result never reads as "no mistakes". `warnings` concern the
+   primary evidence; `diagnostic_warnings` hold the same-root flags, which
+   concern only the diagnostic values (without played-move searches every
+   same-root value is missing while the primary evidence is complete).
+
+`weiqi.explain` renders a result as a plain-text report in `zh-CN` or `en`
+(§8), and `python -m weiqi.review` runs all of this from the command line and
+stores the run (§10.3).
+
+First real run (2026-11-09, one run each, the owner's Apple M4, KataGo 1.18.2,
+b18 model, 200 visits, `python -m weiqi.review` with an empty SQLite
+database): the 235-move game needed 236 turns plus 25 played-move searches and
+took 5 min 29 s; the same command again took 1.5 s, all 261 turns from the
+cache. The result was complete; its largest sequential loss was 3.5 points
+(move 8), so no move reached the default 4-point line, and 104 moves carried
+the search-noise flag. On the synthetic `m3-mistake.sgf` the three first-line
+Black moves were the three mistakes found (12.5, 11.9 and 8.9 points).
+
+The comparison with the prototype (ROADMAP M4) passed on 2026-11-09: the
+same-root diagnostic agrees with the prototype's loss within the
+prototype's own run-to-run noise, and both refuse the same inputs except
+nine the new review supports and the prototype did not. Data, method and
+results: `testdata/comparison/README.md`; the checks re-run from the
+recorded files in `python/tests/test_compare_legacy.py`.
 
 ## 7. L3 — Diagnosis and profile (many games)
 
@@ -484,6 +561,14 @@ non-experimental.
 4. *Optional LLM polishing (later):* input is the fact list only; output is
    rejected if it contains any coordinate, number or move sequence not present
    in the facts. The template text is always available as the fallback.
+
+M4 builds the catalog part: `weiqi/explain/locales/zh-CN.json` and `en.json`
+map codes (colours, rule sets, severities, group statuses, winrate bands,
+flags, input warnings) and report templates to text. Both have exactly the
+same keys and placeholders (tested); a code without its own entry is shown
+through a fallback entry that names the code, never dropped. The plain-text
+report (`render_report`) only rewords and reorders what the result holds.
+Fact-combination templates and the glossary come with the classifiers.
 
 ## 9. L5 — Training
 
@@ -550,12 +635,26 @@ M3 tables (the analysis cache):
   player to move, visits asked, root visits, winrate and score lead (BLACK),
   candidates as JSON, ownership as zlib-compressed little-endian float64,
   engine warnings, and an encoding version. Every number round-trips exactly.
-  When two queries store the same key, the first result is kept.
+  When two queries store the same key, the first result is kept. Migration
+  0002 (M4) adds `allow_move`, the move a restricted search was limited to
+  (GTP vertex or "pass", `NULL` for a free search); the position index lists
+  free searches only.
 
-Draft entities for later milestones: `player`, `game` (source, SGF bytes
-hash, metadata, rules), `analysis_run` (a review job's settings over the
-engine queries above), `move_metric` (definition id, values), `label`
-(classifier and owner gold labels), `exercise`, `review_log`, `job`.
+M4 tables (migration 0003, the reviews):
+
+- `game`: one SGF file as uploaded (bytes), a text id, unique by SHA-256, so
+  the same file is stored once however often it is reviewed.
+- `review_run`: one review of a game: engine identity, confirmed rules and
+  komi, the review settings as JSON, schema version, status and the whole
+  result document, exactly as `ReviewResult.to_json` wrote it.
+- `move_metric`: two rows per move of a run, one per score-loss definition
+  (raw and clamped loss, winrate change, flags; severity for the primary
+  definition only), indexed by definition and severity. It is written from
+  the same result in the same transaction, so it never disagrees with the
+  document; profiles (M5) aggregate it in SQL.
+
+Draft entities for later milestones: `player`, `label` (classifier and owner
+gold labels), `exercise`, `review_log`, `job`.
 
 ## 11. L7 — Frontend
 
@@ -573,8 +672,9 @@ engine queries above), `move_metric` (definition id, values), `label`
   The M2 board has no coordinate labels and is operated by pointer only;
   labels and keyboard play on the board are open items for M4.
 - **Visualisation:** a clickable loss timeline that jumps to positions; an
-  interactive profile (phase × situation grid with intervals, trends). Library
-  choice (D3 modules rendered by React, or a higher-level library) decided in M4.
+  interactive profile (phase × situation grid with intervals, trends). The M4
+  timeline is React SVG without a chart library (ADR-P18); the profile charts
+  revisit the choice in M5.
 - **Design:** restrained palette, generous whitespace, strict alignment grid;
   Baskerville-family serif for Latin display text and a matching CJK serif for
   Chinese headings, sans-serif body text; fonts self-hosted under open licences

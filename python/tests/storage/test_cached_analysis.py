@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
-from sqlalchemy import Engine
 
 from weiqi.engine import (
     AnalysisRequest,
@@ -22,7 +21,6 @@ from weiqi.engine import (
     EngineUnavailableError,
     KataGoEngine,
 )
-from weiqi.storage.migrate import upgrade
 from weiqi.storage.results import SqlResultStore
 
 FAKE = Path(__file__).parents[1] / "engine" / "fake_katago.py"
@@ -51,12 +49,6 @@ def fake_settings(tmp_path: Path, mode: str = "normal") -> EngineSettings:
     model.write_bytes(b"fixture model")
     config.write_text("fixture config\n")
     return EngineSettings(model_path=model, config_path=config, katago_path=str(launcher))
-
-
-@pytest.fixture
-def store(database: Engine) -> SqlResultStore:
-    upgrade(database)
-    return SqlResultStore(database)
 
 
 def test_a_repeated_request_is_answered_from_the_store(

@@ -1,0 +1,111 @@
+[
+ {
+  "name": "sample_game",
+  "file": "../sgf/sample-game.sgf"
+ },
+ {
+  "name": "m3_mistake",
+  "file": "../sgf/m3-mistake.sgf"
+ },
+ {
+  "name": "maruyama_ito_1976",
+  "file": "../sgf/maruyama-ito-1976.sgf"
+ },
+ {
+  "name": "kejie_utf8_with_variations",
+  "file": "../sgf/kejie-2025-11-27.sgf"
+ },
+ {
+  "name": "kejie_gbk_without_ca",
+  "file": "../sgf/kejie-2025-11-27-gbk.sgf"
+ },
+ {
+  "name": "synthetic_short_with_passes",
+  "file": "../sgf/synthetic-short.sgf"
+ },
+ {
+  "name": "m4_invalid_occupied",
+  "file": "../sgf/m4-invalid.sgf"
+ },
+ {
+  "name": "m4_missing_metadata_unconfirmed",
+  "file": "../sgf/m4-missing-metadata.sgf"
+ },
+ {
+  "name": "m4_missing_metadata_confirmed",
+  "file": "../sgf/m4-missing-metadata.sgf",
+  "rules": "chinese",
+  "komi": 7.5
+ },
+ {
+  "name": "not_sgf",
+  "text": "hello",
+  "rules": "chinese",
+  "komi": 7.5
+ },
+ {
+  "name": "junk_before_one_game",
+  "text": "junk (;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd];W[dd])"
+ },
+ {
+  "name": "two_games",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd])(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[dd])"
+ },
+ {
+  "name": "unclosed_tree",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd];W[dd]"
+ },
+ {
+  "name": "two_moves_in_one_node",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd]W[dd])"
+ },
+ {
+  "name": "move_on_occupied_point",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd];W[dd];B[dd])"
+ },
+ {
+  "name": "ko_recapture",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[gf];W[hf];B[fg];W[ig];B[gh];W[hh];B[pd];W[gg];B[hg];W[gg])"
+ },
+ {
+  "name": "suicide",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[ba];W[pd];B[ab];W[aa])"
+ },
+ {
+  "name": "two_black_moves_in_a_row",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd];B[dd])"
+ },
+ {
+  "name": "white_moves_first",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];W[pd])"
+ },
+ {
+  "name": "play_after_two_passes",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5];B[pd];W[];B[];W[dd])"
+ },
+ {
+  "name": "no_moves",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5])"
+ },
+ {
+  "name": "handicap_setup",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Japanese]KM[0.5]HA[2]AB[pd][dp]PL[W];W[dd])"
+ },
+ {
+  "name": "missing_rules_confirmed",
+  "text": "(;FF[4]GM[1]SZ[19]KM[7.5];B[pd])",
+  "rules": "chinese"
+ },
+ {
+  "name": "board_9x9",
+  "text": "(;FF[4]GM[1]SZ[9]RU[Chinese]KM[7.5];B[ee])"
+ },
+ {
+  "name": "korean_rules",
+  "text": "(;FF[4]GM[1]SZ[19]RU[Korean]KM[6.5];B[pd])"
+ },
+ {
+  "name": "declared_gb2312",
+  "text": "(;FF[4]GM[1]CA[GB2312]SZ[19]RU[Chinese]KM[7.5];B[pd])"
+ }
+]

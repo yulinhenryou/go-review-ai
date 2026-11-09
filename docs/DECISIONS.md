@@ -164,7 +164,7 @@ not edited after acceptance except for status.
 - **Consequences:** A rename edits only the checklist in CLAUDE.md §6.
 
 ### ADR-P02 Score-loss definition: sequential primary, same-root diagnostic *(before M4)*
-- **Status:** Proposed.
+- **Status:** Accepted 2026-11-09 by the owner, at the start of M4.
 - **Context:** The prototype compares best and played candidates inside the
   pre-move search (same-root). Played moves often receive few visits, and when
   absent they need a separate restricted search (40 extra searches on the
@@ -310,3 +310,52 @@ not edited after acceptance except for status.
   `opt-level = "s"`), chosen by measured size.
 - **Context:** Plain objects can sit in React state without manual memory
   management; a handle per snapshot would need a `free()` per position.
+
+### ADR-P17 Default severity band: 4.0 and 8.0 points *(M4)*
+- **Status:** Accepted 2026-11-09 by the owner, at the start of M4.
+- **Context:** ADR-011 inherited 3.0 points (mistake) and 5.0 (severe) from the
+  prototype as a starting point. Severity now comes from a calibration table
+  keyed by strength band (ARCHITECTURE §6.2); until M5 calibrates it, the table
+  has one band, the default.
+- **Decision:** The default band marks a move a *mistake* when its primary
+  `score_loss` (ADR-P02) is at least 4.0 points and *severe* when it is at
+  least 8.0 points. Both are uncalibrated product settings, shown as such and
+  adjustable per request. The M4 comparison with legacy runs the new same-root
+  diagnostic at legacy's 3.0 / 5.0 so that the two pipelines select by the
+  same rule.
+- **Alternatives:** keep 3.0 / 5.0 (continuity with the prototype).
+- **Consequences:** Fewer moves are flagged than in the prototype at the same
+  losses; ADR-011's numbers remain the prototype's history, not the default.
+
+### ADR-P18 Loss timeline drawn as React SVG, no chart library *(M4)*
+- **Status:** Accepted 2026-11-09 by the owner, at the start of M4.
+- **Context:** ARCHITECTURE §11 left the visualisation library to M4 (D3
+  modules rendered by React, or a higher-level library such as Recharts).
+- **Decision:** The M4 loss timeline is an SVG component written in React, like
+  the board: scales and axes are small pure functions with unit tests; no chart
+  library is added.
+- **Alternatives:** D3 modules for scales and axes; a chart library.
+- **Consequences:** No new dependency and full control of styling and
+  interaction; the choice is revisited for the M5 profile charts, which are
+  richer.
+
+### ADR-P19 Reviews refuse records that break the rules, and empty games *(M4)*
+- **Status:** Accepted 2026-11-09 by the owner, during the M4 comparison with
+  the prototype.
+- **Context:** ADR-P12 replays imported records as recorded and left to the
+  product whether a flagged game may be analysed. The comparison found that
+  the review accepted a ko recaptured at once, a suicide and two moves of one
+  colour in a row, without telling the user. Measured with KataGo 1.18.2:
+  the engine analyses the ko and out-of-turn records but refuses the suicide
+  (`engine_rejected`), which the command line then reported as an engine
+  error. The prototype refused all three, and refused games without moves.
+- **Decision:** Before the engine starts, a review refuses a game without
+  moves (`no_moves`) and a record whose move breaks the selected rules, with
+  the rules core's code (`ko_violation`, `superko_violation`, `suicide`,
+  `out_of_turn`) and the move number. A legal repetition
+  (`repeated_position`) and play after two passes are not refused.
+- **Alternatives:** Review what KataGo accepts and report the violation by
+  move, refusing only suicide.
+- **Consequences:** Positions that cannot arise in a legal game never feed a
+  loss. Records with server-side quirks must be corrected before review; the
+  rules core still replays them for display (ADR-P12).

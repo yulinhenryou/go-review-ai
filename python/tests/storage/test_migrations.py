@@ -13,7 +13,14 @@ from weiqi.storage.database import connect
 from weiqi.storage.migrate import MIGRATIONS, current_revision, downgrade, upgrade
 from weiqi.storage.schema import metadata
 
-TABLES = {"engine_identity", "engine_query", "position_eval"}
+TABLES = {
+    "engine_identity",
+    "engine_query",
+    "position_eval",
+    "game",
+    "review_run",
+    "move_metric",
+}
 
 
 def differences(engine: Engine) -> list[object]:
@@ -24,7 +31,7 @@ def differences(engine: Engine) -> list[object]:
 def test_the_migrations_build_the_schema_module_exactly(database: Engine) -> None:
     assert current_revision(database) is None
     upgrade(database)
-    assert current_revision(database) == "0001"
+    assert current_revision(database) == "0003"
     assert set(inspect(database).get_table_names()) >= TABLES
     assert differences(database) == []
 
@@ -43,7 +50,7 @@ def test_there_is_one_line_of_migrations() -> None:
 
     config = Config()
     config.set_main_option("script_location", str(MIGRATIONS))
-    assert ScriptDirectory.from_config(config).get_heads() == ["0001"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0003"]
 
 
 def test_only_sqlite_and_postgresql_are_accepted() -> None:

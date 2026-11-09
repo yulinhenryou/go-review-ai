@@ -389,6 +389,30 @@ impl Board {
         })
     }
 
+    /// Every chain on the board, ordered by its first stone in index order.
+    ///
+    /// Each stone belongs to exactly one chain. Used by the metrics layer to
+    /// read a group's ownership, so it lives here with the other rules.
+    pub fn chains(&self) -> Vec<Chain> {
+        // One flag per point: has this stone already been put in a chain?
+        let mut assigned = vec![false; self.cells.len()];
+        let mut chains = Vec::new();
+        for point in self.size().points() {
+            if assigned[point.index()] {
+                continue;
+            }
+            // `chain` is `None` for an empty point.
+            let Some(chain) = self.chain(point) else {
+                continue;
+            };
+            for stone in &chain.stones {
+                assigned[stone.index()] = true;
+            }
+            chains.push(chain);
+        }
+        chains
+    }
+
     /// Places a `color` stone on `point` and removes captured chains.
     ///
     /// Opponent chains left without liberties are captured first; only then is

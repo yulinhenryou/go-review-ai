@@ -11,6 +11,10 @@ variations are test data, never analysis evidence. Private SGFs never go here.
 | `kejie-2025-11-27-gbk.sgf` | `4ba3419e…4067d5f` | Derived from `kejie-2025-11-27.sgf` | `GN` repaired, `CA` removed, GBK-encoded (below) |
 | `maruyama-ito-1976.sgf` | `9b4ed82c…bd738ba` | Prototype `legacy/samples/benchmark_pro_game.sgf` | None (byte-identical copy) |
 | `synthetic-short.sgf` | `61a66daa…eab41744` | Written for this project (M3) | — |
+| `sample-game.sgf` | `e85a2d14…660c67d6` | Prototype `legacy/samples/sample_game.sgf` | None (byte-identical copy) |
+| `m3-mistake.sgf` | `39311b92…9a2b7ab2` | Prototype `legacy/samples/m3_mistake.sgf` | None (byte-identical copy) |
+| `m4-invalid.sgf` | `05843079…a89ab04c` | Prototype `legacy/tests/fixtures/m4-invalid.sgf` | None (byte-identical copy) |
+| `m4-missing-metadata.sgf` | `f0e62416…a4a33bfe` | Prototype `legacy/tests/fixtures/m4-missing-metadata.sgf` | None (byte-identical copy) |
 
 Full hashes: `shasum -a 256 testdata/sgf/*.sgf`.
 
@@ -58,3 +62,19 @@ opening moves (Black Q16, White D16, Black R4, White D17) and then two
 passes, Japanese rules, komi 6.5. It is not a real game. It mirrors the
 prototype's `samples/sample_game.sgf` main line and its pass test, so the
 recorded engine fixture covers a pass and the position after the game ends.
+
+## Prototype synthetic records (M4)
+
+Copied unchanged from the prototype in M4 (MIGRATION D04, D07) for the
+review tests and the comparison with legacy. None is a real game; the player
+names are placeholders.
+
+- `sample-game.sgf`: the prototype's CLI sample, Japanese rules, komi 6.5,
+  `RE[W+R]`; four moves on the first variation (Q16, D16, R4, D17), with a
+  second variation.
+- `m3-mistake.sgf`: six moves written for the prototype's M3 with
+  deliberately costly Black first-line moves (A19, B19, C19), Chinese rules,
+  komi 7.5.
+- `m4-invalid.sgf`: White plays on Black's stone at A19; it must be rejected.
+- `m4-missing-metadata.sgf`: three moves ending in a pass, without `RU` and
+  `KM`, for the confirmation flow.

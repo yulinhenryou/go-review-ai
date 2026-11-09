@@ -42,13 +42,28 @@ def player(query: dict[str, object], turn: int) -> str:
 
 
 def final(query: dict[str, object], turn: int) -> dict[str, object]:
-    return {
+    reply: dict[str, object] = {
         "id": query["id"],
         "turnNumber": turn,
         "isDuringSearch": False,
         "rootInfo": {"currentPlayer": player(query, turn), "visits": 8, "winrate": 0.5},
         "moveInfos": [{"move": "pass", "order": 0, "visits": 8, "pv": ["pass"]}],
     }
+    allowed = query.get("allowMoves")
+    if isinstance(allowed, list) and allowed:
+        # A restricted search: the only candidate is the allowed move.
+        move = allowed[0]["moves"][0]
+        reply["moveInfos"] = [
+            {
+                "move": move,
+                "order": 0,
+                "visits": 8,
+                "winrate": 0.25,
+                "scoreLead": -1.5,
+                "pv": [move],
+            }
+        ]
+    return reply
 
 
 def analyse(query: dict[str, object]) -> None:

@@ -1,0 +1,95 @@
+{
+ "schema": "comparison.new.v1",
+ "sgf": "m3-mistake.sgf",
+ "sgf_sha256": "39311b92cd1ec8db4c72acd5426b3f77f58e969b78521249bca4db679a2b7ab2",
+ "rules": "chinese",
+ "komi": 7.5,
+ "engine": {
+  "engine_version": "1.18.2",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3",
+  "max_visits": 200
+ },
+ "status": "complete",
+ "warnings": [
+  "negative_difference_search_noise"
+ ],
+ "diagnostic_warnings": [
+  "low_visits",
+  "negative_difference_search_noise",
+  "separate_search"
+ ],
+ "moves": [
+  {
+   "move_number": 1,
+   "color": "B",
+   "played": "aa",
+   "recommended": "pd",
+   "score_loss": 12.672777946,
+   "raw_score_loss": 12.672777946,
+   "sequential_score_loss": 12.534275861,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 2,
+   "color": "W",
+   "played": "pp",
+   "recommended": "dq",
+   "score_loss": 0.25110540000000015,
+   "raw_score_loss": 0.25110540000000015,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 3,
+   "color": "B",
+   "played": "ba",
+   "recommended": "dc",
+   "score_loss": 12.0364818,
+   "raw_score_loss": 12.0364818,
+   "sequential_score_loss": 11.9536013,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 4,
+   "color": "W",
+   "played": "dd",
+   "recommended": "dd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.015603200000001038,
+   "flags": []
+  },
+  {
+   "move_number": 5,
+   "color": "B",
+   "played": "ca",
+   "recommended": "fc",
+   "score_loss": 9.576627299999998,
+   "raw_score_loss": 9.576627299999998,
+   "sequential_score_loss": 8.879798700000002,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 6,
+   "color": "W",
+   "played": "dp",
+   "recommended": "fc",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.02951919999999575,
+   "sequential_score_loss": 0.1674648999999988,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  }
+ ]
+}
