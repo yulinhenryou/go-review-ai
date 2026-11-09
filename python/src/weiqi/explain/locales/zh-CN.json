@@ -30,6 +30,8 @@
   "flag.low_visits": "部分比较的候选搜索次数较少，估计值可能不稳定。",
   "flag.missing_current_value": "记录末尾局面的评估不完整。",
   "flag.no_candidate_moves": "记录末尾局面没有候选着法。",
+  "flag.recommendation_unavailable": "部分局面没有可用的推荐着法。",
+  "flag.missing_pv": "部分推荐没有变化图，不补造后续着法。",
   "flag.other": "引擎报告了其他质量警告：{code}。",
   "input.first_variation_only": "棋谱包含变化分支，只分析主线。",
   "input.encoding_guessed": "棋谱没有声明编码，按 {encoding} 读取。",
@@ -41,6 +43,12 @@
   "input.lossy_decode": "棋谱有无法解码的字符，已替换显示。",
   "input.handicap_mismatch": "让子数（HA）与摆放的子数不一致。",
   "input.other": "读取棋谱时注意到：{code}。",
+  "replay.out_of_turn": "不该这一方落子（连续两手同色或先后手不符），按棋谱照常摆上。",
+  "replay.ko_violation": "立即提回劫，违反打劫规则，按棋谱照常摆上。",
+  "replay.superko_violation": "重复了之前的全局局面，违反所选规则的全局同形禁止，按棋谱照常摆上。",
+  "replay.suicide": "自杀着法，所选规则不允许，按棋谱照常摆上。",
+  "replay.repeated_position": "合法地重复了之前出现过的棋子排列。",
+  "replay.other": "按棋谱摆上时注意到：{code}。",
   "report.title": "复盘报告",
   "report.players": "{black}（黑） vs {white}（白）",
   "report.unknown_player": "未知",
@@ -63,5 +71,6 @@
   "report.model_hash": "模型 SHA-256：{sha}",
   "report.config_hash": "配置 SHA-256：{sha}",
   "report.notes": "注意",
-  "report.missing_moves": "缺少目损证据的手：{moves}"
+  "report.missing_moves": "缺少目损证据的手：{moves}",
+  "report.replay_warning": "第 {number} 手：{text}"
 }

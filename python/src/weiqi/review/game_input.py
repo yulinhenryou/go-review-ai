@@ -26,10 +26,13 @@ RULE_NAMES: Final = ("chinese", "japanese", "korean", "aga", "new-zealand", "tro
 class ReviewInputError(ValueError):
     """A game that cannot be reviewed as given, with a stable `code`."""
 
-    def __init__(self, code: str, message: str, field: str | None = None) -> None:
+    def __init__(
+        self, code: str, message: str, field: str | None = None, move_number: int | None = None
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.field = field
+        self.move_number = move_number
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,16 +110,45 @@ def confirm(
     return rules, komi
 
 
+REPEATED_POSITION: Final = "repeated_position"
+"""The one replay warning that breaks no rule: a legal move recreated an
+earlier arrangement of stones (possible where the rules have no superko)."""
+
+
+def replay_warnings(game: GameInput, rules: str, komi: float) -> tuple[tuple[int, str], ...]:
+    """What replaying the record under `rules` reported, as (move number,
+    code) pairs: rule violations (`ko_violation`, `superko_violation`,
+    `suicide`, `out_of_turn`) and `repeated_position`."""
+    replay = game.record.replay(weiqi_core.Rules.from_name(rules), komi)
+    return tuple((w.move_number, w.code) for w in replay.warnings)
+
+
+def check_reviewable(game: GameInput, rules: str, komi: float) -> None:
+    """Refuses records a review cannot evaluate honestly (ADR-P19): a game
+    without moves, and a record whose move breaks the selected rules. The
+    positions after an illegal move cannot arise in a legal game, so losses
+    measured around it are not evidence; KataGo also refuses some of them
+    (suicide). The error names the first offending move."""
+    if not game.record.moves:
+        raise ReviewInputError("no_moves", "the game has no moves to review", "moves")
+    for number, code in replay_warnings(game, rules, komi):
+        if code != REPEATED_POSITION:
+            raise ReviewInputError(
+                code, f"move {number} breaks the rules ({code})", "moves", move_number=number
+            )
+
+
 def review_request(
     game: GameInput, rules: str, komi: float, *, max_visits: int, pv_length: int = 8
 ) -> AnalysisRequest:
     """The whole-game analysis a review starts with: every turn, with ownership.
     The request replays the record in the rules core, which rejects
-    impossible moves and invalid komi with their codes."""
+    impossible moves and invalid komi with their codes; `check_reviewable`
+    then refuses empty games and rule violations."""
     record = game.record
     moves = tuple(record.moves)
     setup = record.setup
-    return AnalysisRequest(
+    request = AnalysisRequest(
         width=record.width,
         height=record.height,
         rules=rules,
@@ -130,3 +162,5 @@ def review_request(
         initial_white=tuple(setup.white),
         initial_player=setup.to_play,
     )
+    check_reviewable(game, rules, komi)
+    return request

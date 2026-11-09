@@ -135,7 +135,7 @@ def main(
         stderr.write(f"error: cannot read {args.sgf}: {error.strerror}\n")
         return INPUT_ERROR
     except ReviewInputError as error:
-        hint = f" (use --{error.field})" if error.field else ""
+        hint = f" (use --{error.field})" if error.field in ("rules", "komi") else ""
         stderr.write(f"error [{error.code}]: {error}{hint}\n")
         return INPUT_ERROR
     except InvalidRequestError as error:

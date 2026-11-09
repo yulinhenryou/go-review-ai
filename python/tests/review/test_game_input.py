@@ -6,7 +6,14 @@ from __future__ import annotations
 import pytest
 
 from weiqi.engine import InvalidRequestError
-from weiqi.review import ReviewInputError, confirm, read_game, recorded_rules, review_request
+from weiqi.review import (
+    ReviewInputError,
+    confirm,
+    read_game,
+    recorded_rules,
+    replay_warnings,
+    review_request,
+)
 from weiqi.tools.record_engine import REPO_ROOT
 
 CORPUS = REPO_ROOT / "testdata" / "sgf"
@@ -105,3 +112,38 @@ def test_inputs_the_prototype_could_not_read() -> None:
     assert request.initial_black == ((3, 15), (15, 3))
     assert request.initial_player == "W" and request.players[0] == "W"
     assert request.include_ownership and request.analyze_turns == (0, 1)
+
+
+@pytest.mark.parametrize(
+    ("moves", "rules", "code", "number"),
+    [
+        # A ko recaptured at once, with a tenuki before the first capture.
+        (
+            "B[gf];W[hf];B[fg];W[ig];B[gh];W[hh];B[pd];W[gg];B[hg];W[gg]",
+            "japanese",
+            "ko_violation",
+            10,
+        ),
+        ("B[ba];W[pd];B[ab];W[aa]", "chinese", "suicide", 4),
+        ("B[pd];B[dd]", "chinese", "out_of_turn", 2),
+    ],
+)
+def test_a_record_that_breaks_the_rules_is_refused_with_its_move(
+    moves: str, rules: str, code: str, number: int
+) -> None:
+    # ADR-P19: the prototype refused these too; KataGo refuses suicide.
+    g = read_game(f"(;FF[4]GM[1]SZ[19];{moves})".encode())
+    assert replay_warnings(g, rules, 7.5) == ((number, code),)
+    with pytest.raises(ReviewInputError) as error:
+        review_request(g, rules, 7.5, max_visits=10)
+    assert (error.value.code, error.value.move_number, error.value.field) == (code, number, "moves")
+
+
+def test_play_after_two_passes_and_empty_games() -> None:
+    # Resumption breaks no rule (the prototype refused it as unsupported).
+    resumed = read_game(b"(;FF[4]GM[1]SZ[19];B[pd];W[];B[];W[dd])")
+    assert review_request(resumed, "japanese", 6.5, max_visits=10).analyze_turns == (0, 1, 2, 3, 4)
+    empty = read_game(b"(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5])")
+    with pytest.raises(ReviewInputError) as error:
+        review_request(empty, *confirm(empty), max_visits=10)
+    assert error.value.code == "no_moves"

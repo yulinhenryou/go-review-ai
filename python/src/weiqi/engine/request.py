@@ -143,8 +143,10 @@ class AnalysisRequest:
     def _replay(self) -> tuple[tuple[Color, ...], tuple[tuple[int, int], ...]]:
         """Replays the game in the core's record mode and returns who is to
         move at each turn and each turn's position hashes. Record mode
-        applies recorded rule violations (as KataGo does) but rejects
-        occupied or off-board points."""
+        applies recorded rule violations but rejects occupied or off-board
+        points. KataGo accepts some violations (a ko recapture, a move out of
+        turn) but refuses a suicide the rules forbid; reviews refuse them all
+        before the engine (ADR-P19)."""
         try:
             game = weiqi_core.Game(
                 self.width,

@@ -6,9 +6,11 @@ from weiqi.review.game_input import (
     RULE_NAMES,
     GameInput,
     ReviewInputError,
+    check_reviewable,
     confirm,
     read_game,
     recorded_rules,
+    replay_warnings,
     review_request,
 )
 from weiqi.review.pipeline import Review, review_game
@@ -24,9 +26,11 @@ __all__ = [
     "ReviewResult",
     "ReviewSettings",
     "build_result",
+    "check_reviewable",
     "confirm",
     "read_game",
     "recorded_rules",
+    "replay_warnings",
     "review_game",
     "review_request",
     "search_played_moves",

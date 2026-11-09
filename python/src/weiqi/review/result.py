@@ -41,6 +41,7 @@ from weiqi.metrics import (
     turning_points,
 )
 from weiqi.metrics.evidence import evaluated_turns
+from weiqi.review.game_input import replay_warnings
 
 if TYPE_CHECKING:
     from weiqi_core import Color, Move
@@ -89,6 +90,8 @@ class GameSummary:
     sgf_sha256: str
     encoding: str
     input_warnings: tuple[str, ...]
+    replay_warnings: tuple[tuple[int, str], ...]
+    """(move number, code) for each rule the record breaks, applied as recorded."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -241,8 +244,13 @@ def build_result(
     }
 
     timeline = []
+    gaps: set[str] = set()
     for item, fact in zip(metrics, facts, strict=True):
         before, after = turns.get(item.move_number - 1), turns.get(item.move_number)
+        if before is not None and not before.candidates:
+            gaps.add("recommendation_unavailable")
+        elif before is not None and not before.candidates[0].pv:
+            gaps.add("missing_pv")
         timeline.append(
             MoveReview(
                 move_number=item.move_number,
@@ -306,6 +314,7 @@ def build_result(
             sgf_sha256=game.sgf_sha256,
             encoding=game.encoding,
             input_warnings=game.input_warnings,
+            replay_warnings=replay_warnings(game, request.rules, request.komi),
         ),
         engine=EngineSummary(
             version=identity.version,
@@ -325,7 +334,9 @@ def build_result(
         ),
         turning_points=turning_points(evaluations, settings.winrate_bands),
         current_position=current,
-        warnings=_warnings(timeline, current, [evaluations, *played_searches]),
+        warnings=tuple(
+            sorted({*_warnings(timeline, current, [evaluations, *played_searches]), *gaps})
+        ),
         diagnostic_warnings=tuple(sorted({f for m in timeline for f in m.same_root_flags})),
     )
 

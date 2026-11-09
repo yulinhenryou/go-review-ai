@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import replace
 
 import pytest
 from metric_fixtures import Evaluated, played_search
@@ -112,6 +113,27 @@ def test_a_final_position_without_candidates_invents_no_recommendation() -> None
     assert result.current_position.evaluated and result.current_position.best_move is None
     assert result.current_position.candidates == ()
     assert "no_candidate_moves" in result.warnings
+
+
+def test_missing_recommendations_and_variations_are_reported() -> None:
+    # Prototype codes recommendation_unavailable and missing_pv.
+    game, evaluations = setup(ROOTS)
+    results = list(evaluations.results)
+    first, second = results[1].analysis, results[2].analysis
+    results[1] = TurnResult(replace(first, candidates=()), results[1].query_key, ())
+    no_pv = replace(second.candidates[0], pv=())
+    results[2] = TurnResult(replace(second, candidates=(no_pv,)), results[2].query_key, ())
+    result = build_result(
+        game,
+        Evaluated(evaluations.request, evaluations.identity, tuple(results)),
+        [],
+        ReviewSettings(),
+    )
+    assert {"recommendation_unavailable", "missing_pv"} <= set(result.warnings)
+    assert result.timeline[1].best_move is None and result.timeline[2].pv == ()
+    # Root values remain, so the sequential losses are still there.
+    assert result.timeline[1].score_loss == 9.0
+    assert "missing_pv" not in review(ROOTS).warnings
 
 
 def test_the_pv_is_the_recommendations_own() -> None:

@@ -162,6 +162,10 @@ def _notes(c: Catalog, result: ReviewResult) -> list[str]:
             notes.append(c.text(key, encoding=result.game.encoding))
         else:
             notes.append(c.text("input.other", code=code))
+    for number, code in result.game.replay_warnings:
+        key = f"replay.{code}"
+        text = c.text(key) if c.has(key) else c.text("replay.other", code=code)
+        notes.append(c.text("report.replay_warning", number=number, text=text))
     for code in result.warnings:
         key = f"flag.{code}"
         notes.append(c.text(key) if c.has(key) else c.text("flag.other", code=code))

@@ -30,6 +30,8 @@
   "flag.low_visits": "Some compared candidates had few visits; their estimates may be unstable.",
   "flag.missing_current_value": "The evaluation of the final recorded position is incomplete.",
   "flag.no_candidate_moves": "The final recorded position has no candidate moves.",
+  "flag.recommendation_unavailable": "Some positions have no recommended move.",
+  "flag.missing_pv": "Some recommendations have no variation; none is made up.",
   "flag.other": "The engine reported another quality warning: {code}.",
   "input.first_variation_only": "The record has variations; only the main line is reviewed.",
   "input.encoding_guessed": "The record declares no encoding; it was read as {encoding}.",
@@ -41,6 +43,12 @@
   "input.lossy_decode": "Some characters could not be decoded and were replaced.",
   "input.handicap_mismatch": "The handicap (HA) does not match the placed stones.",
   "input.other": "Noticed while reading the record: {code}.",
+  "replay.out_of_turn": "played out of turn (two moves of one colour, or the wrong side to move); applied as recorded.",
+  "replay.ko_violation": "an immediate ko recapture, which the ko rule forbids; applied as recorded.",
+  "replay.superko_violation": "repeats an earlier whole-board position, which the selected rules forbid; applied as recorded.",
+  "replay.suicide": "a suicide, which the selected rules forbid; applied as recorded.",
+  "replay.repeated_position": "legally recreates an earlier arrangement of stones.",
+  "replay.other": "noticed while applying the record: {code}.",
   "report.title": "Game review",
   "report.players": "{black} (Black) vs {white} (White)",
   "report.unknown_player": "unknown",
@@ -63,5 +71,6 @@
   "report.model_hash": "Model SHA-256: {sha}",
   "report.config_hash": "Config SHA-256: {sha}",
   "report.notes": "Notes",
-  "report.missing_moves": "Moves without score evidence: {moves}"
+  "report.missing_moves": "Moves without score evidence: {moves}",
+  "report.replay_warning": "Move {number}: {text}"
 }

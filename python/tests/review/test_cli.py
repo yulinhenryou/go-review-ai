@@ -99,3 +99,21 @@ def test_a_missing_file_and_a_missing_engine_have_their_own_exit_codes(tmp_path:
     game.write_bytes(SGF)
     code, _, err = run(tmp_path, str(game), environ={})
     assert code == ENGINE_ERROR and "engine_not_configured" in err
+
+
+@pytest.mark.parametrize(
+    ("moves", "message"),
+    [
+        ("B[ba];W[pd];B[ab];W[aa]", "error [suicide]: move 4 breaks the rules"),
+        ("", "error [no_moves]"),
+    ],
+)
+def test_rule_violations_and_empty_games_stop_before_the_engine(
+    tmp_path: Path, moves: str, message: str
+) -> None:
+    # Real KataGo refuses a suicide; it must be an input error, not exit 3.
+    game = tmp_path / "game.sgf"
+    game.write_text(f"(;FF[4]GM[1]SZ[19]RU[Chinese]KM[7.5]{';' + moves if moves else ''})")
+    code, out, err = run(tmp_path, str(game), environ={})
+    assert (code, out) == (INPUT_ERROR, "")
+    assert message in err and "use --" not in err

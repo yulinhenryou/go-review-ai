@@ -49,6 +49,16 @@ def test_every_code_a_result_carries_has_an_entry() -> None:
         + [f"band.{b}" for b in ("black_ahead", "close", "white_ahead")]
         + [f"rules.{name}" for name in RULE_NAMES]
         + [
+            f"replay.{code}"
+            for code in (
+                "out_of_turn",
+                "ko_violation",
+                "superko_violation",
+                "suicide",
+                "repeated_position",
+            )
+        ]
+        + [
             f"flag.{flag}"
             for flag in (
                 MISSING_SCORE,
@@ -59,6 +69,8 @@ def test_every_code_a_result_carries_has_an_entry() -> None:
                 LOW_VISITS_FLAG,
                 "missing_current_value",
                 "no_candidate_moves",
+                "recommendation_unavailable",
+                "missing_pv",
             )
         ]
     )
@@ -120,3 +132,13 @@ def test_group_changes_and_turning_points_are_listed() -> None:
     assert "Turning points" in text
     for point in result.turning_points:
         assert f"Move {point.move_number}," in text
+
+
+def test_replay_warnings_are_listed_by_move() -> None:
+    # Only `repeated_position` reaches a result (rule violations are refused),
+    # but every replay code renders.
+    result = review()
+    noted = replace(result, game=replace(result.game, replay_warnings=((3, "repeated_position"),)))
+    en = load_catalog("en")
+    expected = en.text("report.replay_warning", number=3, text=en.text("replay.repeated_position"))
+    assert expected in render_report(noted, "en")
