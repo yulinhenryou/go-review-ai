@@ -39,6 +39,8 @@ from weiqi.storage.schema import (
 if TYPE_CHECKING:
     from weiqi_core import Color, Move
 
+    from weiqi.engine import EngineIdentity
+
 _LOAD_BATCH: Final = 500
 """Keys per `IN (...)` lookup, well below every database's parameter limit."""
 
@@ -112,12 +114,12 @@ def decode_ownership(blob: bytes | None) -> tuple[float, ...] | None:
 # --- The store ---
 
 
-def _insert_ignoring_duplicates(
+def insert_ignoring_duplicates(
     connection: Connection, table: Table, rows: list[dict[str, Any]]
 ) -> None:
-    """Inserts rows, skipping any whose primary key is already stored. A
-    result under an existing `query_key` answers the same question, so the
-    first one stored is kept."""
+    """Inserts rows, skipping any that would repeat a stored primary key or
+    unique value. A result under an existing `query_key` answers the same
+    question, so the first one stored is kept."""
     if connection.dialect.name == "postgresql":
         from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -126,6 +128,27 @@ def _insert_ignoring_duplicates(
         from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
         connection.execute(sqlite_insert(table).on_conflict_do_nothing(), rows)
+
+
+def save_identity(connection: Connection, identity: EngineIdentity, now: datetime.datetime) -> str:
+    """Stores `identity` unless it is stored already; returns its key."""
+    identity_key = identity.identity_key()
+    insert_ignoring_duplicates(
+        connection,
+        engine_identity,
+        [
+            {
+                "identity_key": identity_key,
+                "version": identity.version,
+                "model_name": identity.model_name,
+                "model_sha256": identity.model_sha256,
+                "config_sha256": identity.config_sha256,
+                "overrides": json.dumps([list(item) for item in identity.overrides]),
+                "created_at": now,
+            }
+        ],
+    )
+    return identity_key
 
 
 class SqlResultStore:
@@ -176,23 +199,8 @@ class SqlResultStore:
     def save_sync(self, analysis: GameAnalysis) -> None:
         identity, request = analysis.identity, analysis.request
         now = datetime.datetime.now(datetime.UTC)
-        identity_key = identity.identity_key()
         with self._engine.begin() as connection:
-            _insert_ignoring_duplicates(
-                connection,
-                engine_identity,
-                [
-                    {
-                        "identity_key": identity_key,
-                        "version": identity.version,
-                        "model_name": identity.model_name,
-                        "model_sha256": identity.model_sha256,
-                        "config_sha256": identity.config_sha256,
-                        "overrides": json.dumps([list(item) for item in identity.overrides]),
-                        "created_at": now,
-                    }
-                ],
-            )
+            identity_key = save_identity(connection, identity, now)
             connection.execute(
                 engine_query.insert(),
                 {
@@ -233,7 +241,7 @@ class SqlResultStore:
                     }
                 )
             if rows:
-                _insert_ignoring_duplicates(connection, position_eval, rows)
+                insert_ignoring_duplicates(connection, position_eval, rows)
 
     def query_keys_for_stones(self, stones_hash: int) -> list[str]:
         """Stored free searches whose stones match `stones_hash`, in any

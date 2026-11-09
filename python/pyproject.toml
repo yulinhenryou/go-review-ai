@@ -38,6 +38,8 @@ files = ["src", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Shared test helpers, importable from every test directory.
+pythonpath = ["tests/support"]
 addopts = ["-ra", "--strict-markers"]
 
 [dependency-groups]

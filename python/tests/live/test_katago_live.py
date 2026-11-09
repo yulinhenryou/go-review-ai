@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import io
+import json
 import os
 import signal
 from collections.abc import Coroutine, Mapping
@@ -30,6 +32,7 @@ from weiqi.engine import (
 )
 from weiqi.metrics import move_metrics, played_moves_to_search
 from weiqi.review import search_played_moves
+from weiqi.review.cli import main
 from weiqi.storage.database import connect
 from weiqi.storage.migrate import upgrade
 from weiqi.storage.results import SqlResultStore
@@ -225,6 +228,29 @@ def test_a_restricted_search_answers_only_the_played_move(tmp_path: Path) -> Non
         assert item.same_root.raw_score_loss is not None
         assert "separate_search" in item.same_root.flags
     assert [item.move for item in move_metrics(free)][-2:] == ["pass", "pass"]
+
+
+def test_the_review_command_finds_the_planted_mistakes(tmp_path: Path) -> None:
+    """MIGRATION R08: the CLI end to end. The synthetic game's Black moves
+    are first-line moves (A19, B19, C19) that any search judges as large
+    losses; the second run asks the engine nothing."""
+    database = f"sqlite:///{tmp_path / 'weiqi.db'}"
+    args = [str(REPO_ROOT / "testdata" / "sgf" / "m3-mistake.sgf"), "--database", database]
+    outputs = []
+    for _ in range(2):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        assert (
+            main([*args, "--visits", "32", "--format", "json"], stdout=stdout, stderr=stderr) == 0
+        )
+        outputs.append((json.loads(stdout.getvalue()), stderr.getvalue()))
+    (result, first_log), (again, second_log) = outputs
+    assert result["status"] == "complete"
+    assert result["engine"]["version"] and len(result["engine"]["model_sha256"]) == 64
+    mistakes = {m["move_number"] for m in result["mistakes"]}
+    assert 1 in mistakes  # A19 as the first move
+    assert {m["color"] for m in result["mistakes"]} == {"B"}
+    assert " 0 from the cache" in first_log and " 0 turns from the engine" in second_log
+    assert again["timeline"] == result["timeline"]
 
 
 def test_cancel_terminates_the_query_and_keeps_the_process() -> None:
