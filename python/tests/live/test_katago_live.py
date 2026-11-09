@@ -28,6 +28,8 @@ from weiqi.engine import (
     KataGoEngine,
     TurnResult,
 )
+from weiqi.metrics import move_metrics, played_moves_to_search
+from weiqi.review import search_played_moves
 from weiqi.storage.database import connect
 from weiqi.storage.migrate import upgrade
 from weiqi.storage.results import SqlResultStore
@@ -182,6 +184,47 @@ def test_the_235_move_game_completes_and_then_comes_from_the_cache(tmp_path: Pat
     assert queries == 1 and second.engine_analysis is None
     assert (analyzer.misses, analyzer.hits) == (236, 236)
     assert second.results == first.results
+
+
+def test_a_restricted_search_answers_only_the_played_move(tmp_path: Path) -> None:
+    """MIGRATION E04: `allowMoves` with `untilDepth` 1 makes KataGo search
+    only the played move at the root, passes included; the searches are
+    stored, complete every same-root value, and are reused."""
+    settings = EngineSettings.from_environment()
+    request = short_request(visits=32)
+    database = connect(f"sqlite:///{tmp_path / 'cache.db'}")
+    upgrade(database)
+
+    async def scenario() -> tuple[CachedAnalysis, tuple[CachedAnalysis, ...], int, int]:
+        async with KataGoEngine(settings) as engine:
+            analyzer = CachedAnalyzer(engine, SqlResultStore(database))
+            free = await analyzer.analyze(request)
+            searches = await asyncio.gather(
+                *(
+                    analyzer.analyze(request.played_move_search(turn))
+                    for turn in range(len(request.moves))
+                )
+            )
+            again = await search_played_moves(analyzer, free)
+            return free, tuple(searches), engine.queries, len(again)
+
+    try:
+        free, searches, queries, needed = run(scenario())
+    finally:
+        database.dispose()
+    assert queries == 1 + len(request.moves)
+    assert needed == len(played_moves_to_search(free))  # all from the store
+    for search in searches:
+        (turn,) = search.request.analyze_turns
+        (result,) = search.results
+        candidates = result.analysis.candidates
+        assert [c.move for c in candidates] == [request.moves[turn][1]]
+        assert candidates[0].score_lead_black is not None
+        assert candidates[0].visits is not None and candidates[0].visits > 0
+    for item in move_metrics(free, searches):
+        assert item.same_root.raw_score_loss is not None
+        assert "separate_search" in item.same_root.flags
+    assert [item.move for item in move_metrics(free)][-2:] == ["pass", "pass"]
 
 
 def test_cancel_terminates_the_query_and_keeps_the_process() -> None:

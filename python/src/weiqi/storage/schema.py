@@ -11,6 +11,9 @@ Tables (M3, the analysis cache):
 - `engine_query`: one analysis query sent to that engine, with its timing.
 - `position_eval`: one analysed turn, keyed by `query_key` (ADR-P03), with
   the position's `stones_hash` as an index for finding it across games.
+
+M4 adds `position_eval.allow_move`: the move a restricted search was limited
+to (GTP vertex or "pass"), `NULL` for a free search.
 """
 
 from __future__ import annotations
@@ -93,4 +96,5 @@ position_eval = Table(
     Column("engine_warnings", Text, nullable=False),
     Column("encoding", Integer, nullable=False),
     _created_at(),
+    Column("allow_move", String(8)),
 )

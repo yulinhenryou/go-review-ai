@@ -13,6 +13,7 @@ from weiqi.metrics.loss import (
     LossEstimate,
     MoveMetrics,
     move_metrics,
+    played_moves_to_search,
 )
 from weiqi.metrics.selection import Mistake, select_mistakes
 from weiqi.metrics.severity import (
@@ -37,5 +38,6 @@ __all__ = [
     "Severity",
     "SeverityBand",
     "move_metrics",
+    "played_moves_to_search",
     "select_mistakes",
 ]

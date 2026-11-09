@@ -19,6 +19,7 @@ import zlib
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Final, cast
 
+import weiqi_core
 from sqlalchemy import Connection, Engine, Table, func, select
 
 from weiqi.engine import (
@@ -202,6 +203,11 @@ class SqlResultStore:
                     "created_at": now,
                 },
             )
+            allow_move = (
+                None
+                if request.allow_move is None
+                else weiqi_core.to_gtp(request.allow_move, request.width, request.height)
+            )
             rows = []
             for result in analysis.results:
                 turn, root = result.analysis.turn, result.analysis.root
@@ -223,19 +229,22 @@ class SqlResultStore:
                         "engine_warnings": json.dumps(list(result.engine_warnings)),
                         "encoding": ENCODING_VERSION,
                         "created_at": now,
+                        "allow_move": allow_move,
                     }
                 )
             if rows:
                 _insert_ignoring_duplicates(connection, position_eval, rows)
 
     def query_keys_for_stones(self, stones_hash: int) -> list[str]:
-        """Stored turns whose stones match `stones_hash`, in any game. Such
-        a turn may differ in move history, so it is a transposition, not an
-        exact reuse (ADR-P03)."""
+        """Stored free searches whose stones match `stones_hash`, in any
+        game. Such a turn may differ in move history, so it is a
+        transposition, not an exact reuse (ADR-P03). Restricted searches are
+        left out: they describe one move, not the position."""
         with self._engine.connect() as connection:
             rows = connection.execute(
                 select(position_eval.c.query_key)
                 .where(position_eval.c.stones_hash == hash_text(stones_hash))
+                .where(position_eval.c.allow_move.is_(None))
                 .order_by(position_eval.c.query_key)
             )
             return [row[0] for row in rows]

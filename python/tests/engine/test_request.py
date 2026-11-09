@@ -216,3 +216,61 @@ def test_identity_holds_no_paths() -> None:
     # MIGRATION E08: provenance must not reveal the local file system.
     assert "/" not in repr(IDENTITY)
     assert set(IDENTITY.key_fields()) == {"version", "model_sha256", "config_sha256", "overrides"}
+
+
+def test_a_played_move_search_restricts_the_first_move_of_one_turn() -> None:
+    free = request(include_ownership=True)
+    restricted = free.played_move_search(1)
+    assert (restricted.analyze_turns, restricted.allow_move) == ((1,), (3, 15))
+    assert restricted.include_ownership is False
+    query = restricted.to_query("q1")
+    # White is to move at turn 1; the move played there is W D4 = (3, 15).
+    assert query["allowMoves"] == [{"player": "W", "moves": ["D4"], "untilDepth": 1}]
+    assert query["analyzeTurns"] == [1]
+    assert query["moves"] == free.to_query("q0")["moves"]
+
+
+def test_a_pass_can_be_the_restricted_move() -> None:
+    value = request(moves=(*MOVES, ("B", "pass")), analyze_turns=(4,), allow_move="pass")
+    assert value.to_query("q")["allowMoves"] == [
+        {"player": "B", "moves": ["pass"], "untilDepth": 1}
+    ]
+
+
+def test_a_free_search_sends_no_restriction_and_keeps_its_key() -> None:
+    free = request()
+    assert "allowMoves" not in free.to_query("q")
+    assert "allowMoves" not in free.key_document(IDENTITY, 2)
+    # The recorded fixture's keys (tests/engine/test_recorded.py) were made
+    # before restricted searches existed and must still match.
+
+
+def test_a_restricted_search_has_its_own_key() -> None:
+    free = request()
+    restricted = free.played_move_search(2)
+    assert restricted.query_key(IDENTITY, 2) != replace(free, include_ownership=False).query_key(
+        IDENTITY, 2
+    )
+    assert "allowMoves" in restricted.key_document(IDENTITY, 2)
+    other = replace(restricted, allow_move=(9, 9))
+    assert other.query_key(IDENTITY, 2) != restricted.query_key(IDENTITY, 2)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"analyze_turns": (0, 1), "allow_move": (3, 3)},
+        {"analyze_turns": (0,), "allow_move": (19, 0)},
+        {"analyze_turns": (0,), "allow_move": "resign"},
+    ],
+)
+def test_invalid_restrictions_are_rejected(changes: dict[str, object]) -> None:
+    with pytest.raises(InvalidRequestError) as error:
+        request(**changes)
+    assert error.value.code == "invalid_allow_move"
+
+
+@pytest.mark.parametrize("turn", [-1, 4])
+def test_only_a_turn_with_a_played_move_can_be_searched(turn: int) -> None:
+    with pytest.raises(InvalidRequestError):
+        request().played_move_search(turn)

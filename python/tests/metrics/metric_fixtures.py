@@ -60,11 +60,11 @@ def request(played: Sequence[tuple[Color, Move]]) -> AnalysisRequest:
     )
 
 
-def candidate(move: Move, order: int, values: Values) -> Candidate:
+def candidate(move: Move, order: int, values: Values, visits: int | None = 50) -> Candidate:
     return Candidate(
         move=move,
         order=order,
-        visits=10,
+        visits=visits,
         winrate_black=values[1],
         score_lead_black=values[0],
         prior=0.1,
@@ -94,6 +94,13 @@ def turn(
 
 def evaluated(req: AnalysisRequest, results: Sequence[TurnResult]) -> Evaluated:
     return Evaluated(req, IDENTITY, tuple(results))
+
+
+def played_search(req: AnalysisRequest, number: int, values: Values) -> Evaluated:
+    """The restricted search of the move played at `number`, giving it `values`."""
+    restricted = req.played_move_search(number)
+    move = req.moves[number][1]
+    return evaluated(restricted, [turn(restricted, number, values, [(move, values)])])
 
 
 def estimate(raw: float | None, definition: str = "score_loss.sequential.v1") -> LossEstimate:

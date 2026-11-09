@@ -4,13 +4,29 @@ R05) to both definitions."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
 
 import pytest
-from metric_fixtures import IDENTITY, Evaluated, evaluated, moves, request, turn
+from metric_fixtures import (
+    IDENTITY,
+    Evaluated,
+    candidate,
+    evaluated,
+    moves,
+    played_search,
+    request,
+    turn,
+)
 
-from weiqi.engine import EngineIdentity
-from weiqi.metrics import SAME_ROOT, SEQUENTIAL, MetricInputError, move_metrics
+from weiqi.engine import AnalysisRequest, EngineIdentity
+from weiqi.metrics import (
+    SAME_ROOT,
+    SEQUENTIAL,
+    MetricInputError,
+    move_metrics,
+    played_moves_to_search,
+)
 
 
 def test_sequential_loss_is_root_before_minus_root_after_for_each_mover() -> None:
@@ -212,3 +228,116 @@ def test_finite_inputs_cannot_overflow_the_difference() -> None:
     with pytest.raises(MetricInputError) as error:
         move_metrics(evaluated(req, results))
     assert error.value.code == "non_finite_difference"
+
+
+def test_moves_without_a_played_value_are_chosen_for_a_restricted_search() -> None:
+    req = request(moves(4))
+    m = [move for _, move in req.moves]
+    other = (10, 10)
+    results = [
+        # Turn 0: the played move is a candidate with a value: no search needed.
+        turn(req, 0, (0.0, 0.5), [(other, (0.5, 0.5)), (m[0], (0.0, 0.5))]),
+        # Turn 1: the played move is missing from the candidates.
+        turn(req, 1, (0.0, 0.5), [(other, (0.0, 0.5))]),
+        # Turn 2: the played move is listed without a score lead.
+        turn(req, 2, (0.0, 0.5), [(other, (0.0, 0.5)), (m[2], (None, 0.5))]),
+        # Turn 3: no candidates at all, so nothing to compare with.
+        turn(req, 3, (0.0, 0.5)),
+        turn(req, 4, (0.0, 0.5)),
+    ]
+    assert played_moves_to_search(evaluated(req, results)) == (1, 2)
+
+
+def test_a_candidate_without_visits_needs_a_restricted_search() -> None:
+    req = request(moves(1))
+    move = req.moves[0][1]
+    first = turn(req, 0, (0.0, 0.5), [((10, 10), (0.0, 0.5))])
+    unvisited = replace(
+        first.analysis,
+        candidates=(*first.analysis.candidates, candidate(move, 1, (-1.0, 0.4), visits=0)),
+    )
+    assert played_moves_to_search(evaluated(req, [replace(first, analysis=unvisited)])) == (0,)
+
+
+def test_the_restricted_search_supplies_the_played_value() -> None:
+    req = request(moves(2))
+    other = (10, 10)
+    results = [
+        turn(req, 0, (1.0, 0.55), [(other, (1.5, 0.56))]),
+        turn(req, 1, (-1.0, 0.45), [(other, (-0.5, 0.5))]),
+        turn(req, 2, (-1.0, 0.45)),
+    ]
+    first, second = move_metrics(evaluated(req, results), [played_search(req, 0, (-2.5, 0.30))])
+    assert first.same_root.raw_score_loss == pytest.approx(4.0)
+    assert first.same_root.winrate_delta_pp == pytest.approx(-26.0)
+    assert first.same_root.flags == ("separate_search",)
+    # The second move had no restricted search: still flagged, not inferred.
+    assert "played_move_not_searched" in second.same_root.flags
+    # The sequential definition never uses restricted searches.
+    assert first.sequential.raw_score_loss == pytest.approx(2.0)
+
+
+def test_a_restricted_search_that_lacks_the_move_leaves_it_missing() -> None:
+    req = request(moves(1))
+    restricted = req.played_move_search(0)
+    empty = evaluated(restricted, [turn(restricted, 0, (0.0, 0.5))])
+    results = [turn(req, 0, (1.0, 0.5), [((10, 10), (1.0, 0.5))]), turn(req, 1, (0.0, 0.5))]
+    item = move_metrics(evaluated(req, results), [empty])[0]
+    assert item.same_root.raw_score_loss is None
+    assert set(item.same_root.flags) == {
+        "missing_score_evidence",
+        "missing_winrate_evidence",
+        "separate_search",
+    }
+
+
+def test_low_visits_are_flagged_on_compared_candidates() -> None:
+    req = request(moves(1))
+    move = req.moves[0][1]
+    results = [turn(req, 0, (1.0, 0.5), [((10, 10), (1.0, 0.5))]), turn(req, 1, (0.0, 0.5))]
+    few = replace(
+        results[0].analysis,
+        candidates=(*results[0].analysis.candidates, candidate(move, 1, (0.0, 0.45), visits=3)),
+    )
+    item = move_metrics(evaluated(req, [replace(results[0], analysis=few), results[1]]))[0]
+    assert item.same_root.raw_score_loss == pytest.approx(1.0)
+    assert item.same_root.flags == ("low_visits",)
+
+
+@pytest.mark.parametrize(
+    "search",
+    [
+        # Restricted to another move.
+        lambda req: evaluated(
+            replace(req.played_move_search(0), allow_move=(9, 9)),
+            [],
+        ),
+        # A free search of that turn, not a restricted one.
+        lambda req: evaluated(replace(req, analyze_turns=(0,)), []),
+        # Another komi.
+        lambda req: evaluated(replace(req, komi=0.5).played_move_search(0), []),
+        # Another engine.
+        lambda req: Evaluated(
+            req.played_move_search(0),
+            replace(IDENTITY, version="1.16.4"),
+            (),
+        ),
+    ],
+)
+def test_restricted_searches_of_another_request_are_rejected(
+    search: Callable[[AnalysisRequest], Evaluated],
+) -> None:
+    req = request(moves(1))
+    results = [turn(req, 0, (0.0, 0.5), [((10, 10), (0.0, 0.5))]), turn(req, 1, (0.0, 0.5))]
+    with pytest.raises(MetricInputError) as error:
+        move_metrics(evaluated(req, results), [search(req)])
+    assert error.value.code == "incomparable_context"
+
+
+def test_a_move_searched_twice_is_rejected() -> None:
+    req = request(moves(1))
+    results = [turn(req, 0, (0.0, 0.5), [((10, 10), (0.0, 0.5))]), turn(req, 1, (0.0, 0.5))]
+    search = played_search(req, 0, (0.0, 0.5))
+    with pytest.raises(MetricInputError) as error:
+        move_metrics(evaluated(req, results), [search, search])
+    assert error.value.code == "duplicate_turn"

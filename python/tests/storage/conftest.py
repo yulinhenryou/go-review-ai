@@ -11,7 +11,8 @@ import pytest
 from sqlalchemy import Engine
 
 from weiqi.storage.database import connect
-from weiqi.storage.migrate import downgrade
+from weiqi.storage.migrate import downgrade, upgrade
+from weiqi.storage.results import SqlResultStore
 
 POSTGRESQL_URL = os.environ.get("TEST_POSTGRESQL_URL")
 
@@ -37,3 +38,10 @@ def database(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[Engine]
     finally:
         downgrade(engine)  # PostgreSQL outlives the test; leave it empty
         engine.dispose()
+
+
+@pytest.fixture
+def store(database: Engine) -> SqlResultStore:
+    """A migrated database behind the result store."""
+    upgrade(database)
+    return SqlResultStore(database)

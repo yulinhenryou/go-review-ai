@@ -16,7 +16,7 @@ import hashlib
 import json
 import math
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 import weiqi_core
@@ -91,6 +91,9 @@ class AnalysisRequest:
     initial_white: tuple[Point, ...] = ()
     initial_player: Color = "B"
     override_settings: tuple[tuple[str, JsonScalar], ...] = ()
+    allow_move: Move | None = None
+    """If set, the search at the one analysed turn may only play this move
+    first (KataGo `allowMoves` with `untilDepth` 1); see `played_move_search`."""
     players: tuple[Color, ...] = field(init=False, repr=False, compare=False)
     """The player to move at each turn 0..len(moves), from the core's replay."""
     hashes: tuple[tuple[int, int], ...] = field(init=False, repr=False, compare=False)
@@ -125,6 +128,17 @@ class AnalysisRequest:
             raise InvalidRequestError(
                 "invalid_turns", f"analyze_turns must be increasing turns in 0..{last}"
             )
+        if self.allow_move is not None:
+            if len(turns) != 1:
+                raise InvalidRequestError(
+                    "invalid_allow_move", "a restricted search analyses exactly one turn"
+                )
+            try:
+                self._gtp(self.allow_move)
+            except (weiqi_core.CoreError, TypeError, ValueError) as error:
+                raise InvalidRequestError(
+                    "invalid_allow_move", "allow_move must be a point on the board or a pass"
+                ) from error
 
     def _replay(self) -> tuple[tuple[Color, ...], tuple[tuple[int, int], ...]]:
         """Replays the game in the core's record mode and returns who is to
@@ -173,13 +187,45 @@ class AnalysisRequest:
             "overrideSettings": dict(self.override_settings),
         }
 
+    def _restriction(self, turn: int) -> dict[str, object]:
+        """The `allowMoves` field at `turn`, or nothing for a free search.
+
+        Left out entirely when unset, so free searches keep the keys they had
+        before restricted searches existed.
+        """
+        if self.allow_move is None:
+            return {}
+        player = self.players[turn]
+        return {
+            "allowMoves": [
+                {"player": player, "moves": [self._gtp(self.allow_move)], "untilDepth": 1}
+            ]
+        }
+
     def to_query(self, query_id: str) -> dict[str, object]:
         """The KataGo query object (one JSON line once serialised)."""
         return {
             "id": query_id,
             **self._search_fields(len(self.moves)),
+            **self._restriction(self.analyze_turns[0]),
             "analyzeTurns": list(self.analyze_turns),
         }
+
+    def played_move_search(self, turn: int) -> AnalysisRequest:
+        """A search of the position at `turn` restricted to the move played
+        there, `moves[turn]`, without ownership (MIGRATION E04).
+
+        It gives the played move a full search budget when the free search
+        considered it too little; the same-root diagnostic (ADR-P02) compares
+        it with the free search's recommendation.
+        """
+        _whole_number(turn, "turn", 0, len(self.moves) - 1)
+        return replace(
+            self,
+            analyze_turns=(turn,),
+            include_ownership=False,
+            allow_move=self.moves[turn][1],
+        )
 
     def key_document(self, identity: EngineIdentity, turn: int) -> str:
         """The canonical JSON text that `query_key` hashes.
@@ -192,7 +238,7 @@ class AnalysisRequest:
             {
                 "format": QUERY_KEY_VERSION,
                 "engine": identity.key_fields(),
-                "search": self._search_fields(turn),
+                "search": {**self._search_fields(turn), **self._restriction(turn)},
             }
         )
 

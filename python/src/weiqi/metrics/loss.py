@@ -14,6 +14,12 @@ engine's choice:
   played move the search did not consider has no value here: it is flagged,
   never inferred from another candidate or position.
 
+When the search before a move gave the played move no value, a separate
+search restricted to that move can supply it (`played_moves_to_search`,
+`AnalysisRequest.played_move_search`); the value is then flagged
+`separate_search`, because it comes from another search tree. A compared
+candidate with few visits is flagged `low_visits`.
+
 The raw difference is kept; `score_loss` is `max(0, raw)`, and a negative raw
 difference is flagged as search noise rather than praised (ADR-009).
 """
@@ -21,7 +27,7 @@ difference is flagged as search noise rather than praised (ADR-009).
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Protocol
 
@@ -46,6 +52,11 @@ MISSING_SCORE: Final = "missing_score_evidence"
 MISSING_WINRATE: Final = "missing_winrate_evidence"
 NEGATIVE_NOISE: Final = "negative_difference_search_noise"
 NOT_SEARCHED: Final = "played_move_not_searched"
+SEPARATE_SEARCH: Final = "separate_search"
+LOW_VISITS: Final = 16
+"""A compared candidate with fewer visits than this (or than `max_visits`,
+if smaller) is flagged `low_visits`, as in the prototype."""
+LOW_VISITS_FLAG: Final = "low_visits"
 
 
 class Evaluations(Protocol):
@@ -95,23 +106,58 @@ class MoveMetrics:
         return self.sequential
 
 
-def move_metrics(evaluations: Evaluations) -> tuple[MoveMetrics, ...]:
+def move_metrics(
+    evaluations: Evaluations, played_searches: Iterable[Evaluations] = ()
+) -> tuple[MoveMetrics, ...]:
     """Metrics for every move of the request, in order.
 
     Every result must belong to the request and the engine identity it came
     with (its `query_key` is recomputed), so values from another game, rule
     set, komi or engine cannot be mixed in. Turns that were not analysed
     leave the affected moves without values, flagged.
+
+    `played_searches` are restricted searches of played moves (see
+    `played_moves_to_search`); each must be exactly
+    `request.played_move_search(turn)` on the same engine. The same-root value
+    of that move then takes the played move from it, flagged
+    `separate_search`.
     """
     request = evaluations.request
-    turns = _turns(evaluations)
-    return tuple(_move(request, turns, number) for number in range(1, len(request.moves) + 1))
+    turns = _turns(request, evaluations.identity, evaluations.results)
+    searched = _played_searches(evaluations, played_searches)
+    return tuple(
+        _move(request, turns, searched, number) for number in range(1, len(request.moves) + 1)
+    )
 
 
-def _turns(evaluations: Evaluations) -> dict[int, TurnAnalysis]:
-    request, identity = evaluations.request, evaluations.identity
+def played_moves_to_search(evaluations: Evaluations) -> tuple[int, ...]:
+    """Turns whose played move needs a restricted search for its same-root value.
+
+    That is when the search before the move has a recommendation but did not
+    give the played move a value: it is missing from the candidates, has no
+    score lead, or received no visits (the prototype's rule).
+    """
+    request = evaluations.request
+    turns = _turns(request, evaluations.identity, evaluations.results)
+    return tuple(
+        turn
+        for turn, analysis in sorted(turns.items())
+        if turn < len(request.moves) and _needs_search(analysis, request.moves[turn][1])
+    )
+
+
+def _needs_search(before: TurnAnalysis, move: Move) -> bool:
+    if not before.candidates:
+        return False
+    played = _candidate(before, move)
+    return played is None or played.score_lead_black is None or not played.visits
+
+
+def _turns(
+    request: AnalysisRequest, identity: EngineIdentity, results: Iterable[TurnResult]
+) -> dict[int, TurnAnalysis]:
     turns: dict[int, TurnAnalysis] = {}
-    for result in evaluations.results:
+    for result in results:
         analysis = result.analysis
         turn = analysis.turn
         if not 0 <= turn <= len(request.moves):
@@ -131,7 +177,38 @@ def _turns(evaluations: Evaluations) -> dict[int, TurnAnalysis]:
     return turns
 
 
-def _move(request: AnalysisRequest, turns: Mapping[int, TurnAnalysis], number: int) -> MoveMetrics:
+def _played_searches(
+    evaluations: Evaluations, searches: Iterable[Evaluations]
+) -> dict[int, TurnAnalysis]:
+    request = evaluations.request
+    found: dict[int, TurnAnalysis] = {}
+    for search in searches:
+        turns = search.request.analyze_turns
+        turn = turns[0]
+        if (
+            search.identity != evaluations.identity
+            or len(turns) != 1
+            or not 0 <= turn < len(request.moves)
+            or search.request != request.played_move_search(turn)
+        ):
+            raise MetricInputError(
+                "incomparable_context",
+                "a played-move search was made for another request or engine",
+            )
+        if turn in found:
+            raise MetricInputError("duplicate_turn", f"turn {turn} is searched twice")
+        analysed = _turns(search.request, search.identity, search.results)
+        if turn in analysed:
+            found[turn] = analysed[turn]
+    return found
+
+
+def _move(
+    request: AnalysisRequest,
+    turns: Mapping[int, TurnAnalysis],
+    searched: Mapping[int, TurnAnalysis],
+    number: int,
+) -> MoveMetrics:
     color, move = request.moves[number - 1]
     before, after = turns.get(number - 1), turns.get(number)
     best = before.candidates[0].move if before is not None and before.candidates else None
@@ -141,31 +218,49 @@ def _move(request: AnalysisRequest, turns: Mapping[int, TurnAnalysis], number: i
         move=move,
         best_move=best,
         sequential=_sequential(color, before, after),
-        same_root=_same_root(color, move, before),
+        same_root=_same_root(
+            color, move, before, searched.get(number - 1), min(LOW_VISITS, request.max_visits)
+        ),
     )
 
 
 def _sequential(
     color: Color, before: TurnAnalysis | None, after: TurnAnalysis | None
 ) -> LossEstimate:
-    score = _difference(
-        _root_score(color, before),
-        _root_score(color, after),
-    )
+    score = _difference(_root_score(color, before), _root_score(color, after))
     winrate = _difference(_root_winrate(color, after), _root_winrate(color, before))
     return _estimate(SEQUENTIAL, score, winrate)
 
 
-def _same_root(color: Color, move: Move, before: TurnAnalysis | None) -> LossEstimate:
+def _same_root(
+    color: Color,
+    move: Move,
+    before: TurnAnalysis | None,
+    restricted: TurnAnalysis | None,
+    enough_visits: int,
+) -> LossEstimate:
     if before is None or not before.candidates:
         return _estimate(SAME_ROOT, None, None)
     best = before.candidates[0]
-    played = next((c for c in before.candidates if c.move == move), None)
+    flags: list[str] = []
+    if restricted is not None:
+        played = _candidate(restricted, move)
+        flags.append(SEPARATE_SEARCH)
+    else:
+        played = _candidate(before, move)
     if played is None:
-        return _estimate(SAME_ROOT, None, None, NOT_SEARCHED)
+        if restricted is None:
+            flags.append(NOT_SEARCHED)
+        return _estimate(SAME_ROOT, None, None, *flags)
+    if any(c.visits is None or c.visits < enough_visits for c in (best, played)):
+        flags.append(LOW_VISITS_FLAG)
     score = _difference(_score(color, best), _score(color, played))
     winrate = _difference(_winrate(color, played), _winrate(color, best))
-    return _estimate(SAME_ROOT, score, winrate)
+    return _estimate(SAME_ROOT, score, winrate, *flags)
+
+
+def _candidate(analysis: TurnAnalysis, move: Move) -> Candidate | None:
+    return next((c for c in analysis.candidates if c.move == move), None)
 
 
 def _estimate(
