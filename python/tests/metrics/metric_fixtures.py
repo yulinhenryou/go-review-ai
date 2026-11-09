@@ -77,6 +77,7 @@ def turn(
     number: int,
     root: Values,
     candidates: Sequence[tuple[Move, Values]] = (),
+    ownership: Sequence[float] | None = None,
 ) -> TurnResult:
     analysis = TurnAnalysis(
         turn=number,
@@ -87,7 +88,7 @@ def turn(
             score_lead_black=root[0],
         ),
         candidates=tuple(candidate(m, i, v) for i, (m, v) in enumerate(candidates)),
-        ownership_black=None,
+        ownership_black=None if ownership is None else tuple(ownership),
     )
     return TurnResult(analysis, req.query_key(IDENTITY, number), ())
 

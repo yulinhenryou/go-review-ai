@@ -12,7 +12,7 @@ import weiqi_core
 from metric_fixtures import Evaluated
 
 from weiqi.engine import TurnResult, parse_turn
-from weiqi.metrics import move_metrics, select_mistakes
+from weiqi.metrics import move_metrics, ownership_facts, select_mistakes, turning_points
 from weiqi.tools.record_engine import (
     REPO_ROOT,
     identity_from_document,
@@ -93,3 +93,25 @@ def test_selection_runs_on_real_values() -> None:
 
 def _move(vertex: str) -> object:
     return weiqi_core.from_gtp(vertex, REQUEST.width, REQUEST.height)
+
+
+def test_ownership_facts_equal_the_recorded_ownership() -> None:
+    facts = ownership_facts(evaluations())
+    assert len(facts) == 6
+    for fact in facts:
+        before = REPLIES[fact.move_number - 1]["ownership"]
+        after = REPLIES[fact.move_number]["ownership"]
+        sign = mover_sign(fact.color)
+        assert fact.ownership_delta is not None
+        assert len(fact.ownership_delta) == 361
+        assert list(fact.ownership_delta) == pytest.approx(
+            [sign * (a - b) for a, b in zip(after, before, strict=True)]
+        )
+        for change in fact.group_changes:
+            # Every reported stone was on the board before the move.
+            assert change.stones and change.before != change.after
+
+
+def test_turning_points_run_on_real_values() -> None:
+    for point in turning_points(evaluations()):
+        assert point.band_before != point.band_after

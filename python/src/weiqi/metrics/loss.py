@@ -29,21 +29,16 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Final, Protocol
+from typing import TYPE_CHECKING, Final
 
 from weiqi.engine import score_for, winrate_for
 from weiqi.metrics.errors import MetricInputError
+from weiqi.metrics.evidence import Evaluations, checked_turns
 
 if TYPE_CHECKING:
     from weiqi_core import Color, Move
 
-    from weiqi.engine import (
-        AnalysisRequest,
-        Candidate,
-        EngineIdentity,
-        TurnAnalysis,
-        TurnResult,
-    )
+    from weiqi.engine import AnalysisRequest, Candidate, TurnAnalysis
 
 SEQUENTIAL: Final = "score_loss.sequential.v1"
 SAME_ROOT: Final = "score_loss.same_root.v1"
@@ -57,17 +52,6 @@ LOW_VISITS: Final = 16
 """A compared candidate with fewer visits than this (or than `max_visits`,
 if smaller) is flagged `low_visits`, as in the prototype."""
 LOW_VISITS_FLAG: Final = "low_visits"
-
-
-class Evaluations(Protocol):
-    """Engine results for one request: `GameAnalysis` or `CachedAnalysis`."""
-
-    @property
-    def request(self) -> AnalysisRequest: ...
-    @property
-    def identity(self) -> EngineIdentity: ...
-    @property
-    def results(self) -> tuple[TurnResult, ...]: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,7 +107,7 @@ def move_metrics(
     `separate_search`.
     """
     request = evaluations.request
-    turns = _turns(request, evaluations.identity, evaluations.results)
+    turns = checked_turns(request, evaluations.identity, evaluations.results)
     searched = _played_searches(evaluations, played_searches)
     return tuple(
         _move(request, turns, searched, number) for number in range(1, len(request.moves) + 1)
@@ -138,7 +122,7 @@ def played_moves_to_search(evaluations: Evaluations) -> tuple[int, ...]:
     score lead, or received no visits (the prototype's rule).
     """
     request = evaluations.request
-    turns = _turns(request, evaluations.identity, evaluations.results)
+    turns = checked_turns(request, evaluations.identity, evaluations.results)
     return tuple(
         turn
         for turn, analysis in sorted(turns.items())
@@ -151,30 +135,6 @@ def _needs_search(before: TurnAnalysis, move: Move) -> bool:
         return False
     played = _candidate(before, move)
     return played is None or played.score_lead_black is None or not played.visits
-
-
-def _turns(
-    request: AnalysisRequest, identity: EngineIdentity, results: Iterable[TurnResult]
-) -> dict[int, TurnAnalysis]:
-    turns: dict[int, TurnAnalysis] = {}
-    for result in results:
-        analysis = result.analysis
-        turn = analysis.turn
-        if not 0 <= turn <= len(request.moves):
-            raise MetricInputError("incomparable_context", f"turn {turn} is not in the game")
-        if turn in turns:
-            raise MetricInputError("duplicate_turn", f"turn {turn} is evaluated twice")
-        if result.query_key != request.query_key(identity, turn):
-            raise MetricInputError(
-                "incomparable_context",
-                f"the evaluation of turn {turn} was made for another request or engine",
-            )
-        if analysis.root.current_player != request.players[turn]:
-            raise MetricInputError(
-                "incomparable_context", f"turn {turn} was evaluated for the wrong player"
-            )
-        turns[turn] = analysis
-    return turns
 
 
 def _played_searches(
@@ -197,7 +157,7 @@ def _played_searches(
             )
         if turn in found:
             raise MetricInputError("duplicate_turn", f"turn {turn} is searched twice")
-        analysed = _turns(search.request, search.identity, search.results)
+        analysed = checked_turns(search.request, search.identity, search.results)
         if turn in analysed:
             found[turn] = analysed[turn]
     return found
