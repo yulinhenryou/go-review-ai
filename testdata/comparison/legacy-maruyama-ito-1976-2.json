@@ -1,0 +1,3025 @@
+{
+ "schema": "comparison.legacy.v1",
+ "sgf": "maruyama-ito-1976.sgf",
+ "sgf_sha256": "9b4ed82c58f994180df7638967ec68af55b13304ed4bf8c4b5d386ee2bd738ba",
+ "rules": "japanese",
+ "komi": 5.5,
+ "engine": {
+  "engine_version": "1.18.2",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3",
+  "max_visits": 200
+ },
+ "method": {
+  "loss_threshold": 3.0,
+  "severe_threshold": 5.0,
+  "limit": 5
+ },
+ "wall_seconds": 381.2,
+ "status": "complete",
+ "input_warnings": [],
+ "warnings": [
+  "low_visits",
+  "negative_difference_search_noise",
+  "separate_search"
+ ],
+ "moves": [
+  {
+   "move_number": 1,
+   "color": "B",
+   "played": "dp",
+   "recommended": "pd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 2,
+   "color": "W",
+   "played": "qc",
+   "recommended": "pd",
+   "score_loss": 0.011413591999999917,
+   "raw_score_loss": 0.011413591999999917,
+   "winrate_delta_pp": -2.0335309999999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 3,
+   "color": "B",
+   "played": "dd",
+   "recommended": "pq",
+   "score_loss": 0.013032752999999953,
+   "raw_score_loss": 0.013032752999999953,
+   "winrate_delta_pp": -0.3265909999999983,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 4,
+   "color": "W",
+   "played": "pq",
+   "recommended": "pq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 5,
+   "color": "B",
+   "played": "po",
+   "recommended": "qo",
+   "score_loss": 0.08052874799999998,
+   "raw_score_loss": 0.08052874799999998,
+   "winrate_delta_pp": -0.41922099999999185,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 6,
+   "color": "W",
+   "played": "oo",
+   "recommended": "qo",
+   "score_loss": 0.4085465669999999,
+   "raw_score_loss": 0.4085465669999999,
+   "winrate_delta_pp": -4.386124600000008,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 7,
+   "color": "B",
+   "played": "qq",
+   "recommended": "qq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 8,
+   "color": "W",
+   "played": "pn",
+   "recommended": "pp",
+   "score_loss": 0.41562560000000004,
+   "raw_score_loss": 0.41562560000000004,
+   "winrate_delta_pp": -3.7718062999999913,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 9,
+   "color": "B",
+   "played": "pp",
+   "recommended": "pp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 10,
+   "color": "W",
+   "played": "op",
+   "recommended": "op",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 11,
+   "color": "B",
+   "played": "oq",
+   "recommended": "oq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 12,
+   "color": "W",
+   "played": "pr",
+   "recommended": "pr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 13,
+   "color": "B",
+   "played": "qr",
+   "recommended": "qr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 14,
+   "color": "W",
+   "played": "ro",
+   "recommended": "qn",
+   "score_loss": 0.012401910000000349,
+   "raw_score_loss": 0.012401910000000349,
+   "winrate_delta_pp": -0.06734489999999926,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 15,
+   "color": "B",
+   "played": "or",
+   "recommended": "or",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 16,
+   "color": "W",
+   "played": "qp",
+   "recommended": "qp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 17,
+   "color": "B",
+   "played": "ps",
+   "recommended": "ps",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 18,
+   "color": "W",
+   "played": "pq",
+   "recommended": "pq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 19,
+   "color": "B",
+   "played": "pd",
+   "recommended": "pr",
+   "score_loss": 0.6720945599999997,
+   "raw_score_loss": 0.6720945599999997,
+   "winrate_delta_pp": -3.3225315000000033,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 20,
+   "color": "W",
+   "played": "pc",
+   "recommended": "qd",
+   "score_loss": 0.0877242899999997,
+   "raw_score_loss": 0.0877242899999997,
+   "winrate_delta_pp": -0.25956129999999966,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 21,
+   "color": "B",
+   "played": "od",
+   "recommended": "nd",
+   "score_loss": 0.41211397000000005,
+   "raw_score_loss": 0.41211397000000005,
+   "winrate_delta_pp": -1.7985561000000039,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 22,
+   "color": "W",
+   "played": "re",
+   "recommended": "oc",
+   "score_loss": 0.1565781300000002,
+   "raw_score_loss": 0.1565781300000002,
+   "winrate_delta_pp": -0.4999532000000029,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 23,
+   "color": "B",
+   "played": "pg",
+   "recommended": "pr",
+   "score_loss": 0.8464858,
+   "raw_score_loss": 0.8464858,
+   "winrate_delta_pp": -4.659811400000002,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 24,
+   "color": "W",
+   "played": "nb",
+   "recommended": "nb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 25,
+   "color": "B",
+   "played": "ld",
+   "recommended": "pr",
+   "score_loss": 1.12124516,
+   "raw_score_loss": 1.12124516,
+   "winrate_delta_pp": -8.101150400000002,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 26,
+   "color": "W",
+   "played": "cj",
+   "recommended": "cc",
+   "score_loss": 1.0554165400000004,
+   "raw_score_loss": 1.0554165400000004,
+   "winrate_delta_pp": -8.429405000000001,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 27,
+   "color": "B",
+   "played": "lq",
+   "recommended": "pr",
+   "score_loss": 0.6201923799999998,
+   "raw_score_loss": 0.6201923799999998,
+   "winrate_delta_pp": -4.441477400000005,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 28,
+   "color": "W",
+   "played": "cg",
+   "recommended": "cf",
+   "score_loss": 0.8133719400000001,
+   "raw_score_loss": 0.8133719400000001,
+   "winrate_delta_pp": -5.4224225000000015,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 29,
+   "color": "B",
+   "played": "ce",
+   "recommended": "pr",
+   "score_loss": 0.34994875000000025,
+   "raw_score_loss": 0.34994875000000025,
+   "winrate_delta_pp": -2.6294214999999954,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 30,
+   "color": "W",
+   "played": "fc",
+   "recommended": "cn",
+   "score_loss": 0.3997120700000001,
+   "raw_score_loss": 0.3997120700000001,
+   "winrate_delta_pp": -4.167269399999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 31,
+   "color": "B",
+   "played": "hd",
+   "recommended": "ec",
+   "score_loss": 1.2844631299999998,
+   "raw_score_loss": 1.2844631299999998,
+   "winrate_delta_pp": -9.499949799999996,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 32,
+   "color": "W",
+   "played": "fe",
+   "recommended": "db",
+   "score_loss": 0.5122933400000003,
+   "raw_score_loss": 0.5122933400000003,
+   "winrate_delta_pp": -3.9734060999999987,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 33,
+   "color": "B",
+   "played": "ec",
+   "recommended": "eb",
+   "score_loss": 0.2588798099999998,
+   "raw_score_loss": 0.2588798099999998,
+   "winrate_delta_pp": -2.1883317000000013,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 34,
+   "color": "W",
+   "played": "fb",
+   "recommended": "fb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 35,
+   "color": "B",
+   "played": "hf",
+   "recommended": "pr",
+   "score_loss": 0.5851102300000002,
+   "raw_score_loss": 0.5851102300000002,
+   "winrate_delta_pp": -4.218724899999993,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 36,
+   "color": "W",
+   "played": "fg",
+   "recommended": "gg",
+   "score_loss": 0.09942053000000017,
+   "raw_score_loss": 0.09942053000000017,
+   "winrate_delta_pp": -1.0179614999999975,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 37,
+   "color": "B",
+   "played": "bg",
+   "recommended": "pr",
+   "score_loss": 1.1360721800000002,
+   "raw_score_loss": 1.1360721800000002,
+   "winrate_delta_pp": -10.299099099999998,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 38,
+   "color": "W",
+   "played": "bf",
+   "recommended": "bh",
+   "score_loss": 0.38644359000000006,
+   "raw_score_loss": 0.38644359000000006,
+   "winrate_delta_pp": -3.954392699999998,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 39,
+   "color": "B",
+   "played": "cf",
+   "recommended": "cf",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 40,
+   "color": "W",
+   "played": "bh",
+   "recommended": "be",
+   "score_loss": 0.12016585999999996,
+   "raw_score_loss": 0.12016585999999996,
+   "winrate_delta_pp": -0.804707299999996,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 41,
+   "color": "B",
+   "played": "dg",
+   "recommended": "dg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 42,
+   "color": "W",
+   "played": "ch",
+   "recommended": "ch",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 43,
+   "color": "B",
+   "played": "be",
+   "recommended": "eb",
+   "score_loss": 0.39385208000000005,
+   "raw_score_loss": 0.39385208000000005,
+   "winrate_delta_pp": -4.092504399999997,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 44,
+   "color": "W",
+   "played": "ge",
+   "recommended": "db",
+   "score_loss": 0.24285741000000005,
+   "raw_score_loss": 0.24285741000000005,
+   "winrate_delta_pp": -3.1894832999999956,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 45,
+   "color": "B",
+   "played": "he",
+   "recommended": "he",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 46,
+   "color": "W",
+   "played": "gh",
+   "recommended": "db",
+   "score_loss": 0.12162165999999996,
+   "raw_score_loss": 0.12162165999999996,
+   "winrate_delta_pp": -2.4712251999999935,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 47,
+   "color": "B",
+   "played": "hh",
+   "recommended": "pr",
+   "score_loss": 0.8228449199999999,
+   "raw_score_loss": 0.8228449199999999,
+   "winrate_delta_pp": -7.545556099999995,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 48,
+   "color": "W",
+   "played": "hi",
+   "recommended": "hi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 49,
+   "color": "B",
+   "played": "ih",
+   "recommended": "ih",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 50,
+   "color": "W",
+   "played": "md",
+   "recommended": "dr",
+   "score_loss": 0.46801315,
+   "raw_score_loss": 0.46801315,
+   "winrate_delta_pp": -4.4379784999999945,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 51,
+   "color": "B",
+   "played": "me",
+   "recommended": "me",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 52,
+   "color": "W",
+   "played": "mc",
+   "recommended": "mc",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 53,
+   "color": "B",
+   "played": "le",
+   "recommended": "pr",
+   "score_loss": 1.366009498,
+   "raw_score_loss": 1.366009498,
+   "winrate_delta_pp": -14.3803809,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 54,
+   "color": "W",
+   "played": "pj",
+   "recommended": "db",
+   "score_loss": 0.12456080700000005,
+   "raw_score_loss": 0.12456080700000005,
+   "winrate_delta_pp": -1.1757730000000022,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 55,
+   "color": "B",
+   "played": "cm",
+   "recommended": "eh",
+   "score_loss": 0.612223044,
+   "raw_score_loss": 0.612223044,
+   "winrate_delta_pp": -4.439290800000006,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 56,
+   "color": "W",
+   "played": "ag",
+   "recommended": "db",
+   "score_loss": 2.153563778,
+   "raw_score_loss": 2.153563778,
+   "winrate_delta_pp": -21.507729799999996,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 57,
+   "color": "B",
+   "played": "eb",
+   "recommended": "eb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 58,
+   "color": "W",
+   "played": "dq",
+   "recommended": "cq",
+   "score_loss": 0.29276877999999984,
+   "raw_score_loss": 0.29276877999999984,
+   "winrate_delta_pp": -5.3666203999999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 59,
+   "color": "B",
+   "played": "cq",
+   "recommended": "cq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 60,
+   "color": "W",
+   "played": "eq",
+   "recommended": "eq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 61,
+   "color": "B",
+   "played": "cr",
+   "recommended": "cr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 62,
+   "color": "W",
+   "played": "ep",
+   "recommended": "hq",
+   "score_loss": 0.3319122700000001,
+   "raw_score_loss": 0.3319122700000001,
+   "winrate_delta_pp": -2.190880899999992,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 63,
+   "color": "B",
+   "played": "do",
+   "recommended": "do",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 64,
+   "color": "W",
+   "played": "hq",
+   "recommended": "hq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 65,
+   "color": "B",
+   "played": "qh",
+   "recommended": "oj",
+   "score_loss": 1.5206030899999994,
+   "raw_score_loss": 1.5206030899999994,
+   "winrate_delta_pp": -6.439261799999995,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 66,
+   "color": "W",
+   "played": "qi",
+   "recommended": "kq",
+   "score_loss": 0.6168082400000001,
+   "raw_score_loss": 0.6168082400000001,
+   "winrate_delta_pp": -4.150377399999994,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 67,
+   "color": "B",
+   "played": "ri",
+   "recommended": "oi",
+   "score_loss": 0.9756706099999999,
+   "raw_score_loss": 0.9756706099999999,
+   "winrate_delta_pp": -3.583906400000003,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 68,
+   "color": "W",
+   "played": "rj",
+   "recommended": "rj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 69,
+   "color": "B",
+   "played": "pi",
+   "recommended": "oi",
+   "score_loss": 0.060104429999999986,
+   "raw_score_loss": 0.060104429999999986,
+   "winrate_delta_pp": -0.37351199999999807,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 70,
+   "color": "W",
+   "played": "qj",
+   "recommended": "qj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 71,
+   "color": "B",
+   "played": "oi",
+   "recommended": "oi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 72,
+   "color": "W",
+   "played": "nk",
+   "recommended": "kq",
+   "score_loss": 0.09445069999999989,
+   "raw_score_loss": 0.09445069999999989,
+   "winrate_delta_pp": -1.194329999999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 73,
+   "color": "B",
+   "played": "mj",
+   "recommended": "jq",
+   "score_loss": 0.10519823000000006,
+   "raw_score_loss": 0.10519823000000006,
+   "winrate_delta_pp": -0.3584570000000009,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 74,
+   "color": "W",
+   "played": "mk",
+   "recommended": "kq",
+   "score_loss": 0.24709915999999987,
+   "raw_score_loss": 0.24709915999999987,
+   "winrate_delta_pp": -2.260253499999998,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 75,
+   "color": "B",
+   "played": "lj",
+   "recommended": "lj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 76,
+   "color": "W",
+   "played": "kr",
+   "recommended": "kr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 77,
+   "color": "B",
+   "played": "kq",
+   "recommended": "kq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 78,
+   "color": "W",
+   "played": "lr",
+   "recommended": "jq",
+   "score_loss": 0.21034033999999968,
+   "raw_score_loss": 0.21034033999999968,
+   "winrate_delta_pp": -0.5387845999999974,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 79,
+   "color": "B",
+   "played": "mr",
+   "recommended": "mr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 80,
+   "color": "W",
+   "played": "jq",
+   "recommended": "jq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 81,
+   "color": "B",
+   "played": "jp",
+   "recommended": "jp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 82,
+   "color": "W",
+   "played": "iq",
+   "recommended": "ir",
+   "score_loss": 0.17282833000000064,
+   "raw_score_loss": 0.17282833000000064,
+   "winrate_delta_pp": -0.6965037000000063,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 83,
+   "color": "B",
+   "played": "rp",
+   "recommended": "lb",
+   "score_loss": 3.57535486,
+   "raw_score_loss": 3.57535486,
+   "winrate_delta_pp": -21.914990200000005,
+   "severity": "mistake",
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 84,
+   "color": "W",
+   "played": "qo",
+   "recommended": "qo",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 85,
+   "color": "B",
+   "played": "mp",
+   "recommended": "lb",
+   "score_loss": 1.5333635745,
+   "raw_score_loss": 1.5333635745,
+   "winrate_delta_pp": -26.342095000000004,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 86,
+   "color": "W",
+   "played": "bl",
+   "recommended": "jc",
+   "score_loss": 0.422329909,
+   "raw_score_loss": 0.422329909,
+   "winrate_delta_pp": -8.331206800000002,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 87,
+   "color": "B",
+   "played": "bm",
+   "recommended": "cl",
+   "score_loss": 1.163685134,
+   "raw_score_loss": 1.163685134,
+   "winrate_delta_pp": -22.6926369,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 88,
+   "color": "W",
+   "played": "kc",
+   "recommended": "jc",
+   "score_loss": 0.3442319938,
+   "raw_score_loss": 0.3442319938,
+   "winrate_delta_pp": -7.747558900000007,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 89,
+   "color": "B",
+   "played": "jb",
+   "recommended": "gi",
+   "score_loss": 0.695604092,
+   "raw_score_loss": 0.695604092,
+   "winrate_delta_pp": -13.947542600000002,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 90,
+   "color": "W",
+   "played": "kb",
+   "recommended": "lc",
+   "score_loss": 0.26936606100000005,
+   "raw_score_loss": 0.26936606100000005,
+   "winrate_delta_pp": -5.934854199999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 91,
+   "color": "B",
+   "played": "bk",
+   "recommended": "gi",
+   "score_loss": 1.238295023,
+   "raw_score_loss": 1.238295023,
+   "winrate_delta_pp": -25.116536199999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 92,
+   "color": "W",
+   "played": "ck",
+   "recommended": "eo",
+   "score_loss": 1.2460548790000001,
+   "raw_score_loss": 1.2460548790000001,
+   "winrate_delta_pp": -25.1049941,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 93,
+   "color": "B",
+   "played": "cl",
+   "recommended": "cl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 94,
+   "color": "W",
+   "played": "bj",
+   "recommended": "dh",
+   "score_loss": 0.36565957000000004,
+   "raw_score_loss": 0.36565957000000004,
+   "winrate_delta_pp": -6.1780956999999965,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 95,
+   "color": "B",
+   "played": "al",
+   "recommended": "gi",
+   "score_loss": 2.560076792,
+   "raw_score_loss": 2.560076792,
+   "winrate_delta_pp": -46.6206045,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 96,
+   "color": "W",
+   "played": "jd",
+   "recommended": "gi",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.34170897999999994,
+   "winrate_delta_pp": 0.5355316000000054,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 97,
+   "color": "B",
+   "played": "je",
+   "recommended": "es",
+   "score_loss": 0.20447809000000006,
+   "raw_score_loss": 0.20447809000000006,
+   "winrate_delta_pp": -6.392003499999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 98,
+   "color": "W",
+   "played": "dr",
+   "recommended": "lk",
+   "score_loss": 0.81195298,
+   "raw_score_loss": 0.81195298,
+   "winrate_delta_pp": -7.7591323000000045,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 99,
+   "color": "B",
+   "played": "mn",
+   "recommended": "gp",
+   "score_loss": 1.63944865,
+   "raw_score_loss": 1.63944865,
+   "winrate_delta_pp": -12.718689350000002,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 100,
+   "color": "W",
+   "played": "kd",
+   "recommended": "lk",
+   "score_loss": 0.13339972999999983,
+   "raw_score_loss": 0.13339972999999983,
+   "winrate_delta_pp": -1.6750747200000027,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 101,
+   "color": "B",
+   "played": "ke",
+   "recommended": "hb",
+   "score_loss": 0.3782588499999999,
+   "raw_score_loss": 0.3782588499999999,
+   "winrate_delta_pp": -0.2998654199999992,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 102,
+   "color": "W",
+   "played": "rg",
+   "recommended": "ea",
+   "score_loss": 1.6784197600000001,
+   "raw_score_loss": 1.6784197600000001,
+   "winrate_delta_pp": -15.368418289999997,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 103,
+   "color": "B",
+   "played": "nm",
+   "recommended": "rh",
+   "score_loss": 1.73518054,
+   "raw_score_loss": 1.73518054,
+   "winrate_delta_pp": -13.301981219999998,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 104,
+   "color": "W",
+   "played": "om",
+   "recommended": "nj",
+   "score_loss": 1.9279516600000002,
+   "raw_score_loss": 1.9279516600000002,
+   "winrate_delta_pp": -13.43429007,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 105,
+   "color": "B",
+   "played": "gi",
+   "recommended": "hb",
+   "score_loss": 0.7516645400000002,
+   "raw_score_loss": 0.7516645400000002,
+   "winrate_delta_pp": -2.198605100000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 106,
+   "color": "W",
+   "played": "io",
+   "recommended": "hc",
+   "score_loss": 1.3919283840000003,
+   "raw_score_loss": 1.3919283840000003,
+   "winrate_delta_pp": -17.3799747,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 107,
+   "color": "B",
+   "played": "hb",
+   "recommended": "hb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 108,
+   "color": "W",
+   "played": "fi",
+   "recommended": "fi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 109,
+   "color": "B",
+   "played": "gj",
+   "recommended": "gj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 110,
+   "color": "W",
+   "played": "fj",
+   "recommended": "fj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 111,
+   "color": "B",
+   "played": "eh",
+   "recommended": "rh",
+   "score_loss": 0.776320714,
+   "raw_score_loss": 0.776320714,
+   "winrate_delta_pp": -10.173316200000002,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 112,
+   "color": "W",
+   "played": "fh",
+   "recommended": "fh",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 113,
+   "color": "B",
+   "played": "gk",
+   "recommended": "rh",
+   "score_loss": 0.48498522999999993,
+   "raw_score_loss": 0.48498522999999993,
+   "winrate_delta_pp": -6.6617795300000004,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 114,
+   "color": "W",
+   "played": "lo",
+   "recommended": "cp",
+   "score_loss": 1.41132365,
+   "raw_score_loss": 1.41132365,
+   "winrate_delta_pp": -22.309728790000005,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 115,
+   "color": "B",
+   "played": "mo",
+   "recommended": "ok",
+   "score_loss": 1.1658667770000002,
+   "raw_score_loss": 1.1658667770000002,
+   "winrate_delta_pp": -20.006237899999995,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 116,
+   "color": "W",
+   "played": "jk",
+   "recommended": "cp",
+   "score_loss": 0.5500310399999999,
+   "raw_score_loss": 0.5500310399999999,
+   "winrate_delta_pp": -10.109564299999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 117,
+   "color": "B",
+   "played": "lk",
+   "recommended": "lk",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 118,
+   "color": "W",
+   "played": "nj",
+   "recommended": "im",
+   "score_loss": 0.47306397200000005,
+   "raw_score_loss": 0.47306397200000005,
+   "winrate_delta_pp": -7.062092099999995,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 119,
+   "color": "B",
+   "played": "ni",
+   "recommended": "ni",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 120,
+   "color": "W",
+   "played": "cp",
+   "recommended": "cp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 121,
+   "color": "B",
+   "played": "co",
+   "recommended": "bp",
+   "score_loss": 0.12333987000000013,
+   "raw_score_loss": 0.12333987000000013,
+   "winrate_delta_pp": -3.596717599999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 122,
+   "color": "W",
+   "played": "il",
+   "recommended": "im",
+   "score_loss": 0.6069080899999999,
+   "raw_score_loss": 0.6069080899999999,
+   "winrate_delta_pp": -5.7526674,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 123,
+   "color": "B",
+   "played": "ij",
+   "recommended": "hm",
+   "score_loss": 0.21206356999999998,
+   "raw_score_loss": 0.21206356999999998,
+   "winrate_delta_pp": -4.771093700000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 124,
+   "color": "W",
+   "played": "rh",
+   "recommended": "rh",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 125,
+   "color": "B",
+   "played": "jo",
+   "recommended": "hm",
+   "score_loss": 0.54997798,
+   "raw_score_loss": 0.54997798,
+   "winrate_delta_pp": -2.4016009000000005,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 126,
+   "color": "W",
+   "played": "in",
+   "recommended": "in",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 127,
+   "color": "B",
+   "played": "go",
+   "recommended": "gn",
+   "score_loss": 0.22230287999999998,
+   "raw_score_loss": 0.22230287999999998,
+   "winrate_delta_pp": -3.3407730499999997,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 128,
+   "color": "W",
+   "played": "jn",
+   "recommended": "cs",
+   "score_loss": 0.7288169199999999,
+   "raw_score_loss": 0.7288169199999999,
+   "winrate_delta_pp": -0.4420578800000019,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 129,
+   "color": "B",
+   "played": "kn",
+   "recommended": "eo",
+   "score_loss": 0.78423854,
+   "raw_score_loss": 0.78423854,
+   "winrate_delta_pp": -7.927514560000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 130,
+   "color": "W",
+   "played": "hk",
+   "recommended": "fn",
+   "score_loss": 0.4298696399999997,
+   "raw_score_loss": 0.4298696399999997,
+   "winrate_delta_pp": -2.006300360000002,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 131,
+   "color": "B",
+   "played": "gm",
+   "recommended": "gq",
+   "score_loss": 0.7884553700000001,
+   "raw_score_loss": 0.7884553700000001,
+   "winrate_delta_pp": -7.0937749,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 132,
+   "color": "W",
+   "played": "ip",
+   "recommended": "fn",
+   "score_loss": 2.23296049,
+   "raw_score_loss": 2.23296049,
+   "winrate_delta_pp": -11.32159531000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 133,
+   "color": "B",
+   "played": "hj",
+   "recommended": "hj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 134,
+   "color": "W",
+   "played": "jj",
+   "recommended": "bp",
+   "score_loss": 0.162013305,
+   "raw_score_loss": 0.162013305,
+   "winrate_delta_pp": -1.7313412000000028,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 135,
+   "color": "B",
+   "played": "ji",
+   "recommended": "ji",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 136,
+   "color": "W",
+   "played": "cs",
+   "recommended": "bp",
+   "score_loss": 0.267567629,
+   "raw_score_loss": 0.267567629,
+   "winrate_delta_pp": -2.1517176000000027,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 137,
+   "color": "B",
+   "played": "bs",
+   "recommended": "bs",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 138,
+   "color": "W",
+   "played": "ds",
+   "recommended": "ds",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 139,
+   "color": "B",
+   "played": "br",
+   "recommended": "bq",
+   "score_loss": 0.39590301099999997,
+   "raw_score_loss": 0.39590301099999997,
+   "winrate_delta_pp": -10.453065300000002,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 140,
+   "color": "W",
+   "played": "rq",
+   "recommended": "ln",
+   "score_loss": 0.10044578900000001,
+   "raw_score_loss": 0.10044578900000001,
+   "winrate_delta_pp": -4.220079799999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 141,
+   "color": "B",
+   "played": "rr",
+   "recommended": "rr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 142,
+   "color": "W",
+   "played": "sp",
+   "recommended": "sp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 143,
+   "color": "B",
+   "played": "ml",
+   "recommended": "fq",
+   "score_loss": 0.623914063,
+   "raw_score_loss": 0.623914063,
+   "winrate_delta_pp": -27.5682949,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 144,
+   "color": "W",
+   "played": "nl",
+   "recommended": "pe",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.18876569999999981,
+   "winrate_delta_pp": -1.4009041999999972,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 145,
+   "color": "B",
+   "played": "ae",
+   "recommended": "km",
+   "score_loss": 1.7703009499999998,
+   "raw_score_loss": 1.7703009499999998,
+   "winrate_delta_pp": -11.471568099999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 146,
+   "color": "W",
+   "played": "el",
+   "recommended": "ln",
+   "score_loss": 2.733559411,
+   "raw_score_loss": 2.733559411,
+   "winrate_delta_pp": -43.70519968000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 147,
+   "color": "B",
+   "played": "ei",
+   "recommended": "km",
+   "score_loss": 1.133088237,
+   "raw_score_loss": 1.133088237,
+   "winrate_delta_pp": -37.2824849,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 148,
+   "color": "W",
+   "played": "ej",
+   "recommended": "ej",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 149,
+   "color": "B",
+   "played": "di",
+   "recommended": "di",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 150,
+   "color": "W",
+   "played": "ea",
+   "recommended": "ln",
+   "score_loss": 2.282240723,
+   "raw_score_loss": 2.282240723,
+   "winrate_delta_pp": -15.585779239999997,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 151,
+   "color": "B",
+   "played": "da",
+   "recommended": "da",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 152,
+   "color": "W",
+   "played": "fa",
+   "recommended": "fa",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 153,
+   "color": "B",
+   "played": "cb",
+   "recommended": "cb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 154,
+   "color": "W",
+   "played": "ln",
+   "recommended": "ln",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 155,
+   "color": "B",
+   "played": "km",
+   "recommended": "fk",
+   "score_loss": 0.4153954999999998,
+   "raw_score_loss": 0.4153954999999998,
+   "winrate_delta_pp": -3.3326800000000003,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 156,
+   "color": "W",
+   "played": "ko",
+   "recommended": "lm",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.9729387199999997,
+   "winrate_delta_pp": 0.8912045300000004,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 157,
+   "color": "B",
+   "played": "af",
+   "recommended": "fk",
+   "score_loss": 0.30721469000000035,
+   "raw_score_loss": 0.30721469000000035,
+   "winrate_delta_pp": -3.3534264800000004,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 158,
+   "color": "W",
+   "played": "eg",
+   "recommended": "df",
+   "score_loss": 0.9528908899999999,
+   "raw_score_loss": 0.9528908899999999,
+   "winrate_delta_pp": -10.339933639999998,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 159,
+   "color": "B",
+   "played": "dh",
+   "recommended": "dh",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 160,
+   "color": "W",
+   "played": "df",
+   "recommended": "df",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 161,
+   "color": "B",
+   "played": "ef",
+   "recommended": "ef",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 162,
+   "color": "W",
+   "played": "dj",
+   "recommended": "dj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 163,
+   "color": "B",
+   "played": "de",
+   "recommended": "de",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 164,
+   "color": "W",
+   "played": "ci",
+   "recommended": "dl",
+   "score_loss": 0.26712355,
+   "raw_score_loss": 0.26712355,
+   "winrate_delta_pp": -1.982239429999999,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 165,
+   "color": "B",
+   "played": "df",
+   "recommended": "df",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 166,
+   "color": "W",
+   "played": "dl",
+   "recommended": "dl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 167,
+   "color": "B",
+   "played": "fk",
+   "recommended": "im",
+   "score_loss": 0.062196220000000135,
+   "raw_score_loss": 0.062196220000000135,
+   "winrate_delta_pp": 0.0347073500000003,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 168,
+   "color": "W",
+   "played": "ek",
+   "recommended": "ek",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 169,
+   "color": "B",
+   "played": "jl",
+   "recommended": "kp",
+   "score_loss": 1.0432970799999999,
+   "raw_score_loss": 1.0432970799999999,
+   "winrate_delta_pp": -0.8060815590000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 170,
+   "color": "W",
+   "played": "kp",
+   "recommended": "kp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 171,
+   "color": "B",
+   "played": "im",
+   "recommended": "gq",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.86696084,
+   "winrate_delta_pp": 0.196460408,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 172,
+   "color": "W",
+   "played": "hm",
+   "recommended": "hm",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 173,
+   "color": "B",
+   "played": "ik",
+   "recommended": "ik",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 174,
+   "color": "W",
+   "played": "kl",
+   "recommended": "jm",
+   "score_loss": 0.39499123000000047,
+   "raw_score_loss": 0.39499123000000047,
+   "winrate_delta_pp": -0.31335941500000297,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 175,
+   "color": "B",
+   "played": "hl",
+   "recommended": "hl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 176,
+   "color": "W",
+   "played": "jm",
+   "recommended": "lm",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.44712229000000026,
+   "winrate_delta_pp": -0.09051204600000196,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 177,
+   "color": "B",
+   "played": "il",
+   "recommended": "il",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 178,
+   "color": "W",
+   "played": "ll",
+   "recommended": "ll",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 179,
+   "color": "B",
+   "played": "gp",
+   "recommended": "bg",
+   "score_loss": 0.03178809000000005,
+   "raw_score_loss": 0.03178809000000005,
+   "winrate_delta_pp": 0.00032639799999998644,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 180,
+   "color": "W",
+   "played": "gq",
+   "recommended": "gq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 181,
+   "color": "B",
+   "played": "mm",
+   "recommended": "mm",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 182,
+   "color": "W",
+   "played": "lm",
+   "recommended": "lm",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 183,
+   "color": "B",
+   "played": "kk",
+   "recommended": "kk",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 184,
+   "color": "W",
+   "played": "np",
+   "recommended": "ic",
+   "score_loss": 0.3114200700000005,
+   "raw_score_loss": 0.3114200700000005,
+   "winrate_delta_pp": 0.002739441000010334,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 185,
+   "color": "B",
+   "played": "nq",
+   "recommended": "nq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 186,
+   "color": "W",
+   "played": "sr",
+   "recommended": "ic",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.06927312000000008,
+   "winrate_delta_pp": -0.064587893000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 187,
+   "color": "B",
+   "played": "rs",
+   "recommended": "rs",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 188,
+   "color": "W",
+   "played": "qg",
+   "recommended": "ic",
+   "score_loss": 0.6011084899999997,
+   "raw_score_loss": 0.6011084899999997,
+   "winrate_delta_pp": -0.004499729000007058,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 189,
+   "color": "B",
+   "played": "ph",
+   "recommended": "pf",
+   "score_loss": 1.2151417000000002,
+   "raw_score_loss": 1.2151417000000002,
+   "winrate_delta_pp": -0.128387232,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 190,
+   "color": "W",
+   "played": "pf",
+   "recommended": "pf",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 191,
+   "color": "B",
+   "played": "of",
+   "recommended": "of",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 192,
+   "color": "W",
+   "played": "pe",
+   "recommended": "pe",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 193,
+   "color": "B",
+   "played": "oe",
+   "recommended": "oe",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 194,
+   "color": "W",
+   "played": "qd",
+   "recommended": "ic",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.007417479999999976,
+   "winrate_delta_pp": -0.19311046300000134,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 195,
+   "color": "B",
+   "played": "ka",
+   "recommended": "ka",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 196,
+   "color": "W",
+   "played": "lb",
+   "recommended": "ic",
+   "score_loss": 0.2835708100000005,
+   "raw_score_loss": 0.2835708100000005,
+   "winrate_delta_pp": 0.04645992199999727,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 197,
+   "color": "B",
+   "played": "bg",
+   "recommended": "id",
+   "score_loss": 0.0868735599999999,
+   "raw_score_loss": 0.0868735599999999,
+   "winrate_delta_pp": 0.047143639000000015,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 198,
+   "color": "W",
+   "played": "ah",
+   "recommended": "ah",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 199,
+   "color": "B",
+   "played": "oc",
+   "recommended": "fp",
+   "score_loss": 0.24215965999999955,
+   "raw_score_loss": 0.24215965999999955,
+   "winrate_delta_pp": 0.10086286600000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 200,
+   "color": "W",
+   "played": "ob",
+   "recommended": "ob",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 201,
+   "color": "B",
+   "played": "oj",
+   "recommended": "gc",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.09957367999999978,
+   "winrate_delta_pp": -0.02215778,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits",
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 202,
+   "color": "W",
+   "played": "ok",
+   "recommended": "ok",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 203,
+   "color": "B",
+   "played": "hn",
+   "recommended": "id",
+   "score_loss": 0.1540779799999994,
+   "raw_score_loss": 0.1540779799999994,
+   "winrate_delta_pp": -0.0026627200000000056,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 204,
+   "color": "W",
+   "played": "ic",
+   "recommended": "fp",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.49353831999999986,
+   "winrate_delta_pp": -0.16502864399999817,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 205,
+   "color": "B",
+   "played": "hc",
+   "recommended": "hc",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 206,
+   "color": "W",
+   "played": "ib",
+   "recommended": "ib",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 207,
+   "color": "B",
+   "played": "ia",
+   "recommended": "ia",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 208,
+   "color": "W",
+   "played": "jc",
+   "recommended": "la",
+   "score_loss": 0.11184439000000079,
+   "raw_score_loss": 0.11184439000000079,
+   "winrate_delta_pp": 0.051274790999999986,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 209,
+   "color": "B",
+   "played": "ja",
+   "recommended": "fp",
+   "score_loss": 0.43787847000000024,
+   "raw_score_loss": 0.43787847000000024,
+   "winrate_delta_pp": -0.09011263799999997,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 210,
+   "color": "W",
+   "played": "la",
+   "recommended": "la",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 211,
+   "color": "B",
+   "played": "ha",
+   "recommended": "ha",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 212,
+   "color": "W",
+   "played": "pp",
+   "recommended": "fp",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.04063888000000038,
+   "winrate_delta_pp": 0.08137464799999883,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 213,
+   "color": "B",
+   "played": "pr",
+   "recommended": "ls",
+   "score_loss": 0.1231664600000002,
+   "raw_score_loss": 0.1231664600000002,
+   "winrate_delta_pp": -0.063802946,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 214,
+   "color": "W",
+   "played": "fp",
+   "recommended": "fp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 215,
+   "color": "B",
+   "played": "jr",
+   "recommended": "en",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.1452890800000004,
+   "winrate_delta_pp": 0.10668438000000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits",
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 216,
+   "color": "W",
+   "played": "ir",
+   "recommended": "lp",
+   "score_loss": 0.42492541000000017,
+   "raw_score_loss": 0.42492541000000017,
+   "winrate_delta_pp": 0.06831361399999292,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 217,
+   "color": "B",
+   "played": "ls",
+   "recommended": "ls",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 218,
+   "color": "W",
+   "played": "js",
+   "recommended": "js",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 219,
+   "color": "B",
+   "played": "nd",
+   "recommended": "gg",
+   "score_loss": 0.3587626299999993,
+   "raw_score_loss": 0.3587626299999993,
+   "winrate_delta_pp": -0.2542160017,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 220,
+   "color": "W",
+   "played": "fn",
+   "recommended": "dn",
+   "score_loss": 0.6887344100000004,
+   "raw_score_loss": 0.6887344100000004,
+   "winrate_delta_pp": 0.062319390999998614,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 221,
+   "color": "B",
+   "played": "aj",
+   "recommended": "en",
+   "score_loss": 0.41870692,
+   "raw_score_loss": 0.41870692,
+   "winrate_delta_pp": -0.031820635,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 222,
+   "color": "W",
+   "played": "ai",
+   "recommended": "ai",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 223,
+   "color": "B",
+   "played": "ak",
+   "recommended": "ak",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 224,
+   "color": "W",
+   "played": "dn",
+   "recommended": "dn",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 225,
+   "color": "B",
+   "played": "cn",
+   "recommended": "cn",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 226,
+   "color": "W",
+   "played": "gn",
+   "recommended": "gg",
+   "score_loss": 0.02534284000000042,
+   "raw_score_loss": 0.02534284000000042,
+   "winrate_delta_pp": -0.06904964500000776,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 227,
+   "color": "B",
+   "played": "ho",
+   "recommended": "ho",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 228,
+   "color": "W",
+   "played": "gg",
+   "recommended": "gg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 229,
+   "color": "B",
+   "played": "hg",
+   "recommended": "hg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 230,
+   "color": "W",
+   "played": "id",
+   "recommended": "id",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 231,
+   "color": "B",
+   "played": "ie",
+   "recommended": "ie",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 232,
+   "color": "W",
+   "played": "fl",
+   "recommended": "fl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 233,
+   "color": "B",
+   "played": "ed",
+   "recommended": "nc",
+   "score_loss": 0.0051367600000000735,
+   "raw_score_loss": 0.0051367600000000735,
+   "winrate_delta_pp": 0.010198674400000005,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 234,
+   "color": "W",
+   "played": "fd",
+   "recommended": "fd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 235,
+   "color": "B",
+   "played": "bf",
+   "recommended": "nc",
+   "score_loss": 0.06018064000000045,
+   "raw_score_loss": 0.06018064000000045,
+   "winrate_delta_pp": -0.0393701303,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  }
+ ],
+ "selected_mistakes": [
+  83
+ ],
+ "mistakes_above_threshold": [
+  83
+ ]
+}

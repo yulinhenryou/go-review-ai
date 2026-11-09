@@ -1,0 +1,178 @@
+[
+ {
+  "name": "sample_game",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "first_variation_only"
+  ]
+ },
+ {
+  "name": "m3_mistake",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "maruyama_ito_1976",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "missing_gm"
+  ]
+ },
+ {
+  "name": "kejie_utf8_with_variations",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "first_variation_only",
+   "malformed_result"
+  ]
+ },
+ {
+  "name": "kejie_gbk_without_ca",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "encoding_guessed",
+   "first_variation_only",
+   "malformed_result"
+  ]
+ },
+ {
+  "name": "synthetic_short_with_passes",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "m4_invalid_occupied",
+  "accepted": false,
+  "code": "occupied",
+  "warnings": []
+ },
+ {
+  "name": "m4_missing_metadata_unconfirmed",
+  "accepted": false,
+  "code": "metadata_unconfirmed",
+  "warnings": []
+ },
+ {
+  "name": "m4_missing_metadata_confirmed",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "missing_komi",
+   "missing_rules"
+  ]
+ },
+ {
+  "name": "not_sgf",
+  "accepted": false,
+  "code": "no_game",
+  "warnings": []
+ },
+ {
+  "name": "junk_before_one_game",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "junk_outside_tree"
+  ]
+ },
+ {
+  "name": "two_games",
+  "accepted": false,
+  "code": "multiple_games",
+  "warnings": []
+ },
+ {
+  "name": "unclosed_tree",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "unclosed_tree"
+  ]
+ },
+ {
+  "name": "two_moves_in_one_node",
+  "accepted": false,
+  "code": "two_moves_in_node",
+  "warnings": []
+ },
+ {
+  "name": "move_on_occupied_point",
+  "accepted": false,
+  "code": "occupied",
+  "warnings": []
+ },
+ {
+  "name": "ko_recapture",
+  "accepted": false,
+  "code": "ko_violation",
+  "warnings": []
+ },
+ {
+  "name": "suicide",
+  "accepted": false,
+  "code": "suicide",
+  "warnings": []
+ },
+ {
+  "name": "two_black_moves_in_a_row",
+  "accepted": false,
+  "code": "out_of_turn",
+  "warnings": []
+ },
+ {
+  "name": "white_moves_first",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "play_after_two_passes",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "no_moves",
+  "accepted": false,
+  "code": "no_moves",
+  "warnings": []
+ },
+ {
+  "name": "handicap_setup",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "missing_rules_confirmed",
+  "accepted": true,
+  "code": null,
+  "warnings": [
+   "missing_rules"
+  ]
+ },
+ {
+  "name": "board_9x9",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "korean_rules",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ },
+ {
+  "name": "declared_gb2312",
+  "accepted": true,
+  "code": null,
+  "warnings": []
+ }
+]

@@ -1,0 +1,132 @@
+[
+ {
+  "name": "sample_game",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "m3_mistake",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "maruyama_ito_1976",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "kejie_utf8_with_variations",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "kejie_gbk_without_ca",
+  "accepted": false,
+  "code": "invalid_encoding"
+ },
+ {
+  "name": "synthetic_short_with_passes",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "m4_invalid_occupied",
+  "accepted": false,
+  "code": "occupied_point"
+ },
+ {
+  "name": "m4_missing_metadata_unconfirmed",
+  "accepted": false,
+  "code": "missing_metadata"
+ },
+ {
+  "name": "m4_missing_metadata_confirmed",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "not_sgf",
+  "accepted": false,
+  "code": "invalid_sgf"
+ },
+ {
+  "name": "junk_before_one_game",
+  "accepted": false,
+  "code": "invalid_sgf"
+ },
+ {
+  "name": "two_games",
+  "accepted": false,
+  "code": "invalid_sgf"
+ },
+ {
+  "name": "unclosed_tree",
+  "accepted": false,
+  "code": "invalid_sgf"
+ },
+ {
+  "name": "two_moves_in_one_node",
+  "accepted": false,
+  "code": "invalid_sgf"
+ },
+ {
+  "name": "move_on_occupied_point",
+  "accepted": false,
+  "code": "occupied_point"
+ },
+ {
+  "name": "ko_recapture",
+  "accepted": false,
+  "code": "ko_violation"
+ },
+ {
+  "name": "suicide",
+  "accepted": false,
+  "code": "suicide"
+ },
+ {
+  "name": "two_black_moves_in_a_row",
+  "accepted": false,
+  "code": "invalid_turn"
+ },
+ {
+  "name": "white_moves_first",
+  "accepted": false,
+  "code": "invalid_turn"
+ },
+ {
+  "name": "play_after_two_passes",
+  "accepted": false,
+  "code": "unsupported_resumption"
+ },
+ {
+  "name": "no_moves",
+  "accepted": false,
+  "code": "invalid_move_count"
+ },
+ {
+  "name": "handicap_setup",
+  "accepted": false,
+  "code": "unsupported_handicap"
+ },
+ {
+  "name": "missing_rules_confirmed",
+  "accepted": true,
+  "code": null
+ },
+ {
+  "name": "board_9x9",
+  "accepted": false,
+  "code": "unsupported_board_size"
+ },
+ {
+  "name": "korean_rules",
+  "accepted": false,
+  "code": "unsupported_rules"
+ },
+ {
+  "name": "declared_gb2312",
+  "accepted": false,
+  "code": "invalid_encoding"
+ }
+]

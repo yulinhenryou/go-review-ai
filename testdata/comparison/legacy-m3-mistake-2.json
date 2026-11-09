@@ -1,0 +1,118 @@
+{
+ "schema": "comparison.legacy.v1",
+ "sgf": "m3-mistake.sgf",
+ "sgf_sha256": "39311b92cd1ec8db4c72acd5426b3f77f58e969b78521249bca4db679a2b7ab2",
+ "rules": "chinese",
+ "komi": 7.5,
+ "engine": {
+  "engine_version": "1.18.2",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3",
+  "max_visits": 200
+ },
+ "method": {
+  "loss_threshold": 3.0,
+  "severe_threshold": 5.0,
+  "limit": 5
+ },
+ "wall_seconds": 15.2,
+ "status": "complete",
+ "input_warnings": [],
+ "warnings": [
+  "low_visits",
+  "separate_search"
+ ],
+ "moves": [
+  {
+   "move_number": 1,
+   "color": "B",
+   "played": "aa",
+   "recommended": "qd",
+   "score_loss": 12.577499280000001,
+   "raw_score_loss": 12.577499280000001,
+   "winrate_delta_pp": -36.03645004,
+   "severity": "severe",
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 2,
+   "color": "W",
+   "played": "pp",
+   "recommended": "pq",
+   "score_loss": 0.24062610000000006,
+   "raw_score_loss": 0.24062610000000006,
+   "winrate_delta_pp": 0.05144474699999568,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 3,
+   "color": "B",
+   "played": "ba",
+   "recommended": "dc",
+   "score_loss": 12.139497899999999,
+   "raw_score_loss": 12.139497899999999,
+   "winrate_delta_pp": -0.840300201,
+   "severity": "severe",
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 4,
+   "color": "W",
+   "played": "dd",
+   "recommended": "dd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 5,
+   "color": "B",
+   "played": "ca",
+   "recommended": "fc",
+   "score_loss": 9.451602000000005,
+   "raw_score_loss": 9.451602000000005,
+   "winrate_delta_pp": -0.08119405769999999,
+   "severity": "severe",
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 6,
+   "color": "W",
+   "played": "dp",
+   "recommended": "dp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  }
+ ],
+ "selected_mistakes": [
+  1,
+  3,
+  5
+ ],
+ "mistakes_above_threshold": [
+  1,
+  3,
+  5
+ ]
+}

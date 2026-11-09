@@ -1,0 +1,84 @@
+{
+ "schema": "comparison.legacy.v1",
+ "sgf": "sample-game.sgf",
+ "sgf_sha256": "e85a2d14b29cd8749ea62ad42b0b91abfec9903c1a7961d3eee21332660c67d6",
+ "rules": "japanese",
+ "komi": 6.5,
+ "engine": {
+  "engine_version": "1.18.2",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3",
+  "max_visits": 200
+ },
+ "method": {
+  "loss_threshold": 3.0,
+  "severe_threshold": 5.0,
+  "limit": 5
+ },
+ "wall_seconds": 9.6,
+ "status": "complete",
+ "input_warnings": [
+  "first_variation_only"
+ ],
+ "warnings": [
+  "low_visits",
+  "separate_search"
+ ],
+ "moves": [
+  {
+   "move_number": 1,
+   "color": "B",
+   "played": "pd",
+   "recommended": "pd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "winrate_delta_pp": 0.0,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 2,
+   "color": "W",
+   "played": "dd",
+   "recommended": "dp",
+   "score_loss": 0.026119232000000048,
+   "raw_score_loss": 0.026119232000000048,
+   "winrate_delta_pp": -0.3260715000000025,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": []
+  },
+  {
+   "move_number": 3,
+   "color": "B",
+   "played": "qp",
+   "recommended": "dp",
+   "score_loss": 0.06365355,
+   "raw_score_loss": 0.06365355,
+   "winrate_delta_pp": -1.058848400000001,
+   "severity": null,
+   "played_source": "candidate",
+   "warnings": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 4,
+   "color": "W",
+   "played": "dc",
+   "recommended": "dp",
+   "score_loss": 1.8102906,
+   "raw_score_loss": 1.8102906,
+   "winrate_delta_pp": -18.603908700000005,
+   "severity": null,
+   "played_source": "forced_root",
+   "warnings": [
+    "separate_search"
+   ]
+  }
+ ],
+ "selected_mistakes": [],
+ "mistakes_above_threshold": []
+}

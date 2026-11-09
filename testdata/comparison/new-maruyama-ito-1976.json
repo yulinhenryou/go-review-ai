@@ -1,0 +1,2549 @@
+{
+ "schema": "comparison.new.v1",
+ "sgf": "maruyama-ito-1976.sgf",
+ "sgf_sha256": "9b4ed82c58f994180df7638967ec68af55b13304ed4bf8c4b5d386ee2bd738ba",
+ "rules": "japanese",
+ "komi": 5.5,
+ "engine": {
+  "engine_version": "1.18.2",
+  "model_id": "kata1-b18c384nbt-s9996604416-d4316597426",
+  "model_sha256": "9d7a6afed8ff5b74894727e156f04f0cd36060a24824892008fbb6e0cba51f1d",
+  "config_sha256": "ff7bcc303c4287d0b38030d67d22e02c36d53942dae985d941989f1586fa35f3",
+  "max_visits": 200
+ },
+ "status": "complete",
+ "warnings": [
+  "negative_difference_search_noise"
+ ],
+ "diagnostic_warnings": [
+  "low_visits",
+  "negative_difference_search_noise",
+  "separate_search"
+ ],
+ "moves": [
+  {
+   "move_number": 1,
+   "color": "B",
+   "played": "dp",
+   "recommended": "pd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.004025668000000038,
+   "flags": []
+  },
+  {
+   "move_number": 2,
+   "color": "W",
+   "played": "qc",
+   "recommended": "pd",
+   "score_loss": 0.024361738000000077,
+   "raw_score_loss": 0.024361738000000077,
+   "sequential_score_loss": 0.13395015499999996,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 3,
+   "color": "B",
+   "played": "dd",
+   "recommended": "qp",
+   "score_loss": 0.03002107900000006,
+   "raw_score_loss": 0.03002107900000006,
+   "sequential_score_loss": 0.06122477900000001,
+   "flags": []
+  },
+  {
+   "move_number": 4,
+   "color": "W",
+   "played": "pq",
+   "recommended": "pq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 5,
+   "color": "B",
+   "played": "po",
+   "recommended": "qo",
+   "score_loss": 0.057326665999999915,
+   "raw_score_loss": 0.057326665999999915,
+   "sequential_score_loss": 0.06583986200000003,
+   "flags": []
+  },
+  {
+   "move_number": 6,
+   "color": "W",
+   "played": "oo",
+   "recommended": "qo",
+   "score_loss": 0.42799858199999985,
+   "raw_score_loss": 0.42799858199999985,
+   "sequential_score_loss": 0.4264878420000001,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 7,
+   "color": "B",
+   "played": "qq",
+   "recommended": "qq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 8,
+   "color": "W",
+   "played": "pn",
+   "recommended": "pp",
+   "score_loss": 0.45927936999999996,
+   "raw_score_loss": 0.45927936999999996,
+   "sequential_score_loss": 3.56452964,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 9,
+   "color": "B",
+   "played": "pp",
+   "recommended": "pp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 10,
+   "color": "W",
+   "played": "op",
+   "recommended": "op",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.04855540999999963,
+   "flags": []
+  },
+  {
+   "move_number": 11,
+   "color": "B",
+   "played": "oq",
+   "recommended": "oq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 12,
+   "color": "W",
+   "played": "pr",
+   "recommended": "pr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.009412339999999908,
+   "flags": []
+  },
+  {
+   "move_number": 13,
+   "color": "B",
+   "played": "qr",
+   "recommended": "qr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.04652730000000016,
+   "flags": []
+  },
+  {
+   "move_number": 14,
+   "color": "W",
+   "played": "ro",
+   "recommended": "qn",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.13174445000000023,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise",
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 15,
+   "color": "B",
+   "played": "or",
+   "recommended": "or",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 16,
+   "color": "W",
+   "played": "qp",
+   "recommended": "qp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 17,
+   "color": "B",
+   "played": "ps",
+   "recommended": "ps",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 18,
+   "color": "W",
+   "played": "pq",
+   "recommended": "pq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 19,
+   "color": "B",
+   "played": "pd",
+   "recommended": "pr",
+   "score_loss": 0.9036983800000002,
+   "raw_score_loss": 0.9036983800000002,
+   "sequential_score_loss": 0.7554743399999992,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 20,
+   "color": "W",
+   "played": "pc",
+   "recommended": "qd",
+   "score_loss": 0.05880725000000009,
+   "raw_score_loss": 0.05880725000000009,
+   "sequential_score_loss": 0.09252517999999998,
+   "flags": []
+  },
+  {
+   "move_number": 21,
+   "color": "B",
+   "played": "od",
+   "recommended": "nd",
+   "score_loss": 0.37098951999999974,
+   "raw_score_loss": 0.37098951999999974,
+   "sequential_score_loss": 0.07847305000000038,
+   "flags": []
+  },
+  {
+   "move_number": 22,
+   "color": "W",
+   "played": "re",
+   "recommended": "oc",
+   "score_loss": 0.09504496000000007,
+   "raw_score_loss": 0.09504496000000007,
+   "sequential_score_loss": 0.04924873000000041,
+   "flags": []
+  },
+  {
+   "move_number": 23,
+   "color": "B",
+   "played": "pg",
+   "recommended": "pr",
+   "score_loss": 1.09781848,
+   "raw_score_loss": 1.09781848,
+   "sequential_score_loss": 0.7065652400000006,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 24,
+   "color": "W",
+   "played": "nb",
+   "recommended": "nb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 25,
+   "color": "B",
+   "played": "ld",
+   "recommended": "pr",
+   "score_loss": 1.0727217799999997,
+   "raw_score_loss": 1.0727217799999997,
+   "sequential_score_loss": 1.00201552,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 26,
+   "color": "W",
+   "played": "cj",
+   "recommended": "cc",
+   "score_loss": 0.9622487999999998,
+   "raw_score_loss": 0.9622487999999998,
+   "sequential_score_loss": 0.92084535,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 27,
+   "color": "B",
+   "played": "lq",
+   "recommended": "pr",
+   "score_loss": 0.51582858,
+   "raw_score_loss": 0.51582858,
+   "sequential_score_loss": 0.48191542,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 28,
+   "color": "W",
+   "played": "cg",
+   "recommended": "cf",
+   "score_loss": 0.7046872999999998,
+   "raw_score_loss": 0.7046872999999998,
+   "sequential_score_loss": 0.5299833899999999,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 29,
+   "color": "B",
+   "played": "ce",
+   "recommended": "pr",
+   "score_loss": 0.35223921,
+   "raw_score_loss": 0.35223921,
+   "sequential_score_loss": 0.3425760900000001,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 30,
+   "color": "W",
+   "played": "fc",
+   "recommended": "cn",
+   "score_loss": 0.6232977000000002,
+   "raw_score_loss": 0.6232977000000002,
+   "sequential_score_loss": 0.5932237499999999,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 31,
+   "color": "B",
+   "played": "hd",
+   "recommended": "ec",
+   "score_loss": 1.25952755,
+   "raw_score_loss": 1.25952755,
+   "sequential_score_loss": 1.16074922,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 32,
+   "color": "W",
+   "played": "fe",
+   "recommended": "db",
+   "score_loss": 0.3904770000000002,
+   "raw_score_loss": 0.3904770000000002,
+   "sequential_score_loss": 0.50415111,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 33,
+   "color": "B",
+   "played": "ec",
+   "recommended": "eb",
+   "score_loss": 0.3355411399999997,
+   "raw_score_loss": 0.3355411399999997,
+   "sequential_score_loss": 0.18257316,
+   "flags": []
+  },
+  {
+   "move_number": 34,
+   "color": "W",
+   "played": "fb",
+   "recommended": "fb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.07099655000000027,
+   "flags": []
+  },
+  {
+   "move_number": 35,
+   "color": "B",
+   "played": "hf",
+   "recommended": "pr",
+   "score_loss": 0.6010303000000001,
+   "raw_score_loss": 0.6010303000000001,
+   "sequential_score_loss": 0.41749210999999997,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 36,
+   "color": "W",
+   "played": "fg",
+   "recommended": "ef",
+   "score_loss": 0.24062621999999978,
+   "raw_score_loss": 0.24062621999999978,
+   "sequential_score_loss": 0.05291623000000012,
+   "flags": []
+  },
+  {
+   "move_number": 37,
+   "color": "B",
+   "played": "bg",
+   "recommended": "pr",
+   "score_loss": 1.16316886,
+   "raw_score_loss": 1.16316886,
+   "sequential_score_loss": 1.0663533200000002,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 38,
+   "color": "W",
+   "played": "bf",
+   "recommended": "bh",
+   "score_loss": 0.35875393,
+   "raw_score_loss": 0.35875393,
+   "sequential_score_loss": 0.5085772799999999,
+   "flags": []
+  },
+  {
+   "move_number": 39,
+   "color": "B",
+   "played": "cf",
+   "recommended": "cf",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 40,
+   "color": "W",
+   "played": "bh",
+   "recommended": "be",
+   "score_loss": 0.15875748999999995,
+   "raw_score_loss": 0.15875748999999995,
+   "sequential_score_loss": 0.10725870000000004,
+   "flags": []
+  },
+  {
+   "move_number": 41,
+   "color": "B",
+   "played": "dg",
+   "recommended": "dg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 42,
+   "color": "W",
+   "played": "ch",
+   "recommended": "ch",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 43,
+   "color": "B",
+   "played": "be",
+   "recommended": "eb",
+   "score_loss": 0.5348197299999999,
+   "raw_score_loss": 0.5348197299999999,
+   "sequential_score_loss": 0.25710875,
+   "flags": []
+  },
+  {
+   "move_number": 44,
+   "color": "W",
+   "played": "ge",
+   "recommended": "db",
+   "score_loss": 0.19466415000000015,
+   "raw_score_loss": 0.19466415000000015,
+   "sequential_score_loss": 0.2683999800000001,
+   "flags": []
+  },
+  {
+   "move_number": 45,
+   "color": "B",
+   "played": "he",
+   "recommended": "he",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 46,
+   "color": "W",
+   "played": "gh",
+   "recommended": "db",
+   "score_loss": 0.010884990000000094,
+   "raw_score_loss": 0.010884990000000094,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 47,
+   "color": "B",
+   "played": "hh",
+   "recommended": "pr",
+   "score_loss": 0.8941222,
+   "raw_score_loss": 0.8941222,
+   "sequential_score_loss": 0.8120460600000001,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 48,
+   "color": "W",
+   "played": "hi",
+   "recommended": "hi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.03935829999999996,
+   "flags": []
+  },
+  {
+   "move_number": 49,
+   "color": "B",
+   "played": "ih",
+   "recommended": "ih",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 50,
+   "color": "W",
+   "played": "md",
+   "recommended": "db",
+   "score_loss": 0.40807017,
+   "raw_score_loss": 0.40807017,
+   "sequential_score_loss": 0.76815871,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 51,
+   "color": "B",
+   "played": "me",
+   "recommended": "me",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 52,
+   "color": "W",
+   "played": "mc",
+   "recommended": "mc",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.06422826000000015,
+   "flags": []
+  },
+  {
+   "move_number": 53,
+   "color": "B",
+   "played": "le",
+   "recommended": "pr",
+   "score_loss": 1.3903110479999998,
+   "raw_score_loss": 1.3903110479999998,
+   "sequential_score_loss": 1.336558444,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 54,
+   "color": "W",
+   "played": "pj",
+   "recommended": "db",
+   "score_loss": 0.06832081699999992,
+   "raw_score_loss": 0.06832081699999992,
+   "sequential_score_loss": 0.128584182,
+   "flags": []
+  },
+  {
+   "move_number": 55,
+   "color": "B",
+   "played": "cm",
+   "recommended": "eh",
+   "score_loss": 0.568124087,
+   "raw_score_loss": 0.568124087,
+   "sequential_score_loss": 0.36276030300000006,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 56,
+   "color": "W",
+   "played": "ag",
+   "recommended": "db",
+   "score_loss": 1.856274191,
+   "raw_score_loss": 1.856274191,
+   "sequential_score_loss": 1.849905385,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 57,
+   "color": "B",
+   "played": "eb",
+   "recommended": "eb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 58,
+   "color": "W",
+   "played": "dq",
+   "recommended": "dr",
+   "score_loss": 0.50190182,
+   "raw_score_loss": 0.50190182,
+   "sequential_score_loss": 0.8341882899999997,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 59,
+   "color": "B",
+   "played": "cq",
+   "recommended": "cq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.006295599999999624,
+   "flags": []
+  },
+  {
+   "move_number": 60,
+   "color": "W",
+   "played": "eq",
+   "recommended": "eq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.15362503999999966,
+   "flags": []
+  },
+  {
+   "move_number": 61,
+   "color": "B",
+   "played": "cr",
+   "recommended": "cr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0580672299999998,
+   "flags": []
+  },
+  {
+   "move_number": 62,
+   "color": "W",
+   "played": "ep",
+   "recommended": "kq",
+   "score_loss": 0.24459352,
+   "raw_score_loss": 0.24459352,
+   "sequential_score_loss": 0.8323941899999996,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 63,
+   "color": "B",
+   "played": "do",
+   "recommended": "do",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 64,
+   "color": "W",
+   "played": "hq",
+   "recommended": "kq",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.3845596499999999,
+   "sequential_score_loss": 0.024052880000000165,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 65,
+   "color": "B",
+   "played": "qh",
+   "recommended": "oj",
+   "score_loss": 1.4283958699999997,
+   "raw_score_loss": 1.4283958699999997,
+   "sequential_score_loss": 1.0951007500000003,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 66,
+   "color": "W",
+   "played": "qi",
+   "recommended": "kq",
+   "score_loss": 0.6583574300000001,
+   "raw_score_loss": 0.6583574300000001,
+   "sequential_score_loss": 1.2257251399999998,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 67,
+   "color": "B",
+   "played": "ri",
+   "recommended": "oi",
+   "score_loss": 0.8298452799999998,
+   "raw_score_loss": 0.8298452799999998,
+   "sequential_score_loss": 0.7136764799999997,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 68,
+   "color": "W",
+   "played": "rj",
+   "recommended": "rj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 69,
+   "color": "B",
+   "played": "pi",
+   "recommended": "oi",
+   "score_loss": 0.014020299999999875,
+   "raw_score_loss": 0.014020299999999875,
+   "sequential_score_loss": 0.08682589000000007,
+   "flags": []
+  },
+  {
+   "move_number": 70,
+   "color": "W",
+   "played": "qj",
+   "recommended": "qj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.06569320000000012,
+   "flags": []
+  },
+  {
+   "move_number": 71,
+   "color": "B",
+   "played": "oi",
+   "recommended": "oi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.024934710000000138,
+   "flags": []
+  },
+  {
+   "move_number": 72,
+   "color": "W",
+   "played": "nk",
+   "recommended": "kq",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.05063950999999989,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 73,
+   "color": "B",
+   "played": "mj",
+   "recommended": "jq",
+   "score_loss": 0.05607247000000015,
+   "raw_score_loss": 0.05607247000000015,
+   "sequential_score_loss": 0.14844275000000007,
+   "flags": []
+  },
+  {
+   "move_number": 74,
+   "color": "W",
+   "played": "mk",
+   "recommended": "kq",
+   "score_loss": 0.14042480999999984,
+   "raw_score_loss": 0.14042480999999984,
+   "sequential_score_loss": 0.12430061000000014,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 75,
+   "color": "B",
+   "played": "lj",
+   "recommended": "lj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 76,
+   "color": "W",
+   "played": "kr",
+   "recommended": "kr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 77,
+   "color": "B",
+   "played": "kq",
+   "recommended": "kq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 78,
+   "color": "W",
+   "played": "lr",
+   "recommended": "jq",
+   "score_loss": 0.23275773999999982,
+   "raw_score_loss": 0.23275773999999982,
+   "sequential_score_loss": 0.18038272999999982,
+   "flags": []
+  },
+  {
+   "move_number": 79,
+   "color": "B",
+   "played": "mr",
+   "recommended": "mr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 80,
+   "color": "W",
+   "played": "jq",
+   "recommended": "jq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 81,
+   "color": "B",
+   "played": "jp",
+   "recommended": "jp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 82,
+   "color": "W",
+   "played": "iq",
+   "recommended": "ir",
+   "score_loss": 0.13146435999999984,
+   "raw_score_loss": 0.13146435999999984,
+   "sequential_score_loss": 0.2461366199999997,
+   "flags": []
+  },
+  {
+   "move_number": 83,
+   "color": "B",
+   "played": "rp",
+   "recommended": "lb",
+   "score_loss": 3.61968835,
+   "raw_score_loss": 3.61968835,
+   "sequential_score_loss": 3.1392253999999995,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 84,
+   "color": "W",
+   "played": "qo",
+   "recommended": "qo",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.006850040000000002,
+   "flags": []
+  },
+  {
+   "move_number": 85,
+   "color": "B",
+   "played": "mp",
+   "recommended": "lb",
+   "score_loss": 1.3771655465100001,
+   "raw_score_loss": 1.3771655465100001,
+   "sequential_score_loss": 1.3132907064000001,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 86,
+   "color": "W",
+   "played": "bl",
+   "recommended": "jc",
+   "score_loss": 0.3044041299,
+   "raw_score_loss": 0.3044041299,
+   "sequential_score_loss": 0.6319185124,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 87,
+   "color": "B",
+   "played": "bm",
+   "recommended": "cl",
+   "score_loss": 1.0338169000000001,
+   "raw_score_loss": 1.0338169000000001,
+   "sequential_score_loss": 0.9676345199999999,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 88,
+   "color": "W",
+   "played": "kc",
+   "recommended": "jc",
+   "score_loss": 0.3078869662,
+   "raw_score_loss": 0.3078869662,
+   "sequential_score_loss": 0.590035968,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 89,
+   "color": "B",
+   "played": "jb",
+   "recommended": "gi",
+   "score_loss": 0.601437792,
+   "raw_score_loss": 0.601437792,
+   "sequential_score_loss": 0.362047417,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 90,
+   "color": "W",
+   "played": "kb",
+   "recommended": "lc",
+   "score_loss": 0.298532247,
+   "raw_score_loss": 0.298532247,
+   "sequential_score_loss": 0.255233802,
+   "flags": []
+  },
+  {
+   "move_number": 91,
+   "color": "B",
+   "played": "bk",
+   "recommended": "gi",
+   "score_loss": 0.947650764,
+   "raw_score_loss": 0.947650764,
+   "sequential_score_loss": 1.030824149,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 92,
+   "color": "W",
+   "played": "ck",
+   "recommended": "gi",
+   "score_loss": 1.312451585,
+   "raw_score_loss": 1.312451585,
+   "sequential_score_loss": 1.184179317,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 93,
+   "color": "B",
+   "played": "cl",
+   "recommended": "cl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 94,
+   "color": "W",
+   "played": "bj",
+   "recommended": "dh",
+   "score_loss": 0.315269166,
+   "raw_score_loss": 0.315269166,
+   "sequential_score_loss": 0.554974898,
+   "flags": []
+  },
+  {
+   "move_number": 95,
+   "color": "B",
+   "played": "al",
+   "recommended": "gi",
+   "score_loss": 2.573551764,
+   "raw_score_loss": 2.573551764,
+   "sequential_score_loss": 2.734452499,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 96,
+   "color": "W",
+   "played": "jd",
+   "recommended": "lk",
+   "score_loss": 0.21881696000000006,
+   "raw_score_loss": 0.21881696000000006,
+   "sequential_score_loss": 0.04949098000000007,
+   "flags": []
+  },
+  {
+   "move_number": 97,
+   "color": "B",
+   "played": "je",
+   "recommended": "es",
+   "score_loss": 0.43526441000000005,
+   "raw_score_loss": 0.43526441000000005,
+   "sequential_score_loss": 0.4892404800000001,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 98,
+   "color": "W",
+   "played": "dr",
+   "recommended": "lk",
+   "score_loss": 0.6385098500000002,
+   "raw_score_loss": 0.6385098500000002,
+   "sequential_score_loss": 0.3351763000000001,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 99,
+   "color": "B",
+   "played": "mn",
+   "recommended": "gp",
+   "score_loss": 1.4096493,
+   "raw_score_loss": 1.4096493,
+   "sequential_score_loss": 1.4113021799999999,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 100,
+   "color": "W",
+   "played": "kd",
+   "recommended": "ae",
+   "score_loss": 0.66784299,
+   "raw_score_loss": 0.66784299,
+   "sequential_score_loss": 0.2236083299999998,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 101,
+   "color": "B",
+   "played": "ke",
+   "recommended": "hb",
+   "score_loss": 0.4564156599999998,
+   "raw_score_loss": 0.4564156599999998,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 102,
+   "color": "W",
+   "played": "rg",
+   "recommended": "hc",
+   "score_loss": 1.7586200399999998,
+   "raw_score_loss": 1.7586200399999998,
+   "sequential_score_loss": 1.47748437,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 103,
+   "color": "B",
+   "played": "nm",
+   "recommended": "rh",
+   "score_loss": 1.91839944,
+   "raw_score_loss": 1.91839944,
+   "sequential_score_loss": 1.6587885,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 104,
+   "color": "W",
+   "played": "om",
+   "recommended": "nj",
+   "score_loss": 1.8403724399999999,
+   "raw_score_loss": 1.8403724399999999,
+   "sequential_score_loss": 1.71319852,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 105,
+   "color": "B",
+   "played": "gi",
+   "recommended": "hb",
+   "score_loss": 0.8176374,
+   "raw_score_loss": 0.8176374,
+   "sequential_score_loss": 0.50933527,
+   "flags": []
+  },
+  {
+   "move_number": 106,
+   "color": "W",
+   "played": "io",
+   "recommended": "hc",
+   "score_loss": 1.27321925,
+   "raw_score_loss": 1.27321925,
+   "sequential_score_loss": 1.0543578070000001,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 107,
+   "color": "B",
+   "played": "hb",
+   "recommended": "rh",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.284516356,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 108,
+   "color": "W",
+   "played": "fi",
+   "recommended": "fi",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 109,
+   "color": "B",
+   "played": "gj",
+   "recommended": "gj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 110,
+   "color": "W",
+   "played": "fj",
+   "recommended": "fj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 111,
+   "color": "B",
+   "played": "eh",
+   "recommended": "rh",
+   "score_loss": 0.9109820319999999,
+   "raw_score_loss": 0.9109820319999999,
+   "sequential_score_loss": 0.741328465,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 112,
+   "color": "W",
+   "played": "fh",
+   "recommended": "fh",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 113,
+   "color": "B",
+   "played": "gk",
+   "recommended": "rh",
+   "score_loss": 0.33305006999999986,
+   "raw_score_loss": 0.33305006999999986,
+   "sequential_score_loss": 0.39367653,
+   "flags": []
+  },
+  {
+   "move_number": 114,
+   "color": "W",
+   "played": "lo",
+   "recommended": "rh",
+   "score_loss": 1.5301979879999998,
+   "raw_score_loss": 1.5301979879999998,
+   "sequential_score_loss": 1.473049912,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 115,
+   "color": "B",
+   "played": "mo",
+   "recommended": "rh",
+   "score_loss": 1.147994554,
+   "raw_score_loss": 1.147994554,
+   "sequential_score_loss": 1.2202890219999998,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 116,
+   "color": "W",
+   "played": "jk",
+   "recommended": "cp",
+   "score_loss": 0.7006918199999999,
+   "raw_score_loss": 0.7006918199999999,
+   "sequential_score_loss": 0.5409107799999999,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 117,
+   "color": "B",
+   "played": "lk",
+   "recommended": "lk",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.05837767999999999,
+   "flags": []
+  },
+  {
+   "move_number": 118,
+   "color": "W",
+   "played": "nj",
+   "recommended": "im",
+   "score_loss": 0.5479216849999999,
+   "raw_score_loss": 0.5479216849999999,
+   "sequential_score_loss": 0.05982629999999989,
+   "flags": []
+  },
+  {
+   "move_number": 119,
+   "color": "B",
+   "played": "ni",
+   "recommended": "ni",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.09095845999999996,
+   "flags": []
+  },
+  {
+   "move_number": 120,
+   "color": "W",
+   "played": "cp",
+   "recommended": "im",
+   "score_loss": 0.25680732000000006,
+   "raw_score_loss": 0.25680732000000006,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 121,
+   "color": "B",
+   "played": "co",
+   "recommended": "bp",
+   "score_loss": 0.2774454100000001,
+   "raw_score_loss": 0.2774454100000001,
+   "sequential_score_loss": 0.027588439999999936,
+   "flags": []
+  },
+  {
+   "move_number": 122,
+   "color": "W",
+   "played": "il",
+   "recommended": "im",
+   "score_loss": 0.52692782,
+   "raw_score_loss": 0.52692782,
+   "sequential_score_loss": 0.34128669999999994,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 123,
+   "color": "B",
+   "played": "ij",
+   "recommended": "gp",
+   "score_loss": 0.11118325000000007,
+   "raw_score_loss": 0.11118325000000007,
+   "sequential_score_loss": 0.21216447000000005,
+   "flags": []
+  },
+  {
+   "move_number": 124,
+   "color": "W",
+   "played": "rh",
+   "recommended": "rh",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 125,
+   "color": "B",
+   "played": "jo",
+   "recommended": "gn",
+   "score_loss": 0.4490432,
+   "raw_score_loss": 0.4490432,
+   "sequential_score_loss": 0.56161168,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 126,
+   "color": "W",
+   "played": "in",
+   "recommended": "in",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 127,
+   "color": "B",
+   "played": "go",
+   "recommended": "gn",
+   "score_loss": 0.44813363000000006,
+   "raw_score_loss": 0.44813363000000006,
+   "sequential_score_loss": 0.31067292,
+   "flags": []
+  },
+  {
+   "move_number": 128,
+   "color": "W",
+   "played": "jn",
+   "recommended": "kn",
+   "score_loss": 0.11330704999999996,
+   "raw_score_loss": 0.11330704999999996,
+   "sequential_score_loss": 0.43548926,
+   "flags": []
+  },
+  {
+   "move_number": 129,
+   "color": "B",
+   "played": "kn",
+   "recommended": "gq",
+   "score_loss": 0.48062453999999977,
+   "raw_score_loss": 0.48062453999999977,
+   "sequential_score_loss": 1.2046926099999997,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 130,
+   "color": "W",
+   "played": "hk",
+   "recommended": "fn",
+   "score_loss": 0.45182616,
+   "raw_score_loss": 0.45182616,
+   "sequential_score_loss": 1.01422137,
+   "flags": []
+  },
+  {
+   "move_number": 131,
+   "color": "B",
+   "played": "gm",
+   "recommended": "gq",
+   "score_loss": 0.7497227199999998,
+   "raw_score_loss": 0.7497227199999998,
+   "sequential_score_loss": 0.6561891100000001,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 132,
+   "color": "W",
+   "played": "ip",
+   "recommended": "kp",
+   "score_loss": 1.13334006,
+   "raw_score_loss": 1.13334006,
+   "sequential_score_loss": 2.098004365,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 133,
+   "color": "B",
+   "played": "hj",
+   "recommended": "hj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.16570411099999993,
+   "flags": []
+  },
+  {
+   "move_number": 134,
+   "color": "W",
+   "played": "jj",
+   "recommended": "bp",
+   "score_loss": 0.18789669600000003,
+   "raw_score_loss": 0.18789669600000003,
+   "sequential_score_loss": 0.17754892599999994,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 135,
+   "color": "B",
+   "played": "ji",
+   "recommended": "ji",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.145352598,
+   "flags": []
+  },
+  {
+   "move_number": 136,
+   "color": "W",
+   "played": "cs",
+   "recommended": "bp",
+   "score_loss": 0.23232298099999993,
+   "raw_score_loss": 0.23232298099999993,
+   "sequential_score_loss": 0.20870021400000005,
+   "flags": []
+  },
+  {
+   "move_number": 137,
+   "color": "B",
+   "played": "bs",
+   "recommended": "bs",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 138,
+   "color": "W",
+   "played": "ds",
+   "recommended": "ds",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.007689957999999941,
+   "flags": []
+  },
+  {
+   "move_number": 139,
+   "color": "B",
+   "played": "br",
+   "recommended": "bq",
+   "score_loss": 0.28766103200000004,
+   "raw_score_loss": 0.28766103200000004,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 140,
+   "color": "W",
+   "played": "rq",
+   "recommended": "ko",
+   "score_loss": 0.005619258999999932,
+   "raw_score_loss": 0.005619258999999932,
+   "sequential_score_loss": 0.08066538000000006,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 141,
+   "color": "B",
+   "played": "rr",
+   "recommended": "rr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 142,
+   "color": "W",
+   "played": "sp",
+   "recommended": "qg",
+   "score_loss": 0.145654878,
+   "raw_score_loss": 0.145654878,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 143,
+   "color": "B",
+   "played": "ml",
+   "recommended": "km",
+   "score_loss": 0.586437192,
+   "raw_score_loss": 0.586437192,
+   "sequential_score_loss": 0.4475905240000001,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 144,
+   "color": "W",
+   "played": "nl",
+   "recommended": "pe",
+   "score_loss": 0.1258834900000001,
+   "raw_score_loss": 0.1258834900000001,
+   "sequential_score_loss": 0.23124091600000007,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 145,
+   "color": "B",
+   "played": "ae",
+   "recommended": "km",
+   "score_loss": 1.8619184439999998,
+   "raw_score_loss": 1.8619184439999998,
+   "sequential_score_loss": 1.988851586,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 146,
+   "color": "W",
+   "played": "el",
+   "recommended": "ln",
+   "score_loss": 2.89496554807,
+   "raw_score_loss": 2.89496554807,
+   "sequential_score_loss": 2.3386509909999997,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 147,
+   "color": "B",
+   "played": "ei",
+   "recommended": "km",
+   "score_loss": 0.574117263,
+   "raw_score_loss": 0.574117263,
+   "sequential_score_loss": 2.349113271,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 148,
+   "color": "W",
+   "played": "ej",
+   "recommended": "ej",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.10108053999999989,
+   "flags": []
+  },
+  {
+   "move_number": 149,
+   "color": "B",
+   "played": "di",
+   "recommended": "di",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 150,
+   "color": "W",
+   "played": "ea",
+   "recommended": "ln",
+   "score_loss": 1.9763443239999998,
+   "raw_score_loss": 1.9763443239999998,
+   "sequential_score_loss": 0.24123591000000033,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 151,
+   "color": "B",
+   "played": "da",
+   "recommended": "da",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.2151295900000001,
+   "flags": []
+  },
+  {
+   "move_number": 152,
+   "color": "W",
+   "played": "fa",
+   "recommended": "ln",
+   "score_loss": 0.6968813200000001,
+   "raw_score_loss": 0.6968813200000001,
+   "sequential_score_loss": 0.01744590999999973,
+   "flags": []
+  },
+  {
+   "move_number": 153,
+   "color": "B",
+   "played": "cb",
+   "recommended": "cb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 154,
+   "color": "W",
+   "played": "ln",
+   "recommended": "ln",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 155,
+   "color": "B",
+   "played": "km",
+   "recommended": "fk",
+   "score_loss": 0.10910416000000023,
+   "raw_score_loss": 0.10910416000000023,
+   "sequential_score_loss": 0.06476707999999975,
+   "flags": []
+  },
+  {
+   "move_number": 156,
+   "color": "W",
+   "played": "ko",
+   "recommended": "ko",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 157,
+   "color": "B",
+   "played": "af",
+   "recommended": "af",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.46065831999999984,
+   "flags": []
+  },
+  {
+   "move_number": 158,
+   "color": "W",
+   "played": "eg",
+   "recommended": "eg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 159,
+   "color": "B",
+   "played": "dh",
+   "recommended": "gp",
+   "score_loss": 0.3519949600000003,
+   "raw_score_loss": 0.3519949600000003,
+   "sequential_score_loss": 0.11194479999999984,
+   "flags": []
+  },
+  {
+   "move_number": 160,
+   "color": "W",
+   "played": "df",
+   "recommended": "df",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.09497956000000007,
+   "flags": []
+  },
+  {
+   "move_number": 161,
+   "color": "B",
+   "played": "ef",
+   "recommended": "ef",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 162,
+   "color": "W",
+   "played": "dj",
+   "recommended": "dj",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 163,
+   "color": "B",
+   "played": "de",
+   "recommended": "de",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 164,
+   "color": "W",
+   "played": "ci",
+   "recommended": "dl",
+   "score_loss": 1.7395583900000002,
+   "raw_score_loss": 1.7395583900000002,
+   "sequential_score_loss": 0.13121522000000008,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 165,
+   "color": "B",
+   "played": "df",
+   "recommended": "df",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 166,
+   "color": "W",
+   "played": "dl",
+   "recommended": "dl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 167,
+   "color": "B",
+   "played": "fk",
+   "recommended": "gq",
+   "score_loss": 0.31418294000000024,
+   "raw_score_loss": 0.31418294000000024,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 168,
+   "color": "W",
+   "played": "ek",
+   "recommended": "ek",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 169,
+   "color": "B",
+   "played": "jl",
+   "recommended": "kp",
+   "score_loss": 1.49882244,
+   "raw_score_loss": 1.49882244,
+   "sequential_score_loss": 1.4867249399999998,
+   "flags": [
+    "separate_search"
+   ]
+  },
+  {
+   "move_number": 170,
+   "color": "W",
+   "played": "kp",
+   "recommended": "kp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 171,
+   "color": "B",
+   "played": "im",
+   "recommended": "im",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 172,
+   "color": "W",
+   "played": "hm",
+   "recommended": "jm",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.3151602800000006,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 173,
+   "color": "B",
+   "played": "ik",
+   "recommended": "ik",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 174,
+   "color": "W",
+   "played": "kl",
+   "recommended": "jm",
+   "score_loss": 0.4516682999999997,
+   "raw_score_loss": 0.4516682999999997,
+   "sequential_score_loss": 0.32797131000000057,
+   "flags": []
+  },
+  {
+   "move_number": 175,
+   "color": "B",
+   "played": "hl",
+   "recommended": "hl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 176,
+   "color": "W",
+   "played": "jm",
+   "recommended": "lm",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.22706179000000004,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 177,
+   "color": "B",
+   "played": "il",
+   "recommended": "il",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.2218633600000004,
+   "flags": []
+  },
+  {
+   "move_number": 178,
+   "color": "W",
+   "played": "ll",
+   "recommended": "ll",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 179,
+   "color": "B",
+   "played": "gp",
+   "recommended": "mm",
+   "score_loss": 0.05105000000000004,
+   "raw_score_loss": 0.05105000000000004,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 180,
+   "color": "W",
+   "played": "gq",
+   "recommended": "sr",
+   "score_loss": 0.17396250999999996,
+   "raw_score_loss": 0.17396250999999996,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 181,
+   "color": "B",
+   "played": "mm",
+   "recommended": "mm",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.15949953999999966,
+   "flags": []
+  },
+  {
+   "move_number": 182,
+   "color": "W",
+   "played": "lm",
+   "recommended": "lm",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 183,
+   "color": "B",
+   "played": "kk",
+   "recommended": "kk",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 184,
+   "color": "W",
+   "played": "np",
+   "recommended": "sr",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.03093502999999931,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 185,
+   "color": "B",
+   "played": "nq",
+   "recommended": "nq",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.004564740000000178,
+   "flags": []
+  },
+  {
+   "move_number": 186,
+   "color": "W",
+   "played": "sr",
+   "recommended": "ic",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.05772557999999961,
+   "sequential_score_loss": 0.06782119000000009,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 187,
+   "color": "B",
+   "played": "rs",
+   "recommended": "rs",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.2934200200000001,
+   "flags": []
+  },
+  {
+   "move_number": 188,
+   "color": "W",
+   "played": "qg",
+   "recommended": "ic",
+   "score_loss": 0.55610479,
+   "raw_score_loss": 0.55610479,
+   "sequential_score_loss": 0.7807394500000004,
+   "flags": []
+  },
+  {
+   "move_number": 189,
+   "color": "B",
+   "played": "ph",
+   "recommended": "pf",
+   "score_loss": 1.3513572200000006,
+   "raw_score_loss": 1.3513572200000006,
+   "sequential_score_loss": 1.4322482900000004,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 190,
+   "color": "W",
+   "played": "pf",
+   "recommended": "pf",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 191,
+   "color": "B",
+   "played": "of",
+   "recommended": "of",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 192,
+   "color": "W",
+   "played": "pe",
+   "recommended": "pe",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 193,
+   "color": "B",
+   "played": "oe",
+   "recommended": "oe",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 194,
+   "color": "W",
+   "played": "qd",
+   "recommended": "ic",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.1466266100000002,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 195,
+   "color": "B",
+   "played": "ka",
+   "recommended": "ka",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 196,
+   "color": "W",
+   "played": "lb",
+   "recommended": "lb",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 197,
+   "color": "B",
+   "played": "bg",
+   "recommended": "bg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 198,
+   "color": "W",
+   "played": "ah",
+   "recommended": "ah",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.04836326000000035,
+   "flags": []
+  },
+  {
+   "move_number": 199,
+   "color": "B",
+   "played": "oc",
+   "recommended": "id",
+   "score_loss": 0.01024592000000002,
+   "raw_score_loss": 0.01024592000000002,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 200,
+   "color": "W",
+   "played": "ob",
+   "recommended": "ob",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 201,
+   "color": "B",
+   "played": "oj",
+   "recommended": "hn",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.15465137999999978,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits",
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 202,
+   "color": "W",
+   "played": "ok",
+   "recommended": "ok",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 203,
+   "color": "B",
+   "played": "hn",
+   "recommended": "id",
+   "score_loss": 0.2127183300000004,
+   "raw_score_loss": 0.2127183300000004,
+   "sequential_score_loss": 0.03297092000000035,
+   "flags": []
+  },
+  {
+   "move_number": 204,
+   "color": "W",
+   "played": "ic",
+   "recommended": "ic",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 205,
+   "color": "B",
+   "played": "hc",
+   "recommended": "hc",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 206,
+   "color": "W",
+   "played": "ib",
+   "recommended": "ib",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 207,
+   "color": "B",
+   "played": "ia",
+   "recommended": "ia",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 208,
+   "color": "W",
+   "played": "jc",
+   "recommended": "la",
+   "score_loss": 0.14735485000000015,
+   "raw_score_loss": 0.14735485000000015,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 209,
+   "color": "B",
+   "played": "ja",
+   "recommended": "fp",
+   "score_loss": 0.28792316000000007,
+   "raw_score_loss": 0.28792316000000007,
+   "sequential_score_loss": 0.07934266000000001,
+   "flags": []
+  },
+  {
+   "move_number": 210,
+   "color": "W",
+   "played": "la",
+   "recommended": "la",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 211,
+   "color": "B",
+   "played": "ha",
+   "recommended": "ha",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 212,
+   "color": "W",
+   "played": "pp",
+   "recommended": "fp",
+   "score_loss": 0.027891850000000495,
+   "raw_score_loss": 0.027891850000000495,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 213,
+   "color": "B",
+   "played": "pr",
+   "recommended": "pr",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.021893320000000216,
+   "flags": []
+  },
+  {
+   "move_number": 214,
+   "color": "W",
+   "played": "fp",
+   "recommended": "fp",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 215,
+   "color": "B",
+   "played": "jr",
+   "recommended": "gg",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.10552463000000056,
+   "sequential_score_loss": 0.05477248999999951,
+   "flags": [
+    "low_visits",
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 216,
+   "color": "W",
+   "played": "ir",
+   "recommended": "lp",
+   "score_loss": 0.45468275999999985,
+   "raw_score_loss": 0.45468275999999985,
+   "sequential_score_loss": 0.0962242799999995,
+   "flags": []
+  },
+  {
+   "move_number": 217,
+   "color": "B",
+   "played": "ls",
+   "recommended": "gg",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.09055005000000005,
+   "sequential_score_loss": 0.007696069999999722,
+   "flags": [
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 218,
+   "color": "W",
+   "played": "js",
+   "recommended": "js",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 219,
+   "color": "B",
+   "played": "nd",
+   "recommended": "en",
+   "score_loss": 0.32545597000000015,
+   "raw_score_loss": 0.32545597000000015,
+   "sequential_score_loss": 0.2427515300000005,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 220,
+   "color": "W",
+   "played": "fn",
+   "recommended": "dn",
+   "score_loss": 0.6953950600000001,
+   "raw_score_loss": 0.6953950600000001,
+   "sequential_score_loss": 0.29719461,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 221,
+   "color": "B",
+   "played": "aj",
+   "recommended": "en",
+   "score_loss": 0.2936110599999999,
+   "raw_score_loss": 0.2936110599999999,
+   "sequential_score_loss": 0.35758840000000003,
+   "flags": [
+    "low_visits"
+   ]
+  },
+  {
+   "move_number": 222,
+   "color": "W",
+   "played": "ai",
+   "recommended": "ai",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 223,
+   "color": "B",
+   "played": "ak",
+   "recommended": "ak",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 224,
+   "color": "W",
+   "played": "dn",
+   "recommended": "dn",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 225,
+   "color": "B",
+   "played": "cn",
+   "recommended": "cn",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 226,
+   "color": "W",
+   "played": "gn",
+   "recommended": "gg",
+   "score_loss": 0.07181823999999981,
+   "raw_score_loss": 0.07181823999999981,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 227,
+   "color": "B",
+   "played": "ho",
+   "recommended": "ho",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 228,
+   "color": "W",
+   "played": "gg",
+   "recommended": "gg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 229,
+   "color": "B",
+   "played": "hg",
+   "recommended": "hg",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 230,
+   "color": "W",
+   "played": "id",
+   "recommended": "id",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 231,
+   "color": "B",
+   "played": "ie",
+   "recommended": "ie",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 232,
+   "color": "W",
+   "played": "fl",
+   "recommended": "fl",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 233,
+   "color": "B",
+   "played": "ed",
+   "recommended": "ms",
+   "score_loss": 0.0,
+   "raw_score_loss": -0.10859482000000042,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits",
+    "negative_difference_search_noise"
+   ]
+  },
+  {
+   "move_number": 234,
+   "color": "W",
+   "played": "fd",
+   "recommended": "fd",
+   "score_loss": 0.0,
+   "raw_score_loss": 0.0,
+   "sequential_score_loss": 0.0,
+   "flags": []
+  },
+  {
+   "move_number": 235,
+   "color": "B",
+   "played": "bf",
+   "recommended": "ms",
+   "score_loss": 0.03369918000000016,
+   "raw_score_loss": 0.03369918000000016,
+   "sequential_score_loss": 0.0,
+   "flags": [
+    "low_visits"
+   ]
+  }
+ ]
+}

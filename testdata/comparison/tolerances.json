@@ -1,0 +1,55 @@
+{
+ "schema": "comparison.tolerances.v1",
+ "decided": "2026-11-09, by the owner, from the prototype's two runs per game and before any new run was compared",
+ "loss_tolerance_points": 0.464,
+ "loss_tolerance_source": "95th percentile of |run 1 - run 2| of the prototype, pooled over all games",
+ "min_share_within": 0.9,
+ "set_slack": 0.25,
+ "envelope": {
+  "games": {
+   "kejie-2025-11-27": {
+    "moves": 111,
+    "p50": 0.0,
+    "p90": 0.451,
+    "p95": 1.06,
+    "max": 9.651,
+    "above_threshold_jaccard": 0.667,
+    "top_jaccard": 0.5
+   },
+   "m3-mistake": {
+    "moves": 6,
+    "p50": 0.026,
+    "p90": 0.088,
+    "p95": 0.088,
+    "max": 0.088,
+    "above_threshold_jaccard": 1.0,
+    "top_jaccard": 1.0
+   },
+   "maruyama-ito-1976": {
+    "moves": 235,
+    "p50": 0.016,
+    "p90": 0.242,
+    "p95": 0.404,
+    "max": 1.149,
+    "above_threshold_jaccard": 1.0,
+    "top_jaccard": 1.0
+   },
+   "sample-game": {
+    "moves": 4,
+    "p50": 0.01,
+    "p90": 0.037,
+    "p95": 0.037,
+    "max": 0.037,
+    "above_threshold_jaccard": 1.0,
+    "top_jaccard": 1.0
+   }
+  },
+  "pooled": {
+   "moves": 356,
+   "p50": 0.002,
+   "p90": 0.284,
+   "p95": 0.464,
+   "max": 9.651
+  }
+ }
+}
